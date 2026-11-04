@@ -124,9 +124,6 @@ provider. No account configuration or email delivery has been performed.
 
 ### D11: Start with infrastructure, not domain implementation
 
-The project owner requested: "creo que por ahora estamos viendo demasiada logica
-arranquemos iniciando el proyecto".
-
 The current implementation scope is a runnable scaffold, development commands,
 basic health/page tests, type checking, and setup documentation. Do not interpret
 the product decisions above as a request to implement them all immediately.
