@@ -20,7 +20,6 @@ jobs:
     timeout-minutes: 10
     env:
       CI: "true"
-      TMPDIR: ${{ runner.temp }}
     steps:
       - name: Check out code
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -37,4 +36,6 @@ jobs:
       - name: Typecheck backend
         run: bun run --filter @modpack/api typecheck
       - name: Test backend
+        env:
+          TMPDIR: ${{ runner.temp }}
         run: bun test apps/api/tests
