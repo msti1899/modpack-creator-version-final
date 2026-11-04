@@ -9,6 +9,8 @@ are not implemented. See the [local identity guide](docs/guides/local-identity.m
 
 Confirmed product and architecture choices are recorded in the
 [project documentation](docs/README.md), alongside a reusable decision template.
+For ongoing work, use the [backend roadmap](docs/plans/backend-roadmap.md) and
+[current handoff](docs/handoff.md).
 
 ## Run locally
 

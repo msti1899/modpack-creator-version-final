@@ -3,6 +3,10 @@
 Choose a document by the question you need to answer. Decisions explain why;
 they are not a substitute for usage instructions, API contracts, or architecture.
 
+To resume work, start with the [current handoff](handoff.md), then the relevant
+milestone in the [backend roadmap](plans/backend-roadmap.md). Read historical
+feature logs only when the current task needs their evidence.
+
 ## Documentation map
 
 | Type | Purpose | Current documents |
@@ -11,11 +15,20 @@ they are not a substitute for usage instructions, API contracts, or architecture
 | Reference | Look up contracts, parameters, errors, and limits | [Backend API](reference/backend-api.md) |
 | Architecture | Understand components, boundaries, and data flow | [Stateless Modrinth backend](architecture/modrinth-backend.md) |
 | Decisions | Understand accepted choices and their trade-offs | [Initial scope and stack](decisions/0001-project-baseline.md) |
-| Templates | Use a consistent structure for recurring records | [Decision template](templates/decision.md) |
+| Plans | Follow approved outcomes, sequence, acceptance criteria, and pending decisions | [Backend roadmap](plans/backend-roadmap.md) |
+| Handoff | Resume from the latest verified state and next action | [Current checkpoint](handoff.md) |
+| Templates | Use a consistent structure for recurring records | [Decision template](templates/decision.md); [Plan template](templates/plan.md) |
 
 Keep local setup commands in the [root README](../README.md). Add new documents
 under the relevant directory and link them here. Do not create empty documents
 just to fill a category. An accepted decision is not evidence of implementation.
+
+## Maintain continuity
+
+Record new plans under `docs/plans/`. Mark approval explicitly, keep proposed
+ideas separate, and update only affected milestones when the user changes scope.
+At a delivery or interruption, update `docs/handoff.md` with the verified snapshot,
+pending work, and next action. Link detailed evidence rather than copying logs.
 
 ## Record a decision
 
