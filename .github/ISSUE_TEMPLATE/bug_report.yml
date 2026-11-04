@@ -1,0 +1,42 @@
+name: Bug report
+description: Report a reproducible problem in Modpack Creator.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: Do not include passwords, tokens, private links, or personal data in reports or logs.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the problem and the affected endpoint or feature.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include a minimal request and public mod/version IDs when relevant. Remove secrets.
+      placeholder: Describe the steps that reliably reproduce the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Explain what should have happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include the project commit/version, OS, and Bun version. Add Minecraft and loader versions when relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized logs or response
+      description: Optional. Remove credentials and private information before posting.
+      render: text
