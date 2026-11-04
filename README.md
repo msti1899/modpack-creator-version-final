@@ -47,7 +47,7 @@ apps/
     src/dev.ts         Local Bun server only
 ```
 
-See the [backend API guide](apps/api/README.md) for the stateless search,
+See the [modpack creation guide](docs/guides/create-modpack.md) for the stateless search,
 dependency-approval, and pack-download workflow. Supply an exact Minecraft and
 loader version; runtime compatibility is not guaranteed. No mods are redistributed.
 

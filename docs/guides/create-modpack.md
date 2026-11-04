@@ -52,36 +52,8 @@ with MIME `application/x-modrinth-modpack+zip`; its ZIP contains `modrinth.index
 verified SHA1/SHA512 metadata, client/server support, and Modrinth CDN download URLs.
 It does not guarantee runtime compatibility between arbitrary mods.
 
-## Errors and limits
+## Next steps
 
-Failures return `{ "error": "..." }`: 400 for invalid input, 409 for incompatible or
-unresolvable selections, 502 for upstream failures (including rate limits), and 504
-for timeouts. Inspect the status before treating an export response as a ZIP.
-
-- At most 50 mods including required dependencies, 100 upstream lookups per operation.
-- Request bodies are limited to 16 KiB; pack names and queries to 100 characters.
-- Metadata lookups have an 8-second timeout and a 20-second operation deadline.
-- Only HTTPS `cdn.modrinth.com` download metadata is accepted; no arbitrary URLs or JARs
-  are fetched. File names, collisions, hashes, and sizes are checked before exporting.
-- Required/incompatible declarations are honored; undocumented runtime conflicts are
-  outside this stateless flow. Packs and selections disappear when the client discards them.
-
-## Verification and rollback
-
-`bun test apps/api/tests` exercises the public Hono routes with deterministic fixtures.
-Python 3's independent ZIP reader checks archives for all four loader keys. Tests print
-ZIP scratch directories so the parent workflow can remove them. `bun run --filter
-@modpack/api typecheck` checks TypeScript. Existing `/health` and unknown-route behavior
-remain unchanged. Runtime smoke can use the curl requests above against the local server.
-
-The rollback unit is `src/modrinth.ts`, `src/zip.ts`, the added routes/factory in
-`src/index.ts`, `tests/packs.test.ts`, and this guide. Removing it restores the initial
-health-only API without changing frontend files or dependencies.
-
-## Primary references
-
-- [Modrinth API](https://docs.modrinth.com/api/)
-- [Search](https://docs.modrinth.com/api/operations/searchprojects/)
-- [Project versions](https://docs.modrinth.com/api/operations/getprojectversions/)
-- [Version metadata](https://docs.modrinth.com/api/operations/getversion/)
-- [Modrinth pack format](https://support.modrinth.com/en/articles/8802351-modrinth-modpack-format-mrpack)
+See the [API reference](../reference/backend-api.md) for complete contracts,
+errors, and limits, and the [backend architecture](../architecture/modrinth-backend.md)
+for boundaries and verification.
