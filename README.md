@@ -2,7 +2,9 @@
 
 An open-source Minecraft modpack project. This initial scaffold contains two
 independent applications in a Bun workspace: a Next.js frontend and a Hono API.
-It does not implement accounts, groups, voting, or modpack generation yet.
+The backend supports Modrinth search, dependency resolution, and `.mrpack` export.
+The frontend is still a starter page. Accounts, groups, voting, and persistence
+are not implemented.
 
 Confirmed product and architecture choices are recorded in the
 [project documentation](docs/README.md), alongside a reusable decision template.
@@ -45,6 +47,10 @@ apps/
     src/dev.ts         Local Bun server only
 ```
 
+See the [modpack creation guide](docs/guides/create-modpack.md) for the stateless search,
+dependency-approval, and pack-download workflow. Supply an exact Minecraft and
+loader version; runtime compatibility is not guaranteed. No mods are redistributed.
+
 The API and frontend are separate applications, not Next.js API routes. Their
 health/page tests do not require credentials or external services. `/health`
 checks the API process only; it does not claim database or email connectivity.
@@ -71,7 +77,7 @@ eligibility.
 - Supabase PostgreSQL and Auth: Discord, Google, and email/password.
 - Brevo: confirmation and password-recovery emails; verify sender eligibility
   and real delivery before launch. No secondary email provider initially.
-- Modrinth: catalog and `.mrpack` generation.
+- Modrinth: the backend catalog and `.mrpack` export are implemented; frontend integration is deferred.
 
 The initial operating target is USD 0/month and approximately 15 users, not a
 guarantee of unlimited free service. Do not add service credentials until the

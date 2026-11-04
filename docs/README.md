@@ -1,8 +1,21 @@
 # Project documentation
 
-Start with the [current decision baseline](decisions/0001-project-baseline.md).
-It records the product and technical choices agreed before implementation.
-An accepted decision is not evidence that its behavior has been implemented.
+Choose a document by the question you need to answer. Decisions explain why;
+they are not a substitute for usage instructions, API contracts, or architecture.
+
+## Documentation map
+
+| Type | Purpose | Current documents |
+| --- | --- | --- |
+| Guides | Complete a task step by step | [Create and download a modpack](guides/create-modpack.md) |
+| Reference | Look up contracts, parameters, errors, and limits | [Backend API](reference/backend-api.md) |
+| Architecture | Understand components, boundaries, and data flow | [Stateless Modrinth backend](architecture/modrinth-backend.md) |
+| Decisions | Understand accepted choices and their trade-offs | [Initial scope and stack](decisions/0001-project-baseline.md) |
+| Templates | Use a consistent structure for recurring records | [Decision template](templates/decision.md) |
+
+Keep local setup commands in the [root README](../README.md). Add new documents
+under the relevant directory and link them here. Do not create empty documents
+just to fill a category. An accepted decision is not evidence of implementation.
 
 ## Record a decision
 
