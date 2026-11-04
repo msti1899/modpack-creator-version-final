@@ -9,9 +9,9 @@ Delivery: ask-on-risk; forecast about 350 authored lines. Preserve existing publ
 - Checks: deterministic public-route tests and existing backend suite/typecheck; real disposable local Auth user/token checks; negative token cases; endpoint isolation; independent ODD verifier for risk2. Explicitly report hosted/cloud/email/OAuth limitations.
 
 ## Tasks
-- T1 [S1-S3] Auth middleware, GET /me, server configuration and route regression tests — inline (one cohesive unit, no writer trigger), own and independent checks passed, commit pending.
-- T2 [S1-S3] Local verification, API/reference/architecture docs and independent verification — inline plus odd-verify for security, own and independent checks passed, commit pending.
-- T3 [S1-S3] Native review applicability and delivery evidence — parent orchestration, pending, commit pending.
+- T1 [S1-S3] Auth middleware, GET /me, server configuration and route regression tests — inline (one cohesive unit, no writer trigger), complete; own and independent checks passed; implementation a9c5bad.
+- T2 [S1-S3] Local verification, API/reference/architecture docs and independent verification — inline plus odd-verify for security, complete; own and independent checks passed; implementation a9c5bad.
+- T3 [S1-S3] Native review applicability and delivery evidence — parent orchestration; independent checks passed, native review pending; implementation a9c5bad.
 
 ## Log
 - L1: User continuation: "dale" after explaining local Supabase needs no cloud project. Previous roadmap approval: "Go ahead with the plan." First identity delivery is the proposed Hono session validation and GET /me, not all account/provider features at once.
@@ -24,3 +24,5 @@ Delivery: ask-on-risk; forecast about 350 authored lines. Preserve existing publ
 - L7: Actual disposable localSupabase signup issued a5secondtoken. GET/me returned200 for it; missing/invalid/publishable-as-user/anon-as-user/expired all401, challenge/no-store verified. Auth project/account/volumes disposed without touching original data. No cloud, external email, OAuth or session-revocation guarantees tested. Independent verification pending.
 
 - L8: odd-verify independently passed fresh frozen install/rootcheck29tests531assertions, baselineAPI15tests420assertions,4extra securityprobes40assertions including actual stalled HTTPbody->504, and real5secondexpiredlocalAuthtoken rejection. Existing health/404/search/resolve/export bodies, headers and ZIPbytes matched baseline with and without invalidBearer. Localports remained127only; no blockers, no cloudclaims. Parent narrows documentation to missing/malformed config503: a well-formed wrong-project key may still receive upstream401.
+
+- L9: Work unit committed a9c5bad07e435c28b633698e590039ef6a263df7 on feat/backend-identity:10files337additions9deletions (346authoredlines), below delivery budget. No new dependencies or migrations; no cloud/frontend/CD/push/PR. Source normalization finished before native candidate freeze. Parent repeated rootcheck29tests531assertions and cleaned only reported disposable verifier volumes/scratch/private-key logs.
