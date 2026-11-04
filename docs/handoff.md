@@ -5,18 +5,19 @@ Current plan: [backend roadmap](plans/backend-roadmap.md).
 
 ## Resume here
 
-The local identity slice is implemented and verified. Its additional native
-review is awaiting the user's explicit choice; the latest documentation request
-is not a grant or decline. Record that choice before treating this review as done.
-Follow the installed Gentle AI lifecycle; machine-specific command envelopes
-are session artifacts, not portable instructions to reconstruct or replay.
+The local identity slice is implemented, verified, and reviewed. The user granted
+its native risk/resilience/reliability review; it completed without findings and
+was acknowledged. That unchanged identity slice has no remaining review step.
+Complete the separate documentation PR before selecting the next backend slice;
+opening an identity PR remains a separate user decision.
 
 The user authorized publishing the continuity documents with "dale commit push y pr".
 They are a separate delivery on `docs/backend-plans-handoff`, based on
 `feat/backend-identity` at `6afb503`. The identity parent branch was published as
-the documentation base; an identity PR and its native review are still pending.
-Review identity from its own branch/worktree with a fresh native inventory;
-an old consent command must not accidentally select the documentation child.
+the documentation base; an identity PR has not been opened. Keep this documentation
+slice separate from the application changes when reviewing the PR. Follow the
+installed Gentle AI lifecycle for future changes; machine-specific review tokens
+are not portable instructions to reconstruct or replay.
 
 ## Verified checkpoint
 
@@ -30,6 +31,8 @@ an old consent command must not accidentally select the documentation child.
   Disposable local Auth checks proved valid-token success and expired/invalid/
   non-user-key rejection. Public endpoint bodies, headers, and ZIP bytes matched
   the baseline. A stalled Auth response body correctly returned 504.
+- Native risk, resilience, and reliability review inspected the committed identity
+  slice at `6afb503` without findings; acknowledgement completed successfully.
 - Local test containers, accounts, volumes, and private-key logs were disposed.
   No cloud project, real email/OAuth integration, identity PR, or hosted identity
   CI result is claimed by these checks.
