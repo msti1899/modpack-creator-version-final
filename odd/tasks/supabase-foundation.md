@@ -1,6 +1,6 @@
 # Reproducible local Supabase foundation
 First delivery of the approved backend roadmap; branch: feat/supabase-foundation. Runner: pinned Supabase CLI, Docker, Bun tests and SQL tests.
-Delivery: ask-on-risk; forecast about 300 authored lines plus generated CLI configuration and lockfile. No cloud provisioning, frontend, CD, or publication.
+Delivery: ask-on-risk; forecast about 300 authored lines plus generated CLI configuration and lockfile. No cloud provisioning, frontend, or CD. Publication authorized in L14.
 
 ## Specs
 - S1: User approval: "Go ahead with the plan." This delivery covers the approved first step, "Base de datos reproducible": local Supabase setup, versioned migration workflow, configuration example and setup documentation. Acceptance: start and reconstruct a disposable local database from scratch without repository secrets.
@@ -32,3 +32,5 @@ Delivery: ask-on-risk; forecast about 300 authored lines plus generated CLI conf
 - L12: Source work unit committed as5b94207e5d2cb511d4d7edb9f33fb1f644553843 on feat/supabase-foundation. Observed diff364additions5deletions including33generated lockfile lines;336authored lines, within the delivery budget. No push or PR. All source normalization preceded native review. Further roadmap deliveries remain pending, not falsely marked implemented.
 
 - L13: User granted additional review. Native risk and reliability captures ran concurrently over the immutable14-file371-line slice; no findings. Exact acknowledgement returned gentle-ai.review-acknowledged/v1, actionacknowledged, authorityburned for review-59a55928b506aefb and targetsha256:fd6db8f70f35a1fb35079eb4165e522a748a5f28bbd59c2e34bfbb84eb4917ee. All first-delivery tasks complete; no native review remains pending for that unchanged slice. No push/PR/cloud operations performed.
+
+- L14: User requested "commit y pr ya". Published feat/supabase-foundation and opened PR6 https://github.com/msti1899/modpack-creator-version-final/pull/6 against main. Slice includes implementation5b94207, evidence8f27b37 and reviewed-closureba25794; no unrelated parent work. Local source was already committed, so no empty commit was created. Hosted CI results are reported separately from local verification.
