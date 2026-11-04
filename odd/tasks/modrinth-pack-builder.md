@@ -1,5 +1,5 @@
 # Modrinth pack builder
-Implement the backend for the stateless search, resolution, and export flow. Frontend is explicitly deferred. Base: eb0668e; integration branch: feat/modrinth-builder; runner: Bun tests and Next.js build.
+Implement the backend for the stateless search, resolution, and export flow. Frontend is explicitly deferred. Base: eb0668e; integration branch: feat/modrinth-builder; runner: Bun tests and API TypeScript checks.
 Delivery: auto-chain; chain strategy: feature-branch-chain. Remote PR creation is not yet authorized. Backend forecast: approximately 550 authored changed lines; frontend deferred. Cohesive API unit exceeds 400; recommend size:exception before any PR creation, with no artificial splitting of tests from behavior.
 
 ## Specs
@@ -12,9 +12,9 @@ Delivery: auto-chain; chain strategy: feature-branch-chain. Remote PR creation i
 - S5: "no hagamos nada de front todavia enfoquemonos en backend". Implement and verify the backend only; do not modify frontend files or add forwarding configuration.
 
 ## Tasks
-- T1 [S1-S4] API catalog, dependency resolution, validated ZIP export and tests — delegated; launched for parallel API/UI units before user deferred frontend; backend writer retained within narrowed scope; implementation and functional/independent checks passed; commit pending.
+- T1 [S1-S4] API catalog, dependency resolution, validated ZIP export and tests — delegated; launched for parallel API/UI units before user deferred frontend; backend writer retained within narrowed scope; complete; implementation and functional/independent checks passed; commit a3a8500.
 - T2 [S1-S3] Frontend builder and forwarding — deferred by explicit user scope correction; no writer launched and no frontend edits authorized.
-- T3 [S1-S4] Backend documentation, API/ZIP checks and independent risk verification — inline orchestration plus independent verifier for risk item 2; checks passed; native review pending; commit pending.
+- T3 [S1-S4] Backend documentation, API/ZIP checks and independent risk verification — inline orchestration plus independent verifier for risk item 2; complete; checks passed; additional native review explicitly declined for this candidate; implementation/documentation commit a3a8500.
 
 ## Log
 - L1: User request: "Implementemos buscar mods en Modrinth, armar un pack y descargar el .mrpack, sin cuentas ni persistencia todavía."
@@ -30,3 +30,6 @@ Delivery: auto-chain; chain strategy: feature-branch-chain. Remote PR creation i
 
 - L9: T1 RED observed (missing createApp export), then GREEN: API 15 tests/420 assertions; full suite 16 tests/423 assertions; API typecheck exit 0. Independent verifier PASS S1-S5, no blockers, Python zipfile CRC/manifest validation for all four loaders. Baseline health/404 differential identical. Live search for Sodium on Fabric/Minecraft 1.21.1 and subsequent resolve both HTTP 200.
 - L10: Local chain planned: feat/modrinth-builder (tracking baseline) <- feat/modrinth-builder-api (backend + tests/docs). Frontend deferred. No PRs or remote branches created. No source-mutating normalizer configured or run. Backend is a cohesive approximately 550-line unit including tests/docs; recommend PR size:exception rather than splitting tests from behavior. Native review remains additional and requires candidate consent.
+
+- L11: Commits observed: 13b0be6 tracking baseline on feat/modrinth-builder; a3a8500 backend implementation, tests and API guide on feat/modrinth-builder-api. Actual backend diff: 522 additions + 6 deletions (528 authored lines). No frontend edits, push or PR.
+- L12: User answered "declined" to additional native review. Exact captured decline invocation returned action=declined, consent=declined_this_candidate and matching target sha256:4d9d30c7ba3440ede0521957b5d2c05837ccdabd774280e1d38e9d0f7d7bf91d. No review was run and future reviews remain enabled. All functional and independent checks stand. Backend authorized scope is complete; frontend remains deferred.
