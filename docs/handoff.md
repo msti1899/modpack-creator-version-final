@@ -8,7 +8,8 @@ Current plan: [backend roadmap](plans/backend-roadmap.md).
 The local identity slice is implemented, verified, and reviewed. The user granted
 its native risk/resilience/reliability review; it completed without findings and
 was acknowledged. That unchanged identity slice has no remaining review step.
-Complete the separate documentation PR before selecting the next backend slice;
+Review the separate [documentation PR #7](https://github.com/msti1899/modpack-creator-version-final/pull/7)
+before selecting the next backend slice;
 opening an identity PR remains a separate user decision.
 
 The user authorized publishing the continuity documents with "dale commit push y pr".
