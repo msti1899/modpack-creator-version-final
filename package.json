@@ -1,0 +1,16 @@
+{
+  "name": "modpack-creator",
+  "private": true,
+  "packageManager": "bun@1.4.4",
+  "engines": { "node": ">=22", "bun": ">=1.4.4" },
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "bun run --parallel --filter '@modpack/*' dev",
+    "dev:web": "bun run --filter @modpack/web dev",
+    "dev:api": "bun run --filter @modpack/api dev",
+    "typecheck": "bun run --filter '@modpack/*' typecheck",
+    "test": "bun test",
+    "check": "bun run typecheck && bun run test",
+    "build": "bun run --filter @modpack/web build"
+  }
+}

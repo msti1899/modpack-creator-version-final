@@ -1,0 +1,12 @@
+{
+  "name": "@modpack/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/dev.ts",
+    "start": "bun src/dev.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": { "hono": "4.13.16" },
+  "devDependencies": { "@types/bun": "1.4.4", "typescript": "7.0.2" }
+}

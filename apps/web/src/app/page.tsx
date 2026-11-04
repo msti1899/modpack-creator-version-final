@@ -1,0 +1,21 @@
+export default function Home() {
+  return (
+    <main className="mx-auto max-w-2xl px-6 py-24">
+      <p className="text-sm text-emerald-400">Development scaffold</p>
+      <h1 className="mt-4 text-balance text-4xl font-semibold">Modpack Creator</h1>
+      <p className="mt-6 text-pretty text-lg text-zinc-300">
+        Project scaffold is ready.
+      </p>
+      <p className="mt-3 text-pretty text-zinc-400">
+        Next.js frontend and an independent Hono API running on Bun.
+        Authentication and modpack features are not connected yet.
+      </p>
+      <a
+        className="mt-8 inline-block rounded text-emerald-400 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-400"
+        href="https://nextjs.org/docs"
+      >
+        Read the Next.js documentation
+      </a>
+    </main>
+  );
+}
