@@ -9,9 +9,9 @@ Delivery: ask-on-risk; forecast about 300 authored lines plus generated CLI conf
 - Checks: exact CLI version; start/status; migration replay on a new disposable local project; baseline database tests; frozen dependency install; existing backend tests/typecheck; local-only binding and ignored runtime artifacts; independent verifier. Report image/network/runtime failures honestly.
 
 ## Tasks
-- T1 [S1-S3] Pinned local tooling, loopback-only Docker startup and CLI configuration with tests — inline, one cohesive setup unit with no writer-delegation trigger; own and independent checks passed, commit pending.
-- T2 [S1,S3] Disposable database lifecycle/migration checks, setup guide and reference links — inline; own and independent live checks passed, commit pending.
-- T3 [S1-S3] Independent verification for risk items 2/5 and native review applicability — odd-verify plus parent orchestration; independent verification passed, native review applicability pending, commit pending.
+- T1 [S1-S3] Pinned local tooling, loopback-only Docker startup and CLI configuration with tests — inline, one cohesive setup unit with no writer-delegation trigger; complete; own and independent checks passed; commit5b94207.
+- T2 [S1,S3] Disposable database lifecycle/migration checks, setup guide and reference links — inline; complete; own and independent live checks passed; commit5b94207.
+- T3 [S1-S3] Independent verification for risk items 2/5 and native review applicability — odd-verify plus parent orchestration; independent verification passed, native review applicability pending; implementation commit5b94207.
 
 ## Log
 - L1: User approved the six-step backend proposal: "Go ahead with the plan." Current delivery is the local database foundation; no external account setup has been authorized.
@@ -28,3 +28,5 @@ Delivery: ask-on-risk; forecast about 300 authored lines plus generated CLI conf
 - L10: Two disposable local resets replayed the real security migration plus scratch-only table/seed probe; inserted extra data disappeared and expected migration history remained2entries. Six SQL tests passed. Normal stop/start preserved the probe row; final raw stop --no-backup targeted only this newly created disposable project and removed its volumes successfully. Local stack is stopped; downloaded images and loopback network remain reusable. Independent verification pending.
 
 - L11: odd-verify (gpt-6.1-sol/medium) independently installed frozen dependencies in fresh scratch and reproduced start/status, two migration resets, SQL6PASS, stop/start persistence, localhost-only bindings and rejected remote/all arguments with unchanged container inventory. Existing functions and other owners remained unaffected by the default-privilege migration. Root check19tests448assertions, baseline API15tests420assertions and health/404 differential PASS. Official actionlint1.7.12 PASS. No blockers; no cloud/hosted CI claims. Parent spot-check repeated root check successfully.
+
+- L12: Source work unit committed as5b94207e5d2cb511d4d7edb9f33fb1f644553843 on feat/supabase-foundation. Observed diff364additions5deletions including33generated lockfile lines;336authored lines, within the delivery budget. No push or PR. All source normalization preceded native review. Further roadmap deliveries remain pending, not falsely marked implemented.
