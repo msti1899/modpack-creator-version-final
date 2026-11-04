@@ -2,7 +2,9 @@
 
 The Hono API owns catalog access, dependency resolution, and archive generation.
 The Next.js frontend remains a scaffold; no builder integration is implemented.
-There are no accounts, database, saved packs, or cross-request selection state.
+There are no application accounts, saved packs, or cross-request selection state.
+The separate [local identity slice](../guides/local-identity.md) adds Supabase-backed
+`GET /me`; it does not add authentication requirements to the Modrinth routes.
 
 ## Request flow
 

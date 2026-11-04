@@ -3,8 +3,9 @@
 An open-source Minecraft modpack project. This initial scaffold contains two
 independent applications in a Bun workspace: a Next.js frontend and a Hono API.
 The backend supports Modrinth search, dependency resolution, and `.mrpack` export.
-The frontend is still a starter page. Accounts, groups, voting, and persistence
-are not implemented.
+The frontend is still a starter page. The backend verifies Supabase user identity
+at `/me`; application account workflows, groups, voting, and pack persistence
+are not implemented. See the [local identity guide](docs/guides/local-identity.md).
 
 Confirmed product and architecture choices are recorded in the
 [project documentation](docs/README.md), alongside a reusable decision template.
@@ -77,9 +78,10 @@ Bun on Vercel is currently beta. Vercel Hobby is limited to personal,
 non-commercial use and has usage quotas; open source alone does not establish
 eligibility.
 
-## Planned integrations (not configured)
+## Integration status
 
-- Supabase PostgreSQL and Auth: Discord, Google, and email/password.
+- Supabase PostgreSQL and Auth: local foundation and identity verification are
+  available; application signup/recovery and Discord/Google configuration remain deferred.
 - Brevo: confirmation and password-recovery emails; verify sender eligibility
   and real delivery before launch. No secondary email provider initially.
 - Modrinth: the backend catalog and `.mrpack` export are implemented; frontend integration is deferred.

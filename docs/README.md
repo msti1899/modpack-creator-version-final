@@ -7,7 +7,7 @@ they are not a substitute for usage instructions, API contracts, or architecture
 
 | Type | Purpose | Current documents |
 | --- | --- | --- |
-| Guides | Complete a task step by step | [Create and download a modpack](guides/create-modpack.md); [Local database](guides/local-database.md); [GitHub contribution workflow](guides/github-workflow.md) |
+| Guides | Complete a task step by step | [Create and download a modpack](guides/create-modpack.md); [Local database](guides/local-database.md); [Local identity](guides/local-identity.md); [GitHub contribution workflow](guides/github-workflow.md) |
 | Reference | Look up contracts, parameters, errors, and limits | [Backend API](reference/backend-api.md) |
 | Architecture | Understand components, boundaries, and data flow | [Stateless Modrinth backend](architecture/modrinth-backend.md) |
 | Decisions | Understand accepted choices and their trade-offs | [Initial scope and stack](decisions/0001-project-baseline.md) |

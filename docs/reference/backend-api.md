@@ -1,6 +1,7 @@
 # Backend API reference
 
-The independent Hono API has no authentication or persistence in this release.
+The independent Hono API verifies identity for `/me`; existing catalog/pack
+routes remain public. Application pack persistence is not implemented.
 Local base URL: `http://127.0.0.1:3001`. POST bodies must be JSON.
 For a complete example, see the [creation guide](../guides/create-modpack.md).
 
@@ -10,6 +11,22 @@ For a complete example, see the [creation guide](../guides/create-modpack.md).
 
 Returns `{ "status": "ok", "service": "modpack-api" }`. This checks the API
 process, not external service connectivity.
+
+### GET /me
+
+Requires `Authorization: Bearer <user access token>`. Supabase Auth validates it;
+API keys are not user sessions. Returns `{ user: { id, email } }`, with nullable
+email and no raw metadata or tokens. All responses are `no-store` and vary on
+Authorization. A 401 includes `WWW-Authenticate: Bearer`.
+
+Missing/malformed credentials return 401 without an upstream call. With credentials
+present, missing/malformed server configuration returns 503; upstream invalid/expired
+token responses return 401; network/protocol/oversized-response failures return
+502; timeouts return 504. Auth requests reject redirects, cap JSON at 64 KiB, and
+use a five-second timeout. Tokens are limited to 8192 characters.
+
+Configuration and verification: [local identity guide](../guides/local-identity.md).
+This establishes identity only, not group permissions or email-confirmation policy.
 
 ### GET /mods
 
