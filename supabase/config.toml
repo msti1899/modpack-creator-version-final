@@ -1,0 +1,58 @@
+# Local development only; generated from Supabase CLI 3.0.0 and narrowed explicitly.
+# https://supabase.com/docs/guides/local-development/cli/config
+project_id = "modpack-creator-local"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+# Every future application migration must opt in to Data API access explicitly.
+auto_expose_new_tables = false
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.migrations]
+enabled = true
+schema_paths = []
+
+[db.seed]
+enabled = false
+sql_paths = []
+
+[db.pooler]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:3000"
+additional_redirect_urls = []
+enable_anonymous_sign_ins = false
+minimum_password_length = 8
+
+# Keep the foundation small; these services can be added with their features.
+[realtime]
+enabled = false
+
+[studio]
+enabled = false
+
+[local_smtp]
+enabled = true
+port = 54324
+
+[storage]
+enabled = false
+
+[storage.vector]
+enabled = false
+
+[analytics]
+enabled = false
+
+[edge_runtime]
+enabled = false

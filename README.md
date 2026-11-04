@@ -28,6 +28,11 @@ The API defaults to port 3001; optionally copy `apps/api/.env.example` to
 
 ## Check the scaffold
 
+For the optional local database foundation, follow the
+[Supabase development guide](docs/guides/local-database.md). It uses a pinned
+local CLI and Docker; no cloud account or application database connection is
+configured yet. The existing Modrinth endpoints still run without a database.
+
 ```bash
 bun run check
 bun run build

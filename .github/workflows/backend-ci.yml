@@ -39,3 +39,5 @@ jobs:
         env:
           TMPDIR: ${{ runner.temp }}
         run: bun test apps/api/tests
+      - name: Test local database launcher
+        run: bun test scripts/tests

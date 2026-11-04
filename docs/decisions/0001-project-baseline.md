@@ -129,7 +129,11 @@ basic health/page tests, type checking, and setup documentation. Do not interpre
 the product decisions above as a request to implement them all immediately.
 External service setup, deployment, publishing, and commits are not included.
 
-## Current implementation evidence
+## Bootstrap implementation evidence (historical)
+
+The observations below describe the initial scaffold, not the current feature
+set. See the [backend architecture](../architecture/modrinth-backend.md) and
+[local database guide](../guides/local-database.md) for subsequent implementation.
 
 - `apps/web`: minimal Next.js starter page; not a functional modpack UI.
 - `apps/api`: Hono `GET /health` and a separate local Bun server entrypoint.

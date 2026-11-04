@@ -2,8 +2,13 @@
   "name": "modpack-creator",
   "private": true,
   "packageManager": "bun@1.4.4",
-  "engines": { "node": ">=22", "bun": ">=1.4.4" },
-  "workspaces": ["apps/*"],
+  "engines": {
+    "node": ">=22",
+    "bun": ">=1.4.4"
+  },
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
     "dev": "bun run --parallel --filter '@modpack/*' dev",
     "dev:web": "bun run --filter @modpack/web dev",
@@ -11,6 +16,14 @@
     "typecheck": "bun run --filter '@modpack/*' typecheck",
     "test": "bun test",
     "check": "bun run typecheck && bun run test",
-    "build": "bun run --filter @modpack/web build"
+    "build": "bun run --filter @modpack/web build",
+    "db:start": "bash scripts/db-local.sh start",
+    "db:stop": "bash scripts/db-local.sh stop",
+    "db:status": "bash scripts/db-local.sh status",
+    "db:reset": "bash scripts/db-local.sh reset",
+    "db:test": "bash scripts/db-local.sh test"
+  },
+  "devDependencies": {
+    "supabase": "3.0.0"
   }
 }
