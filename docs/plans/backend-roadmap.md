@@ -16,7 +16,7 @@ votes. Start with working vertical slices rather than modeling every table upfro
 | Milestone | Scope and acceptance | Current state |
 | --- | --- | --- |
 | 1. Reproducible database | Pinned local Supabase tooling, tracked migrations, configuration, and documentation. A disposable database can start and rebuild without cloud credentials. | Implemented and verified; [PR #6](https://github.com/msti1899/modpack-creator-version-final/pull/6) merged. |
-| 2. Identity and authentication | Hono validates Supabase sessions and exposes the caller's identity. Then complete email/password confirmation and recovery, Brevo delivery, and Google/Discord setup. Test invalid and expired sessions. | In progress: local `/me` slice implemented, independently verified, and native review approved. Identity and documentation merged in PR8/PR7. Profile database rules implemented, independently verified, and native review approved without findings; HTTP profile slice pending. Remaining account/provider workflows are not implemented. |
+| 2. Identity and authentication | Hono validates Supabase sessions and exposes the caller's identity. Then complete email/password confirmation and recovery, Brevo delivery, and Google/Discord setup. Test invalid and expired sessions. | In progress: local `/me` slice implemented, independently verified, and native review approved. Identity and documentation merged in PR8/PR7. Profile database rules implemented, independently verified, and native review approved without findings; HTTP profiles implemented and independently verified; their native review and publication pending. Remaining account/provider workflows are not implemented. |
 | 3. Groups and permissions | One group per person, owner/member permissions, public direct admission, private invitations requiring approval, and ownership transfer before an owner leaves others behind. Test cross-group isolation and concurrent admission. | Planned. |
 | 4. Persisted modpack draft | One draft pack per group, owner-only edits, exact approved mod/dependency versions, reuse of existing Modrinth resolution/export. Failed writes leave no partial selection. | Planned. Existing stateless resolution/export is already implemented. |
 | 5. Published versions and sharing | Preserve earlier publications, explicit active-version selection by the owner, and links respecting access rules. Publishing does not automatically activate a version. | Planned. |
@@ -52,7 +52,7 @@ Usernames contain 3–20 characters from `a-z`, `A-Z`, `0-9`, and `_`, without s
 or accents. Preserve the chosen casing when displaying the username.
 The first username change may be immediate after registration; subsequent
 changes require 30 days since the last change. Previous usernames become available
-for another person after a rename. Username database rules are implemented, independently verified, and native review approved without findings; HTTP profile endpoints remain pending.
+for another person after a rename. Username database rules are implemented, independently verified, and native review approved without findings; HTTP profile endpoints are implemented and independently verified; their native review and publication remain pending.
 
 Before voting, clarify vote changes, cancellation, expiry/rejection, and member
 departures without silently changing the accepted fixed-electorate majority rule.
