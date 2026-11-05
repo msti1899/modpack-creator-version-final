@@ -9,16 +9,17 @@ Continue [account profiles](../odd/tasks/account-profiles.md), not a new product
 questionnaire. User requested one final question and then backend implementation.
 T1 database layer is complete and reviewed. T2 authenticated HTTP endpoints are
 implemented, independently verified, and native review approved without findings;
-acknowledgement completed. Published as [PR11](https://github.com/msti1899/modpack-creator-version-final/pull/11)
-against `feat/account-profiles`; integration into main remains pending.
+acknowledgement completed. HTTP PR11 merged into `feat/account-profiles`.
+Final [integration PR12](https://github.com/msti1899/modpack-creator-version-final/pull/12)
+is open in draft against `main`; no merge or deployment is authorized.
 Preserve `/me` and public Modrinth behavior. No frontend or cloud/provider setup
 is authorized.
 
 ## Verified checkpoint
 
-- Branch: `feat/account-profiles-api`, based on `origin/feat/account-profiles`
-  at `cd5465d` (merged database PR10). Reviewed HTTP implementation: `f0346fe`;
-  resolve passive documentation HEAD from Git.
+- Integration branch: `feat/account-profiles`, containing merged DB PR10 and HTTP
+  PR11 (`d505cc0`). Reviewed HTTP implementation: `f0346fe`; resolve passive
+  documentation HEAD from Git.
 - Tracker PR9 merged before database PR10. `origin/main` at `422326a` contains the
   earlier plan only; the database implementation is on the feature branch, not
   main. Do not treat the old tracker as draft or assume DB code landed in main.
@@ -36,7 +37,7 @@ is authorized.
   Eleven additional differential cases matched. Parent spot check passed.
 - No new dependencies, migrations, login/provider workflows, or frontend changes.
   T1 and T2 native reviews are approved without findings and acknowledged.
-  HTTP PR11 is open against the feature branch. Hosted CI and merge are separate
+  HTTP PR11 is merged into the feature branch; draft integration PR12 targets main. Hosted CI and merge are separate
   from the local evidence above; no merge or deployment was performed.
 
 ## Accepted account rules
@@ -59,7 +60,8 @@ User preference: Gentle AI ODD roles. Explorer `gpt-6-luna`/high; verifier
 `gpt-6.1-sol`/medium. Parent writes dependent units inline. The approved chain
 strategy is feature-branch-chain. User authorized the earlier database publication; tracker9 and database10
 are now merged. User authorized the HTTP push/PR with "push y pr ya a laburar";
-PR11 is open against the feature branch. Deployment, cloud configuration,
+PR11 merged into the feature branch. The user then authorized opening integration
+PR12 toward main without merging it. Deployment, cloud configuration,
 and merge remain unauthorized.
 
 Preserve unrelated untracked `.atl/`, `.gitattributes`, and `graphify-out/`.
@@ -68,7 +70,8 @@ Git hooks may rebuild Graphify data; inspect fresh status before staging.
 ## Next action
 
 Both profile slices are implemented and reviewed; no review step remains for
-their unchanged code. Review HTTP PR11 against `feat/account-profiles`. Final
-integration into main requires a separate explicit decision; merging PR11 alone
-does not deliver either implementation slice to main. Do not claim the full authentication milestone
+their unchanged code. Review draft integration PR12 toward main. The aggregate
+combines two separately reviewed slices and exceeds 400 changed lines; the PR
+recommends a maintainer size exception, not an approved exception. Keep merge
+and deployment as separate explicit decisions. Do not claim the full authentication milestone
 complete or reconstruct old review tokens from documentation.
