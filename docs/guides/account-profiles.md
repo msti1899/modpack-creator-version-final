@@ -1,9 +1,22 @@
 # Local account profiles
 
-The database stores one username per Supabase Auth user. This delivery adds the
-database rules only; HTTP profile endpoints are the next slice. Existing `/me`
-and public Modrinth routes are unchanged. Full account/provider workflows remain
-unimplemented.
+The database stores one username per Supabase Auth user. Authenticated profile
+endpoints read, assign, and rename the caller's username. Existing `/me` and public
+Modrinth routes are unchanged. Full account/provider workflows remain unimplemented.
+
+## Use the profile endpoints
+
+With the [local identity configuration](local-identity.md) and a valid user token,
+GET `/profile` to read your profile. POST `{ "username": "Mati_1899" }` to assign
+the initial name; PATCH that same shape to rename it. Send the user token in the
+Authorization bearer header and JSON bodies with `Content-Type: application/json`.
+POST does not overwrite an existing profile. No profile is created merely by
+signing in. Never send owner IDs, timestamps, or privileged API keys.
+
+See [API reference](../reference/backend-api.md) for exact responses and errors.
+If a write times out, read the profile before retrying: the database may have
+committed before the response was lost. Identical PATCH retries do not restart
+the cooldown; the server does not automatically retry writes.
 
 ## Database contract
 
