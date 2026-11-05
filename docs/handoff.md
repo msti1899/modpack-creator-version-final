@@ -8,14 +8,16 @@ Current plan: [backend roadmap](plans/backend-roadmap.md).
 Continue [account profiles](../odd/tasks/account-profiles.md), not a new product
 questionnaire. User requested one final question and then backend implementation.
 T1 database layer is complete and reviewed. T2 authenticated HTTP endpoints are
-implemented and independently verified; native review and publication are pending.
+implemented, independently verified, and native review approved without findings;
+acknowledgement completed. Publication remains pending.
 Preserve `/me` and public Modrinth behavior. No frontend or cloud/provider setup
 is authorized.
 
 ## Verified checkpoint
 
 - Branch: `feat/account-profiles-api`, based on `origin/feat/account-profiles`
-  at `cd5465d` (merged database PR10). Resolve HTTP implementation HEAD from Git.
+  at `cd5465d` (merged database PR10). Reviewed HTTP implementation: `f0346fe`;
+  resolve passive documentation HEAD from Git.
 - Tracker PR9 merged before database PR10. `origin/main` at `422326a` contains the
   earlier plan only; the database implementation is on the feature branch, not
   main. Do not treat the old tracker as draft or assume DB code landed in main.
@@ -32,8 +34,8 @@ is authorized.
   response bodies timed out at five seconds; redirects did not forward tokens.
   Eleven additional differential cases matched. Parent spot check passed.
 - No new dependencies, migrations, login/provider workflows, or frontend changes.
-  T1 native review is approved and acknowledged. T2 native review, publication,
-  hosted CI and merge are not claimed.
+  T1 and T2 native reviews are approved without findings and acknowledged.
+  T2 publication, hosted CI and merge are not claimed.
 
 ## Accepted account rules
 
@@ -62,7 +64,8 @@ Git hooks may rebuild Graphify data; inspect fresh status before staging.
 
 ## Next action
 
-Complete the native review of T2 under the user-owned switch, then record the
-actual commit/review state here and in the task log. T1 has no remaining review
-step. HTTP publication/integration requires its own explicit request. Do not claim the full authentication milestone
+Both profile slices are implemented and reviewed; no review step remains for
+their unchanged code. HTTP publication/integration requires its own explicit
+request. Keep any later PR based on the branch that actually contains T1, rather
+than assuming the prematurely merged tracker delivered the database to main. Do not claim the full authentication milestone
 complete or reconstruct old review tokens from documentation.

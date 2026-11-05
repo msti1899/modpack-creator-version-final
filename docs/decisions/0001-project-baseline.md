@@ -51,8 +51,8 @@ the original context. Unresolved items are listed separately.
   Users may change their username after
   registration: the first change may be immediate, and subsequent changes require
   30 days since the last change. After a rename, the previous username becomes
-  available for another person to use. The database enforces these username rules;
-  HTTP profile routes and full account workflows are not implemented yet.
+  available for another person to use. The database and authenticated HTTP profile routes enforce these username
+  rules; full account/provider workflows are not implemented yet.
 - Initially, each person belongs to one group, including group owners.
 - Initially, each group has one modpack and an owner.
 

@@ -13,8 +13,8 @@ Delivery: feature-branch-chain (previously chosen); database slice then HTTP sli
 ## Tasks
 
 - T1 [S1,S2,S4] inline — complete: independently verified and native review approved; database profile schema, RLS/grants, server-side rename guard, pgTAP and guide. Risk: items 1/2/4 (migration, permissions, concurrent username changes). Commit: `86e168a`.
-- T2 [S1,S2,S3] inline — implemented, own and independent checks passed; native review pending on `feat/account-profiles-api` from `cd5465d`; own-profile HTTP read/write, safe Data API adapter, tests/reference and live seam verification. Risk: items 2/4 (authenticated writes and concurrent mutations). Commit: pending.
-- T3 [S1–S4] independent ODD verification — T1 and T2 passed; native T2 review pending; update handoff, retain distinct test/review/publication states. Commit: pending.
+- T2 [S1,S2,S3] inline — complete: implemented, verified and native review approved on `feat/account-profiles-api` from `cd5465d`; own-profile HTTP read/write, safe Data API adapter, tests/reference and live seam verification. Risk: items 2/4 (authenticated writes and concurrent mutations). Commit: `f0346fe`.
+- T3 [S1–S4] independent ODD verification — complete: T1/T2 functional verification and native review passed; update handoff, retain distinct test/review/publication states. Evidence: T1 `86e168a`, T2 `f0346fe`.
 
 ## Log
 
@@ -34,3 +34,5 @@ Delivery: feature-branch-chain (previously chosen); database slice then HTTP sli
 - L11: Observed RED then GREEN for missing profile route, assignment/rename, invalid/forged bodies, missing-profile/conflict errors, and unknown-route preservation. Scoped identity middleware to supported methods rather than a prefix-wide guard so unknown routes remain 404. Focused6tests96assertions; root types and35tests627assertions pass. Fourteen live Hono/Auth/Data API scenarios pass. Differential baseline/candidate checks match status, headers and full response bytes for24cases, including mrpack ZIP and each existing route with missing/valid/invalid credentials. Independent verification and native review pending; no remote publication.
 
 - L12: Independent T2 verification found no blockers: fresh baseline29/531 and candidate35/627,50live/security/race assertions,45pgTAPchecks,11differentialcases, actual stalled HTTP body504 at5sec and redirect non-forwarding. Parent spot-check of candidate root suite also passed35/627. SQL/identity/Modrinth bytes unchanged. Local-only proof; native review and publication pending.
+
+- L13: User granted the T2 candidate review. Four exact provider-issued captures ran concurrently in risk/resilience/readability/reliability order; all findings were empty. Last admitted event approved; exact acknowledgement succeeded. No correction was needed. T2 source commit `f0346fe` is reviewed; local profile feature implementation and verification are complete. Publication/integration remains separate and unauthorized by this review consent.
