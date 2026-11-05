@@ -6,10 +6,12 @@ Plan: [backend roadmap](plans/backend-roadmap.md), milestone 2.
 
 ## Resume here
 
-Profiles and local email/password registration/login are implemented, verified,
-reviewed and merged into main. No implementation or review remains pending for
-those unchanged slices. The next unfinished scope is local email confirmation
-callbacks and password recovery; it is not implemented by this documentation update.
+Profiles and local email/password registration/login are merged into main.
+Email confirmation and password recovery are implemented locally on
+`feat/email-confirmation-recovery` at `bda4665`: functional and independent checks
+passed; native review approved and acknowledged. Published as
+[PR15](https://github.com/msti1899/modpack-creator-version-final/pull/15) against main;
+this feature is not merged. Check hosted CI separately from local evidence.
 Frontend, real email/provider setup and deployment remain out of scope.
 
 ## Current backend
@@ -23,27 +25,34 @@ Frontend, real email/provider setup and deployment remain out of scope.
   and credential [PR13](https://github.com/msti1899/modpack-creator-version-final/pull/13)
   are merged. The earlier tracker-order integration gap is resolved.
 
+- POST `/auth/verify` exchanges signup/recovery email hashes for JSON sessions;
+  POST `/auth/recover` acknowledges requests generically; PATCH `/auth/password`
+  updates only the authenticated user's password. No callback redirects or GET
+  token consumption. See [current feature tasks](../odd/tasks/email-confirmation-recovery.md).
+
 Contracts and limits: [API reference](reference/backend-api.md).
 Local flow: [account access](guides/local-account-access.md) and [profiles](guides/account-profiles.md).
 Accepted product rules: [baseline D3](decisions/0001-project-baseline.md).
 
 ## Verified evidence
 
-- Latest implementation checks: types and 41 tests / 730 assertions passed.
-- Registration/access: 10 own real local flows and 42 prior-route byte comparisons;
-  independent verification passed 140 assertions, 36 differentials and five
-  confirmation-enabled assertions. These are observed slice checks, not a new run
-  performed for this documentation refresh or proof of real email delivery.
-- Native risk/resilience/readability/reliability reviews approved profiles and
-  credential routes without findings; acknowledgements completed. Do not replay
-  those spent reviews. Detailed history: [profile tasks](../odd/tasks/account-profiles.md)
-  and [credential tasks](../odd/tasks/email-password-auth.md).
+- Current candidate: typechecks and 46 tests / 919 assertions passed.
+- Own 54 baseline comparisons matched status, headers and full bytes, including
+  credential inputs and `.mrpack` ZIP. Parent repeated the five new route tests.
+- Independent verification: 46 probes passed in fresh scratch state with a
+  disposable confirmation-enabled Supabase stack, including real email-token
+  verification, expiry/replay rejection, password recovery, account isolation,
+  unchanged state after rejection and streamed-response timeout. Four independent
+  baseline comparisons matched. No production email delivery was tested.
+- Earlier profile and registration/login native reviews were approved and spent;
+  do not replay them. Confirmation/recovery review also approved all four lenses
+  without findings; terminal acknowledgement completed. Do not replay this review.
 
 ## Remaining work and working rules
 
-Confirmation callbacks, recovery, refresh/logout and Google/Discord linking flows
-remain unimplemented. Groups, saved packs, publications and votes are later roadmap
-milestones. Local success does not establish complete authentication or production readiness.
+Next action: check PR15 and decide whether to merge; no merge is authorized yet.
+Refresh/logout and Google/Discord linking remain unimplemented. Groups, saved
+packs, publications and votes are later roadmap milestones. Local success does not establish complete authentication or production readiness.
 
 Use pinned commands in `package.json` and the local guides; verify Bun availability.
 Live database tests require disposable local Supabase/Docker state. Do not reset
