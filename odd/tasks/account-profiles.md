@@ -12,7 +12,7 @@ Delivery: feature-branch-chain (previously chosen); database slice then HTTP sli
 
 ## Tasks
 
-- T1 [S1,S2,S4] inline — implemented and independently verified; database profile schema, RLS/grants, server-side rename guard, pgTAP and guide. Risk: items 1/2/4 (migration, permissions, concurrent username changes). Commit: pending.
+- T1 [S1,S2,S4] inline — complete: independently verified and native review approved; database profile schema, RLS/grants, server-side rename guard, pgTAP and guide. Risk: items 1/2/4 (migration, permissions, concurrent username changes). Commit: `86e168a`.
 - T2 [S1,S2,S3] inline — pending; own-profile HTTP read/write, safe Data API adapter, tests/reference and live seam verification. Risk: items 2/4 (authenticated writes and concurrent mutations). Commit: pending.
 - T3 [S1–S4] independent ODD verification — T1 passed; T2 pending; update handoff, retain distinct test/review/publication states. Commit: pending.
 
@@ -25,3 +25,5 @@ Delivery: feature-branch-chain (previously chosen); database slice then HTTP sli
 - L5: T1 RED: disposable stack with baseline migrations failed the new pgTAP test because `public.profiles` did not exist. GREEN: migration replay and both pgTAP files passed (45 checks, including 39 profile checks). Root `bun run check` passed types and 29 tests/531 assertions. Three concurrent-writer probes passed: one case-insensitive assignment winner, one immediate rename winner, and rejected rename leaves winning data unchanged. Independent verification and native review are still pending; HTTP work remains T2.
 
 - L6: Independent T1 verification passed 32 live Auth/Data API/SQL/race probes, matching baseline/candidate root29/531. Its first fresh stack had an unexplained pgTAP plan(integer) lookup failure; a single targeted recheck confirmed byte-identical migration/tests and independently passed45combinedchecks. No outstanding T1 blocker. HTTP T2 remains pending. Native review pending. Rollback: remove the new profile migration/tests/guide before deployment; no existing records were changed. Application sources remain identical to base.
+
+- L7: User granted T1 review. Risk, resilience, readability, and reliability reviews completed without findings; exact acknowledgement succeeded. T1 commit `86e168a` is reviewed. No correction was needed. HTTP T2 remains pending; no remote publication or deployment was performed.

@@ -7,13 +7,14 @@ Current plan: [backend roadmap](plans/backend-roadmap.md).
 
 Continue [account profiles](../odd/tasks/account-profiles.md), not a new product
 questionnaire. User requested one final question and then backend implementation.
-T1 database layer is implemented and independently verified; native review is
-pending. T2 authenticated HTTP profile endpoints remain pending. Preserve `/me`
+T1 database layer is implemented, independently verified, and native review
+approved without findings; acknowledgement completed. T2 authenticated HTTP profile endpoints remain pending. Preserve `/me`
 and public Modrinth behavior. No frontend or cloud/provider setup is authorized.
 
 ## Verified checkpoint
 
 - Branch: `feat/account-profiles-db`, based on `origin/main` at `d9493dc`.
+- Reviewed implementation commit: `86e168a`; resolve documentation HEAD from Git.
 - That base contains identity PR8 and documentation PR7 merges. GitHub confirmed
   PR7 merged; the old documentation branch is no longer the delivery base.
 - Profile migration adds own-row RLS, narrow column grants, a case-insensitive
@@ -26,7 +27,8 @@ and public Modrinth behavior. No frontend or cloud/provider setup is authorized.
   unexplained `plan(integer)` pgTAP lookup failure; a single targeted recheck on
   byte-identical SQL independently passed all 45 checks. No source blocker remains.
 - No application source changed in T1. HTTP profile routes are not implemented.
-  Native review, publication, hosted CI, and merge of this new slice are not claimed.
+  Native risk/resilience/readability/reliability review completed without findings
+  and was acknowledged. Publication, hosted CI, and merge are not claimed.
 
 ## Accepted account rules
 
@@ -54,7 +56,7 @@ Git hooks may rebuild Graphify data; inspect fresh status before staging.
 
 ## Next action
 
-Finish T1's native review under the user-owned enabled switch, then implement T2
-on its dependent branch with RED/GREEN tests. Update task log and this handoff with
+Implement T2 on its dependent branch with RED/GREEN tests. The unchanged T1
+commit has no remaining review step. Update task log and this handoff with
 actual review/commit/delivery states. Do not claim the full authentication milestone
 complete or reconstruct old review tokens from documentation.
