@@ -1,4 +1,4 @@
-# Register, sign in and choose a username locally
+# Access and recover an account locally
 
 Supabase Auth owns credentials and sessions. The Hono API exposes bounded
 email/password registration and login; the existing profile API owns usernames.
@@ -26,6 +26,37 @@ The application uses only the configured publishable/anon key; admin fixture
 cleanup, if needed, belongs solely in disposable test infrastructure.
 
 See the [API reference](../reference/backend-api.md) for response/error contracts.
-Confirmation callbacks, password recovery, refresh/logout and Google/Discord
-remain later work. Validate real SMTP, confirmation and abuse protection before
+Refresh/logout and Google/Discord remain later work. Validate real SMTP, confirmation and abuse protection before
 any public deployment; local success is not production-readiness evidence.
+
+## Confirm email and recover a password
+
+This is an API-only flow. It does not create a clickable completion page or
+configure real delivery. Supabase's default email link still points through Auth
+and redirects to the configured site URL, not this JSON endpoint.
+
+For disposable local accounts, open the local SMTP inbox on `http://127.0.0.1:54324`.
+Inspect the email HTML without following its verification link. Extract the link's
+`token` query value (the hash) or a template's `TokenHash`, not its short OTP code.
+Following the provider link first consumes the token outside this API.
+
+1. When signup requires confirmation, POST `{ tokenHash, type: "signup" }` to
+   `/auth/verify`. Save the returned session privately; use `/me` and `/profile`
+   as in the registration flow. Existing local auto-confirm defaults are unchanged.
+2. For forgotten passwords, POST `{ email }` to `/auth/recover`. A generic 202
+   does not prove that a user exists or that an email was delivered.
+3. From the recovery email, POST `{ tokenHash, type: "recovery" }` to `/auth/verify`.
+   It returns the same JSON session; expired/reused hashes are rejected by Auth.
+4. PATCH `{ password }` to `/auth/password` with the returned access token as a
+   bearer credential. The updated user is returned without tokens or metadata.
+   Then sign in with the new password through `/auth/login`.
+
+A normal authenticated session may also update its own password. No password is
+changed by merely requesting recovery or verifying a token. Provider password and
+reauthentication rules still apply. Do not assume password changes invalidate all
+existing JWTs. Keep hashes, session responses and passwords out of URLs/logs/history.
+There is no callback redirect, GET token consumption or caller-controlled destination.
+A future client/email-template integration must be designed separately.
+
+Upstream contracts: [Supabase password guide](https://supabase.com/docs/guides/auth/passwords)
+and [Auth REST specification](https://github.com/supabase/auth/blob/master/openapi.yaml).

@@ -28,8 +28,7 @@ are forwarded. All credential responses are `no-store`.
 
 Registration without a session, or for an existing account, returns 202 with
 `{ user: null, session: null }`. This does not prove a new account or email delivery.
-Confirmation-enabled projects require confirmation before login; this slice does
-not implement confirmation callbacks. Auto-confirm settings can still reveal
+Confirmation-enabled projects require confirmation before login; use `/auth/verify` to exchange the email token for a session. Auto-confirm settings can still reveal
 registration outcomes indirectly through session availability; this is not a
 complete account-enumeration or production abuse-protection solution.
 
@@ -43,8 +42,41 @@ credentials or caller-supplied Authorization. There are no automatic retries.
 Registration does not create a profile. With an active access token, read
 `/profile` and assign the username through its existing POST operation. Account
 creation and profile assignment are not one transaction: a taken name does not
-delete the Auth account. Refresh/logout, recovery and provider-linking endpoints
+delete the Auth account. Refresh/logout and provider-linking endpoints
 are not implemented here. See [local account access](../guides/local-account-access.md).
+
+### POST /auth/verify, POST /auth/recover, PATCH /auth/password
+
+Backend-only email confirmation and recovery use JSON, not redirects or cookies.
+
+- POST `/auth/verify` accepts only `{ tokenHash, type }`, where `type` is `signup`
+  or `recovery`. It exchanges the email token hash for the same allowlisted
+  `{ user, session }` shape as login, returning 200. Supabase owns token expiry
+  and one-time consumption; rejected, expired or reused tokens return generic 400.
+  GET is not supported, so link previews cannot consume tokens through this API.
+- POST `/auth/recover` accepts only `{ email }`. A provider acknowledgement or
+  explicit unknown-account result returns 202 `{ accepted: true }`, with no account
+  identifier. This is not proof of account existence or email delivery. Provider
+  rate limits and failures remain visible; this is not timing/abuse protection.
+- PATCH `/auth/password` accepts only `{ password }` and requires
+  `Authorization: Bearer <user access token>`. Supabase validates the session and
+  updates its owner's password, returning 200 `{ user: { id, email } }`.
+  Recovery sessions and ordinary active sessions can both update their password;
+  this is not a recovery-only authorization policy. No account ID is accepted.
+  Supabase owns strength/reauthentication policy; rejected password updates return
+  generic 400. Invalid/rejected sessions return 401 with `WWW-Authenticate: Bearer`.
+  Password responses vary on Authorization. This operation does not issue a new
+  session or implement logout/revocation; do not assume existing JWTs are revoked.
+
+These endpoints inherit credential limits: 2 KiB request, 64 KiB upstream JSON,
+5-second timeout, fixed guarded Auth URL, publishable/anon key, no redirects,
+no-store responses, no retries or raw upstream details. Token hashes are limited
+to 1024 non-whitespace characters; passwords to 1024 characters without trimming.
+Unknown fields (including redirects, metadata and account selectors) are rejected.
+Only the password endpoint forwards the caller's bearer token to Auth. Rate limits
+return 429, unsafe configuration 503, upstream failures 502 and timeout 504.
+
+Local email extraction and completion: [account access guide](../guides/local-account-access.md).
 
 ### GET /me
 
