@@ -15,7 +15,7 @@ or automatic merge is included.
 
 | Milestone | Acceptance criteria | Implementation / verification / delivery |
 | --- | --- | --- |
-| Database slice | Ownership isolation, case-insensitive uniqueness and server-enforced rename rules | Implemented at `86e168a`; local and independent checks passed; native review approved without findings. Publish the child PR against this tracker. |
+| Database slice | Ownership isolation, case-insensitive uniqueness and server-enforced rename rules | Implemented at `86e168a`; local and independent checks passed; native review approved without findings. Published as [PR10](https://github.com/msti1899/modpack-creator-version-final/pull/10), targeting this tracker. |
 | HTTP slice | Authenticated own-profile read/write; unchanged existing routes | Pending implementation on a child of the database branch. |
 | Integration | Both slices checked and explicitly approved for integration | Keep tracker draft/no-merge until the chain is complete. No merge authorized. |
 
@@ -27,8 +27,9 @@ Child PRs stay below 400 authored changed lines; do not trim tests to fit.
 
 ## Next action
 
-Open the database child PR against `feat/account-profiles`. Then implement the
-HTTP slice with tests and documentation on its dependent branch.
+Review database [PR10](https://github.com/msti1899/modpack-creator-version-final/pull/10).
+Then implement the HTTP slice with tests and documentation on its dependent branch.
+Tracker [PR9](https://github.com/msti1899/modpack-creator-version-final/pull/9) remains draft; no merge is authorized.
 
 ## Change log
 
