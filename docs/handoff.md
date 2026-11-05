@@ -6,20 +6,21 @@ Current plan: [backend roadmap](plans/backend-roadmap.md).
 ## Resume here
 
 Continue [local email/password access](../odd/tasks/email-password-auth.md).
-Registration and login are implemented and independently verified; native review
-and publication remain pending. Username assignment stays a separate authenticated
+Registration and login are implemented, independently verified, and native review
+approved without findings; acknowledgement completed. Publication remains pending. Username assignment stays a separate authenticated
 profile request. No frontend, provider setup or deployment is authorized.
 
 ## Verified checkpoint
 
 - Working branch: `feat/email-password-auth`, based on merged `main` at `a71e8ff`.
-  Resolve the current Auth implementation HEAD from Git.
+  Reviewed Auth implementation: `8652e95`; resolve passive documentation HEAD from Git.
 - User merged final profile integration PR12: database and profile HTTP code are
   now in main. The previous integration gap is resolved; no agent merge occurred.
 - Current Auth proof: types and 41 tests/730 assertions passed, 10 real local
   registration/login/profile flows and 42 prior-route byte comparisons passed.
   Independent verification passed 140 assertions, 36 differentials and five
-  confirmation-enabled assertions. Parent spot check passed. Native review pending.
+  confirmation-enabled assertions. Parent spot check passed. Native risk/resilience/
+  readability/reliability review approved without findings and was acknowledged.
 - Reviewed T1 implementation: `86e168a`; no database bytes changed in T2.
 - GET `/profile` reads the caller's username or null; POST assigns it initially;
   PATCH renames an existing profile. User identity and RLS constrain every write.
@@ -33,8 +34,7 @@ profile request. No frontend, provider setup or deployment is authorized.
   response bodies timed out at five seconds; redirects did not forward tokens.
   Eleven additional differential cases matched. Parent spot check passed.
 - No new dependencies, migrations, configured Auth defaults or frontend changes.
-  Earlier profile T1/T2 reviews are approved; the new credential routes are not yet
-  native-reviewed. Confirmation callbacks, recovery and providers remain deferred.
+  Earlier profile T1/T2 and the credential-route reviews are approved. Confirmation callbacks, recovery and providers remain deferred.
   Credential-route publication, hosted CI and deployment are not claimed.
 
 ## Accepted account rules
@@ -65,7 +65,7 @@ Git hooks may rebuild Graphify data; inspect fresh status before staging.
 
 ## Next action
 
-Finish the native review of the current credential-route candidate, then record
-its exact commit/review state and update the task mirror. Do not replay completed
-profile reviews. Publication remains a separate user decision; do not claim full
-authentication or production readiness from local registration/login proof.
+The local registration/login slice is complete and reviewed. Publish only after
+an explicit user request; no remaining review step exists for unchanged `8652e95`.
+Confirmation callbacks and password recovery are later work. Do not replay spent
+profile/Auth reviews or claim full authentication or production readiness.

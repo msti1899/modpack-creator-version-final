@@ -11,9 +11,9 @@ Delivery: one coherent auth slice, forecast 380 authored lines; cached feature-b
 
 ## Tasks
 
-- T1 [S1,S3] inline — implemented; own and independent checks passed; guarded config reuse, credential routes, response allowlist, tests and contract/guide. Risk: items 2/3 (passwords/tokens and shared configuration guard). Commit: pending.
+- T1 [S1,S3] inline — complete: implemented, verified and native review approved; guarded config reuse, credential routes, response allowlist, tests and contract/guide. Risk: items 2/3 (passwords/tokens and shared configuration guard). Commit: `8652e95`.
 - T2 [S1–S3] independent ODD verifier — passed; local live flows, rejection/state preservation, privacy/limits and prior-route differential proof. Risk: items 2/3. Evidence: baseline35/627, candidate41/730,140assertions36differentials and5confirmation-enabled assertions.
-- T3 [S1–S3] inline — pending; native review under user-owned switch, handoff/roadmap and exact task mirror. Publication remains separate. Commit: pending.
+- T3 [S1–S3] inline — complete; native review under user-owned switch, handoff/roadmap and exact task mirror. Publication remains separate. Reviewed implementation: `8652e95`.
 
 ## Log
 
@@ -23,3 +23,5 @@ Delivery: one coherent auth slice, forecast 380 authored lines; cached feature-b
 - L4: Observed RED/GREEN for missing routes, credential validation, no-session/duplicate responses, safe provider errors/configuration, then a real duplicate-signup regression: raw GoTrue uses numeric `code` plus semantic `error_code`, unlike SDK-style `code`. Pinned and fixed the raw fixture. Focused6tests103assertions; root types and41tests730assertions pass. Ten real registration/login/identity/profile checks passed, including whitespace, weak/wrong credentials, duplicate privacy and account isolation. Forty-two old-route differential cases matched status/headers/full bytes, including mrpack ZIP. Independent verification and native review pending.
 
 - L5: Independent verification was interrupted after its successful 140-assertion pass. User: "sigue". Resumed only the unfinished confirmation-enabled proof and cleanup: five assertions passed, including202nulluser/session and unconfirmedlogin401. Verifier compared source/tests/docs to its snapshot unchanged; no blockers. Both fresh root checks passed35/627baseline and41/730candidate. Parent spot check also passed. No cloud SMTP/callback/recovery claim; native review pending.
+
+- L6: User granted the native Auth review. Four exact provider-issued captures ran concurrently in risk/resilience/readability/reliability order and returned no findings. Final approval was acknowledged successfully; no correction was needed. Implementation `8652e95` is reviewed. Local delivery is complete; push/PR/merge/deployment remain separate user decisions.
