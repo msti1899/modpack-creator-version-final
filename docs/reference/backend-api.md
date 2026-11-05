@@ -1,6 +1,6 @@
 # Backend API reference
 
-The independent Hono API verifies identity for `/me`; existing catalog/pack
+The independent Hono API verifies identity for `/me` and `/profile`; catalog/pack
 routes remain public. Application pack persistence is not implemented.
 Local base URL: `http://127.0.0.1:3001`. POST bodies must be JSON.
 For a complete example, see the [creation guide](../guides/create-modpack.md).
@@ -27,6 +27,33 @@ use a five-second timeout. Tokens are limited to 8192 characters.
 
 Configuration and verification: [local identity guide](../guides/local-identity.md).
 This establishes identity only, not group permissions or email-confirmation policy.
+
+### GET /profile, POST /profile, PATCH /profile
+
+All three require a Supabase user bearer token and inherit `/me`'s authentication
+errors and `no-store`/Authorization cache headers. The API derives the owner from
+verified identity and forwards the user's token to the Data API under RLS, never
+a service-role key. Query parameters cannot select another owner or more columns.
+
+- GET returns `{ profile: { username, usernameChangedAt } }`, or `{ profile: null }`
+  before initial assignment. `usernameChangedAt` is null until the first rename.
+- POST creates the caller's profile, returning 201 and the same profile shape.
+- PATCH renames an existing profile, returning 200; a missing profile returns 404.
+- Both write bodies contain **only** `{ username }`: 3–20 ASCII letters, digits,
+  or underscores. Casing is preserved; uniqueness ignores casing. Invalid JSON,
+  unknown fields, invalid names, or bodies exceeding 1 KiB return 400.
+- Already-assigned profiles or taken usernames return 409. The first rename is
+  immediate; later actual changes require 30 days or return 409. An identical
+  write leaves the timestamp unchanged. Previous names become available again.
+
+Data API failures return safe errors: 401 for expired/rejected credentials,
+502 for protocol/network/permission failures and rate limits, 504 for timeout.
+Requests reject redirects, use a five-second timeout including response reading,
+and cap response JSON at 4 KiB. There are no automatic retries. A transport error
+does not prove a write rolled back: read the profile before deciding to retry.
+No signup, provider-linking, or profile deletion endpoint is included.
+
+See the [profile guide](../guides/account-profiles.md) for database guarantees.
 
 ### GET /mods
 
@@ -65,7 +92,7 @@ and 504 for timeouts. Unknown routes retain the default Hono 404 response.
 Check the status before treating an export response as a ZIP.
 
 - At most 50 mods including dependencies and 100 upstream lookups per operation.
-- Request bodies: 16 KiB. Pack names and search queries: 100 characters.
+- Pack request bodies: 16 KiB. Pack names and search queries: 100 characters.
 - Metadata lookup timeout: 8 seconds; operation deadline: 20 seconds.
 - Download metadata must use HTTPS on `cdn.modrinth.com`. File names, collisions,
   SHA1/SHA512 hashes, sizes, and client/server declarations are checked.
@@ -75,5 +102,7 @@ Check the status before treating an export response as a ZIP.
 
 ## Sources
 
+- [PostgREST table operations](https://docs.postgrest.org/en/v14/references/api/tables_views.html)
+- [PostgREST database error mapping](https://docs.postgrest.org/en/v14/references/errors.html)
 - [Modrinth API](https://docs.modrinth.com/api/)
 - [Modrinth pack format](https://support.modrinth.com/en/articles/8802351-modrinth-modpack-format-mrpack)

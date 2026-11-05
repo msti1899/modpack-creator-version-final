@@ -16,22 +16,26 @@ or automatic merge is included.
 | Milestone | Acceptance criteria | Implementation / verification / delivery |
 | --- | --- | --- |
 | Database slice | Ownership isolation, case-insensitive uniqueness and server-enforced rename rules | Implemented at `86e168a`; local and independent checks passed; native review approved without findings. Published as [PR10](https://github.com/msti1899/modpack-creator-version-final/pull/10), targeting this tracker. |
-| HTTP slice | Authenticated own-profile read/write; unchanged existing routes | Pending implementation on a child of the database branch. |
-| Integration | Both slices checked and explicitly approved for integration | Keep tracker draft/no-merge until the chain is complete. No merge authorized. |
+| HTTP slice | Authenticated own-profile read/write; unchanged existing routes | Implemented and independently verified locally on `feat/account-profiles-api`; native review approved without findings; published as [PR11](https://github.com/msti1899/modpack-creator-version-final/pull/11) against the feature branch. |
+| Integration | Both slices checked and explicitly approved for integration | Tracker PR9 merged before child PR10; main has the tracker plan only. Draft integration PR12 is open toward main; merge remains unauthorized. |
 
 ## Dependencies and open decisions
 
 `main` → `feat/account-profiles` (tracker) → `feat/account-profiles-db` → future HTTP slice.
-The tracker initially contains this plan only, not the database implementation.
+PR9 initially delivered this plan only. Database PR10 later merged into the feature branch, after PR9 merged to main.
 Child PRs stay below 400 authored changed lines; do not trim tests to fit.
 
 ## Next action
 
-Review database [PR10](https://github.com/msti1899/modpack-creator-version-final/pull/10).
-Then implement the HTTP slice with tests and documentation on its dependent branch.
-Tracker [PR9](https://github.com/msti1899/modpack-creator-version-final/pull/9) remains draft; no merge is authorized.
+Review [integration PR12](https://github.com/msti1899/modpack-creator-version-final/pull/12)
+from `feat/account-profiles` to main. PR11 is merged into the feature branch. PR9 and PR10 are already merged,
+but the database slice remains on the feature branch, not main. Final integration must preserve that actual base; no agent merge is authorized.
 
 ## Change log
 
 - 2026-11-05: Created the draft integration tracker for the approved two-slice
   chain. Publishing is authorized; deployment and merging remain separate decisions.
+
+- 2026-11-05: User authorized final integration PR12 toward main, without merge.
+  The aggregate exceeds 400 lines; keep it draft with a recommended maintainer
+  size exception and links to the already-reviewed database and HTTP slices.
