@@ -79,6 +79,10 @@ the original context. Unresolved items are listed separately.
 
 ### D8: Independent frontend and API
 
+Authentication provider superseded by [0002: Clerk identity](0002-clerk-identity.md).
+The original Supabase Auth choice below is retained as history; the independent
+web/API architecture and Supabase PostgreSQL choice remain accepted.
+
 - Frontend: Next.js App Router and TypeScript.
 - Backend: an independent Hono API executed with Bun, also using TypeScript.
 - API separation is an explicit architectural choice, not a performance claim.
@@ -111,6 +115,10 @@ uninterrupted operation. Open-source code alone does not establish Hobby
 eligibility.
 
 ### D10: Transactional email
+
+The auth-email plan below is superseded for the Clerk integration by
+[0002](0002-clerk-identity.md). It remains historical context, not an instruction
+to configure Brevo alongside Clerk.
 
 - Use Brevo alone initially for signup confirmation and password recovery.
 - Do not add a secondary provider or a fallback loop initially.

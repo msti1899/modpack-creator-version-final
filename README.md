@@ -3,9 +3,10 @@
 An open-source Minecraft modpack project. This initial scaffold contains two
 independent applications in a Bun workspace: a Next.js frontend and a Hono API.
 The backend supports Modrinth search, dependency resolution, and `.mrpack` export.
-The frontend is still a starter page. The backend verifies Clerk user identity
-at `/me`; application account workflows, groups, voting, and pack persistence
-are not implemented. See the [local identity guide](docs/guides/local-identity.md).
+The frontend is still a starter page, now with Clerk sign-in, sign-up and account
+controls when configured. The backend verifies Clerk sessions at `/me`;
+groups, voting, and pack persistence are not implemented. Supabase remains the
+database. See the [local identity guide](docs/guides/local-identity.md).
 
 Confirmed product and architecture choices are recorded in the
 [project documentation](docs/README.md), alongside a reusable decision template.
@@ -28,6 +29,12 @@ bun run dev
 Run either application independently with `bun run dev:web` or `bun run dev:api`.
 The API defaults to port 3001; optionally copy `apps/api/.env.example` to
 `apps/api/.env` to configure `PORT`. Never commit real environment files.
+
+For account access, configure `apps/web/.env.local` and `apps/api/.env` from
+their respective examples using the same Clerk instance. The web needs its
+publishable/secret keys; the API needs its JWT **public** key, issuer and allowed
+browser origins. Follow the identity guide rather than sharing credentials.
+Without keys the page remains usable with a setup message. Real Clerk sign-in needs network access but no local database.
 
 ## Check the scaffold
 
@@ -59,8 +66,7 @@ See the [modpack creation guide](docs/guides/create-modpack.md) for the stateles
 dependency-approval, and pack-download workflow. Supply an exact Minecraft and
 loader version; runtime compatibility is not guaranteed. No mods are redistributed.
 
-The API and frontend are separate applications, not Next.js API routes. Their
-health/page tests do not require credentials or external services. `/health`
+The API and frontend are separate applications. Their health/page tests do not require credentials or external services. `/health`
 checks the API process only; it does not claim database or email connectivity.
 
 ## Deployment direction
@@ -82,11 +88,13 @@ eligibility.
 
 ## Integration status
 
-- Supabase PostgreSQL: local database foundation remains available.
-- Clerk: the API verifies user sessions at `/me`; web account controls and
-  real signup/recovery and Discord/Google configuration remain deferred.
-- Brevo: confirmation and password-recovery emails; verify sender eligibility
-  and real delivery before launch. No secondary email provider initially.
+- Clerk: SDK integration, account controls and session verification are available
+  locally; instance setup, real email/recovery and Discord/Google verification
+  remain pending. No accounts or external provider configuration are created.
+- Supabase PostgreSQL: local database foundation remains available; no application
+  tables or Clerk-to-Supabase RLS integration are added.
+- Brevo: previous auth-email plan is superseded by Clerk-managed authentication;
+  no Brevo configuration or delivery is claimed.
 - Modrinth: the backend catalog and `.mrpack` export are implemented; frontend integration is deferred.
 
 The initial operating target is USD 0/month and approximately 15 users, not a

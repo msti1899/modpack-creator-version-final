@@ -51,6 +51,7 @@ without confirmation. Never store credentials or private invitation links here.
 | Record | Status | Scope |
 | --- | --- | --- |
 | [0001: Initial scope and stack](decisions/0001-project-baseline.md) | Accepted | Product, architecture, budget, and initial delivery |
+| [0002: Clerk identity](decisions/0002-clerk-identity.md) | Accepted | Clerk authentication; Supabase database and independent Hono API preserved |
 
 ## Implementation evidence
 
