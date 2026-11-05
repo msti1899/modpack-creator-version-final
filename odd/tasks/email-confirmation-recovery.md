@@ -11,9 +11,9 @@ Delivery: one coherent slice, forecast 390 authored lines; feature-branch-chain 
 
 ## Tasks
 
-- T1 [S1–S3] inline — implemented, own checks passed; independent verification passed: route implementation, deterministic RED/GREEN, documentation, focused and root checks. One dependent auth module; no parallel writer reason. Risk: item 2 (email tokens, sessions, password changes). Commit: pending.
+- T1 [S1–S3] inline — implemented, own checks passed; independent verification passed: route implementation, deterministic RED/GREEN, documentation, focused and root checks. One dependent auth module; no parallel writer reason. Risk: item 2 (email tokens, sessions, password changes). Commit: `bda4665`.
 - T2 [S1–S3] delegated verifier — passed: independent security/flow checks and prior-route differentials in fresh scratch state. Risk: item 2. Parent spot check required.
-- T3 [S1–S3] inline — pending: native assessment/review as applicable, handoff/roadmap and mirror update; no remote publication.
+- T3 [S1–S3] inline — complete: native assessment/review as applicable, handoff/roadmap and mirror update; no remote publication.
 
 ## Log
 
@@ -23,3 +23,5 @@ Delivery: one coherent slice, forecast 390 authored lines; feature-branch-chain 
 - L3: Observed RED404 then GREEN for verification, recovery request and password update. Focused5tests189assertions; root typechecks and46tests919assertions passed. Fifty-four baseline differential cases matched status, headers and full bytes (42 priorroutes inclZIP plus12credential/newinput cases). Bun1.4.4 used from a disposable temporary runtime; no dependency/config bytes changed. Existing Hono request and injected Auth fetch remain the agreed seam. Independent live tests and security verification pending.
 
 - L4: Independent verifier passed S1–S3:46probes, real isolated confirmation-enabled SMTP/Auth flows, replay/expiry/purpose rejection, recovery/ordinarysession password updates and profile/account isolation, plus4baseline differentials. Fresh candidate root46tests919assertions passed; parent repeated focused5tests189assertions. No findings or correction. Source matches verified snapshot. Native review pending.
+
+- L5: User: "granted". Native high-risk assessment (security item2) reviewed implementation `bda4665`,7files344changedlines. Risk/resilience/readability/reliability captures ran concurrently and returned no findings; terminal approval was acknowledged successfully. No correction needed. Reviewed boundary is `bda4665`. Local feature complete; remote publication and deployment remain separate decisions. Final bookkeeping changes only passive documentation. Disposable Supabase stack, network and private test scratch were removed after verification.

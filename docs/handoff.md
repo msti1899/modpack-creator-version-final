@@ -8,8 +8,9 @@ Plan: [backend roadmap](plans/backend-roadmap.md), milestone 2.
 
 Profiles and local email/password registration/login are merged into main.
 Email confirmation and password recovery are implemented locally on
-`feat/email-confirmation-recovery`: functional and independent checks passed;
-native review and publication remain pending. This feature is not merged.
+`feat/email-confirmation-recovery` at `bda4665`: functional and independent checks
+passed; native review approved and acknowledged. Publication remains pending;
+this feature is not merged.
 Frontend, real email/provider setup and deployment remain out of scope.
 
 ## Current backend
@@ -43,11 +44,12 @@ Accepted product rules: [baseline D3](decisions/0001-project-baseline.md).
   unchanged state after rejection and streamed-response timeout. Four independent
   baseline comparisons matched. No production email delivery was tested.
 - Earlier profile and registration/login native reviews were approved and spent;
-  do not replay them. Current confirmation/recovery native review remains pending.
+  do not replay them. Confirmation/recovery review also approved all four lenses
+  without findings; terminal acknowledgement completed. Do not replay this review.
 
 ## Remaining work and working rules
 
-Next action: finish the current feature's native assessment/review and local closure.
+Next action: publish the completed local feature only after explicit user authorization.
 Refresh/logout and Google/Discord linking remain unimplemented. Groups, saved
 packs, publications and votes are later roadmap milestones. Local success does not establish complete authentication or production readiness.
 
