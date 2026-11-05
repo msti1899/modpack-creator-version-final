@@ -1,7 +1,7 @@
 # Local email/password access
 Objective: register and sign in through Supabase Auth, then choose the existing profile username.
 Base: `a71e8ff` (main after merged profile integration PR12). Branch: `feat/email-password-auth`; runner: Bun 1.4.4 plus disposable local Supabase.
-Delivery: one coherent auth slice, forecast 380 authored lines; cached feature-branch-chain applies if slicing becomes necessary. Local work-unit commits only; no push/PR/merge/deployment authorized.
+Delivery: one coherent auth slice, forecast 380 authored lines; cached feature-branch-chain applies if slicing becomes necessary. Push/PR authorized by the user on 2026-11-05; no merge/deployment authorized.
 
 ## Specs
 
@@ -25,3 +25,5 @@ Delivery: one coherent auth slice, forecast 380 authored lines; cached feature-b
 - L5: Independent verification was interrupted after its successful 140-assertion pass. User: "sigue". Resumed only the unfinished confirmation-enabled proof and cleanup: five assertions passed, including202nulluser/session and unconfirmedlogin401. Verifier compared source/tests/docs to its snapshot unchanged; no blockers. Both fresh root checks passed35/627baseline and41/730candidate. Parent spot check also passed. No cloud SMTP/callback/recovery claim; native review pending.
 
 - L6: User granted the native Auth review. Four exact provider-issued captures ran concurrently in risk/resilience/readability/reliability order and returned no findings. Final approval was acknowledged successfully; no correction was needed. Implementation `8652e95` is reviewed. Local delivery is complete; push/PR/merge/deployment remain separate user decisions.
+
+- L7: User requested "commit push y prs". Pushed reviewed source `8652e95` and closure `18f931a` on `feat/email-password-auth`; opened PR13 against main. Initial diff10files355lines, one coherent delivery below400, so no additional chain/tracker. Publication bookkeeping is passive; no application/database byte changes, merge or deployment.

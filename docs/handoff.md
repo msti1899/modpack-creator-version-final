@@ -7,7 +7,8 @@ Current plan: [backend roadmap](plans/backend-roadmap.md).
 
 Continue [local email/password access](../odd/tasks/email-password-auth.md).
 Registration and login are implemented, independently verified, and native review
-approved without findings; acknowledgement completed. Publication remains pending. Username assignment stays a separate authenticated
+approved without findings; acknowledgement completed. Published as
+[PR13](https://github.com/msti1899/modpack-creator-version-final/pull/13) against main; merge remains pending. Username assignment stays a separate authenticated
 profile request. No frontend, provider setup or deployment is authorized.
 
 ## Verified checkpoint
@@ -35,7 +36,8 @@ profile request. No frontend, provider setup or deployment is authorized.
   Eleven additional differential cases matched. Parent spot check passed.
 - No new dependencies, migrations, configured Auth defaults or frontend changes.
   Earlier profile T1/T2 and the credential-route reviews are approved. Confirmation callbacks, recovery and providers remain deferred.
-  Credential-route publication, hosted CI and deployment are not claimed.
+  Credential routes are published in PR13 against main. Hosted CI, merge and
+  deployment are separate from the local evidence above.
 
 ## Accepted account rules
 
@@ -57,15 +59,15 @@ external scratch stacks only; do not reset an existing developer database.
 User preference: Gentle AI ODD roles. Explorer `gpt-6-luna`/high; verifier
 `gpt-6.1-sol`/medium. Parent writes dependent units inline. The approved chain
 strategy is feature-branch-chain when needed. Prior profile PRs are merged. The
-current email/password continuation is local only; push/PR, cloud configuration,
-merge and deployment require separate authorization.
+user authorized Auth commit/push/PR with "commit push y prs"; PR13 is open
+against main. Cloud configuration, merge and deployment remain unauthorized.
 
 Preserve unrelated untracked `.atl/`, `.gitattributes`, and `graphify-out/`.
 Git hooks may rebuild Graphify data; inspect fresh status before staging.
 
 ## Next action
 
-The local registration/login slice is complete and reviewed. Publish only after
-an explicit user request; no remaining review step exists for unchanged `8652e95`.
+The registration/login slice is complete, reviewed and published. Review PR13
+against main; no remaining native review step exists for unchanged `8652e95`.
 Confirmation callbacks and password recovery are later work. Do not replay spent
 profile/Auth reviews or claim full authentication or production readiness.
