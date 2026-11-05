@@ -9,8 +9,9 @@ Plan: [backend roadmap](plans/backend-roadmap.md), milestone 2.
 Profiles and local email/password registration/login are merged into main.
 Email confirmation and password recovery are implemented locally on
 `feat/email-confirmation-recovery` at `bda4665`: functional and independent checks
-passed; native review approved and acknowledged. Publication remains pending;
-this feature is not merged.
+passed; native review approved and acknowledged. Published as
+[PR15](https://github.com/msti1899/modpack-creator-version-final/pull/15) against main;
+this feature is not merged. Check hosted CI separately from local evidence.
 Frontend, real email/provider setup and deployment remain out of scope.
 
 ## Current backend
@@ -49,7 +50,7 @@ Accepted product rules: [baseline D3](decisions/0001-project-baseline.md).
 
 ## Remaining work and working rules
 
-Next action: publish the completed local feature only after explicit user authorization.
+Next action: check PR15 and decide whether to merge; no merge is authorized yet.
 Refresh/logout and Google/Discord linking remain unimplemented. Groups, saved
 packs, publications and votes are later roadmap milestones. Local success does not establish complete authentication or production readiness.
 

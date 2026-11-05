@@ -1,7 +1,7 @@
 # Local email confirmation and password recovery
 Objective: complete backend-only email verification and password recovery with JSON sessions.
 Base: `594e084`; branch: `feat/email-confirmation-recovery`; runner: pinned Bun 1.4.4 and disposable local Supabase when available.
-Delivery: one coherent slice, forecast 390 authored lines; feature-branch-chain if slicing is required. No publication, merge or deployment authorized for this feature.
+Delivery: one coherent slice, forecast 390 authored lines; feature-branch-chain if slicing is required. User authorized push/PR on 2026-11-05; PR15 is open against main. No merge or deployment authorized.
 
 ## Specs
 
@@ -25,3 +25,5 @@ Delivery: one coherent slice, forecast 390 authored lines; feature-branch-chain 
 - L4: Independent verifier passed S1–S3:46probes, real isolated confirmation-enabled SMTP/Auth flows, replay/expiry/purpose rejection, recovery/ordinarysession password updates and profile/account isolation, plus4baseline differentials. Fresh candidate root46tests919assertions passed; parent repeated focused5tests189assertions. No findings or correction. Source matches verified snapshot. Native review pending.
 
 - L5: User: "granted". Native high-risk assessment (security item2) reviewed implementation `bda4665`,7files344changedlines. Risk/resilience/readability/reliability captures ran concurrently and returned no findings; terminal approval was acknowledged successfully. No correction needed. Reviewed boundary is `bda4665`. Local feature complete; remote publication and deployment remain separate decisions. Final bookkeeping changes only passive documentation. Disposable Supabase stack, network and private test scratch were removed after verification.
+
+- L6: User: "push pr". Pushed reviewed source `bda4665` and passive closure `088bc69`; opened [PR15](https://github.com/msti1899/modpack-creator-version-final/pull/15) against main. One coherent slice below400changedlines, no chain needed. Publication bookkeeping changes only passive documentation; source stays reviewed and unchanged. Hosted CI is checked separately. No merge/deployment.
