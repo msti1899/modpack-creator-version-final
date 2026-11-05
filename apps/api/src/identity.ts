@@ -32,6 +32,8 @@ function configuration(options: IdentityOptions): { url: string; key: string } {
   }
 }
 
+export { configuration as authenticationConfiguration };
+
 async function userRecord(response: Response): Promise<UserIdentity> {
   const reader = response.body?.getReader();
   if (!reader) throw new Error("Missing Auth response body");
