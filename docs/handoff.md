@@ -9,7 +9,8 @@ Continue [account profiles](../odd/tasks/account-profiles.md), not a new product
 questionnaire. User requested one final question and then backend implementation.
 T1 database layer is complete and reviewed. T2 authenticated HTTP endpoints are
 implemented, independently verified, and native review approved without findings;
-acknowledgement completed. Publication remains pending.
+acknowledgement completed. Published as [PR11](https://github.com/msti1899/modpack-creator-version-final/pull/11)
+against `feat/account-profiles`; integration into main remains pending.
 Preserve `/me` and public Modrinth behavior. No frontend or cloud/provider setup
 is authorized.
 
@@ -35,7 +36,8 @@ is authorized.
   Eleven additional differential cases matched. Parent spot check passed.
 - No new dependencies, migrations, login/provider workflows, or frontend changes.
   T1 and T2 native reviews are approved without findings and acknowledged.
-  T2 publication, hosted CI and merge are not claimed.
+  HTTP PR11 is open against the feature branch. Hosted CI and merge are separate
+  from the local evidence above; no merge or deployment was performed.
 
 ## Accepted account rules
 
@@ -56,7 +58,8 @@ external scratch stacks only; do not reset an existing developer database.
 User preference: Gentle AI ODD roles. Explorer `gpt-6-luna`/high; verifier
 `gpt-6.1-sol`/medium. Parent writes dependent units inline. The approved chain
 strategy is feature-branch-chain. User authorized the earlier database publication; tracker9 and database10
-are now merged. The current HTTP continuation is local only. Deployment, cloud configuration,
+are now merged. User authorized the HTTP push/PR with "push y pr ya a laburar";
+PR11 is open against the feature branch. Deployment, cloud configuration,
 and merge remain unauthorized.
 
 Preserve unrelated untracked `.atl/`, `.gitattributes`, and `graphify-out/`.
@@ -65,7 +68,7 @@ Git hooks may rebuild Graphify data; inspect fresh status before staging.
 ## Next action
 
 Both profile slices are implemented and reviewed; no review step remains for
-their unchanged code. HTTP publication/integration requires its own explicit
-request. Keep any later PR based on the branch that actually contains T1, rather
-than assuming the prematurely merged tracker delivered the database to main. Do not claim the full authentication milestone
+their unchanged code. Review HTTP PR11 against `feat/account-profiles`. Final
+integration into main requires a separate explicit decision; merging PR11 alone
+does not deliver either implementation slice to main. Do not claim the full authentication milestone
 complete or reconstruct old review tokens from documentation.
