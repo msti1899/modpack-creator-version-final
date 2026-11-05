@@ -1,7 +1,7 @@
 # Account profiles and usernames
 Objective: implement local authenticated username profiles; no frontend or external setup.
 Base: `origin/main` at `d9493dc`. Route: inline; runner: Bun 1.4.4 and disposable Supabase/pgTAP.
-Delivery: feature-branch-chain (previously chosen); database slice then HTTP slice, no push/PR/merge authorized. Forecast: 650 authored lines across two coherent slices, each targeted below 400; preserve tests and docs rather than compressing to fit.
+Delivery: feature-branch-chain (previously chosen); database slice then HTTP slice, push/PR authorized on 2026-11-05; no merge/deployment authorized. Forecast: 650 authored lines across two coherent slices, each targeted below 400; preserve tests and docs rather than compressing to fit.
 
 ## Specs
 
@@ -27,3 +27,5 @@ Delivery: feature-branch-chain (previously chosen); database slice then HTTP sli
 - L6: Independent T1 verification passed 32 live Auth/Data API/SQL/race probes, matching baseline/candidate root29/531. Its first fresh stack had an unexplained pgTAP plan(integer) lookup failure; a single targeted recheck confirmed byte-identical migration/tests and independently passed45combinedchecks. No outstanding T1 blocker. HTTP T2 remains pending. Native review pending. Rollback: remove the new profile migration/tests/guide before deployment; no existing records were changed. Application sources remain identical to base.
 
 - L7: User granted T1 review. Risk, resilience, readability, and reliability reviews completed without findings; exact acknowledgement succeeded. T1 commit `86e168a` is reviewed. No correction was needed. HTTP T2 remains pending; no remote publication or deployment was performed.
+
+- L8: User requested "commit push y pr". Published draft tracker PR9 (`feat/account-profiles` to `main`) and database PR10 (`feat/account-profiles-db` to tracker). Reviewed DB code remains `86e168a`; closure `2b640dc`; child includes the tracker plan through ordinary merges. Publication bookkeeping is passive documentation. T2 remains pending; no merge or deployment performed.

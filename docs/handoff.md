@@ -28,7 +28,9 @@ and public Modrinth behavior. No frontend or cloud/provider setup is authorized.
   byte-identical SQL independently passed all 45 checks. No source blocker remains.
 - No application source changed in T1. HTTP profile routes are not implemented.
   Native risk/resilience/readability/reliability review completed without findings
-  and was acknowledged. Publication, hosted CI, and merge are not claimed.
+  and was acknowledged. Published as [database PR10](https://github.com/msti1899/modpack-creator-version-final/pull/10)
+  against the [draft tracker PR9](https://github.com/msti1899/modpack-creator-version-final/pull/9).
+  Hosted CI and merge are separate; neither is claimed by these local checks.
 
 ## Accepted account rules
 
@@ -48,8 +50,9 @@ external scratch stacks only; do not reset an existing developer database.
 
 User preference: Gentle AI ODD roles. Explorer `gpt-6-luna`/high; verifier
 `gpt-6.1-sol`/medium. Parent writes dependent units inline. The approved chain
-strategy is feature-branch-chain; no push, PR, deployment, cloud configuration,
-or merge is authorized by the current continuation.
+strategy is feature-branch-chain. User authorized commit/push/PR publication on
+2026-11-05; tracker9 and database10 are open. Deployment, cloud configuration,
+and merge remain unauthorized.
 
 Preserve unrelated untracked `.atl/`, `.gitattributes`, and `graphify-out/`.
 Git hooks may rebuild Graphify data; inspect fresh status before staging.
