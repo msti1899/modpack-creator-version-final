@@ -1,73 +1,55 @@
 # Backend handoff
 
-Snapshot: 2026-11-05. Verify Git and this document before acting.
-Current plan: [backend roadmap](plans/backend-roadmap.md).
+Snapshot: 2026-11-05. Verify current Git/PR state before acting.
+Application checkpoint: `main` at `d9e72d8`, after merged [PR13](https://github.com/msti1899/modpack-creator-version-final/pull/13).
+Plan: [backend roadmap](plans/backend-roadmap.md), milestone 2.
 
 ## Resume here
 
-Continue [local email/password access](../odd/tasks/email-password-auth.md).
-Registration and login are implemented, independently verified, and native review
-approved without findings; acknowledgement completed. Published as
-[PR13](https://github.com/msti1899/modpack-creator-version-final/pull/13) against main; merge remains pending. Username assignment stays a separate authenticated
-profile request. No frontend, provider setup or deployment is authorized.
+Profiles and local email/password registration/login are implemented, verified,
+reviewed and merged into main. No implementation or review remains pending for
+those unchanged slices. The next unfinished scope is local email confirmation
+callbacks and password recovery; it is not implemented by this documentation update.
+Frontend, real email/provider setup and deployment remain out of scope.
 
-## Verified checkpoint
+## Current backend
 
-- Working branch: `feat/email-password-auth`, based on merged `main` at `a71e8ff`.
-  Reviewed Auth implementation: `8652e95`; resolve passive documentation HEAD from Git.
-- User merged final profile integration PR12: database and profile HTTP code are
-  now in main. The previous integration gap is resolved; no agent merge occurred.
-- Current Auth proof: types and 41 tests/730 assertions passed, 10 real local
-  registration/login/profile flows and 42 prior-route byte comparisons passed.
-  Independent verification passed 140 assertions, 36 differentials and five
-  confirmation-enabled assertions. Parent spot check passed. Native risk/resilience/
-  readability/reliability review approved without findings and was acknowledged.
-- Reviewed T1 implementation: `86e168a`; no database bytes changed in T2.
-- GET `/profile` reads the caller's username or null; POST assigns it initially;
-  PATCH renames an existing profile. User identity and RLS constrain every write.
-  See [API reference](reference/backend-api.md) and [profile guide](guides/account-profiles.md).
-- Own T2 RED/GREEN covered routes, validation, conflicts and unchanged unknown
-  404 behavior. Root types and 35 tests/627 assertions passed; 14 live local
-  Hono/Auth/Data API scenarios passed. Twenty-four differential cases matched
-  baseline status, headers and exact bytes, including `.mrpack` ZIP output.
-- Independent fresh baseline/candidate checks passed (29/531 vs 35/627), plus
-  50 live/security/concurrency assertions and 45 pgTAP checks. Real stalled HTTP
-  response bodies timed out at five seconds; redirects did not forward tokens.
-  Eleven additional differential cases matched. Parent spot check passed.
-- No new dependencies, migrations, configured Auth defaults or frontend changes.
-  Earlier profile T1/T2 and the credential-route reviews are approved. Confirmation callbacks, recovery and providers remain deferred.
-  Credential routes are published in PR13 against main. Hosted CI, merge and
-  deployment are separate from the local evidence above.
+- Public Modrinth search, dependency resolution and `.mrpack` export are stateless.
+- `/me` validates Supabase user sessions. GET/POST/PATCH `/profile` read, assign
+  and rename the caller's username under database RLS and restricted grants.
+- POST `/auth/register` and `/auth/login` delegate email/password access to
+  Supabase Auth. Username assignment remains a separate authenticated step.
+- Profile integration [PR12](https://github.com/msti1899/modpack-creator-version-final/pull/12)
+  and credential [PR13](https://github.com/msti1899/modpack-creator-version-final/pull/13)
+  are merged. The earlier tracker-order integration gap is resolved.
 
-## Accepted account rules
+Contracts and limits: [API reference](reference/backend-api.md).
+Local flow: [account access](guides/local-account-access.md) and [profiles](guides/account-profiles.md).
+Accepted product rules: [baseline D3](decisions/0001-project-baseline.md).
 
-Baseline [D3](decisions/0001-project-baseline.md) is authoritative: a unique username
-for every provider, 3–20 ASCII letters/digits/underscores, preserved display casing
-and case-insensitive uniqueness. First rename is immediate; later changes require
-30 days; the old name is freed. Password sign-in uses email only. Google/Discord
-linking is manual from settings while signed in, never automatic email merging;
-unlinking requires another configured access method. Basic email/password access
-is now implemented; confirmation/recovery/provider workflows remain unimplemented,
-so milestone 2 is not complete.
+## Verified evidence
 
-## Environment and delivery
+- Latest implementation checks: types and 41 tests / 730 assertions passed.
+- Registration/access: 10 own real local flows and 42 prior-route byte comparisons;
+  independent verification passed 140 assertions, 36 differentials and five
+  confirmation-enabled assertions. These are observed slice checks, not a new run
+  performed for this documentation refresh or proof of real email delivery.
+- Native risk/resilience/readability/reliability reviews approved profiles and
+  credential routes without findings; acknowledgements completed. Do not replay
+  those spent reviews. Detailed history: [profile tasks](../odd/tasks/account-profiles.md)
+  and [credential tasks](../odd/tasks/email-password-auth.md).
 
-Use pinned commands in `package.json`; check Bun availability. Supabase CLI is
-project-local; Docker is required for live database checks. Proof uses disposable
-external scratch stacks only; do not reset an existing developer database.
+## Remaining work and working rules
 
-User preference: Gentle AI ODD roles. Explorer `gpt-6-luna`/high; verifier
-`gpt-6.1-sol`/medium. Parent writes dependent units inline. The approved chain
-strategy is feature-branch-chain when needed. Prior profile PRs are merged. The
-user authorized Auth commit/push/PR with "commit push y prs"; PR13 is open
-against main. Cloud configuration, merge and deployment remain unauthorized.
+Confirmation callbacks, recovery, refresh/logout and Google/Discord linking flows
+remain unimplemented. Groups, saved packs, publications and votes are later roadmap
+milestones. Local success does not establish complete authentication or production readiness.
 
-Preserve unrelated untracked `.atl/`, `.gitattributes`, and `graphify-out/`.
-Git hooks may rebuild Graphify data; inspect fresh status before staging.
-
-## Next action
-
-The registration/login slice is complete, reviewed and published. Review PR13
-against main; no remaining native review step exists for unchanged `8652e95`.
-Confirmation callbacks and password recovery are later work. Do not replay spent
-profile/Auth reviews or claim full authentication or production readiness.
+Use pinned commands in `package.json` and the local guides; verify Bun availability.
+Live database tests require disposable local Supabase/Docker state. Do not reset
+an existing developer database or configure external accounts without authorization.
+Preserve unrelated `.atl/`, `.gitattributes` and `graphify-out/`; hooks may rebuild
+Graphify data. Use Gentle AI ODD roles: explorer `gpt-6-luna`/high, verifier
+`gpt-6.1-sol`/medium; parent writes dependent work inline. Use feature-branch-chain
+when a feature needs review slices. Publication, merge and deployment permissions
+are scoped to each user request, not blanket approval for future work.

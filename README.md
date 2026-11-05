@@ -75,15 +75,16 @@ In each project's settings, include source files outside its root directory so
 Vercel can access the workspace lockfile. Use the repository's Bun package manager
 and frozen lockfile; do not generate separate npm lockfiles in the applications.
 
-No deployment or provider account configuration is included in this scaffold.
+The verified workflow is local; deployment and provider-account setup remain separate.
 Bun on Vercel is currently beta. Vercel Hobby is limited to personal,
 non-commercial use and has usage quotas; open source alone does not establish
 eligibility.
 
 ## Integration status
 
-- Supabase PostgreSQL and Auth: local foundation and identity verification are
-  available; application signup/recovery and Discord/Google configuration remain deferred.
+- Supabase PostgreSQL and Auth: local database, session verification, username
+  profiles and email/password registration/login are implemented and merged.
+  Confirmation callbacks, recovery and Discord/Google configuration remain deferred.
 - Brevo: confirmation and password-recovery emails; verify sender eligibility
   and real delivery before launch. No secondary email provider initially.
 - Modrinth: the backend catalog and `.mrpack` export are implemented; frontend integration is deferred.
