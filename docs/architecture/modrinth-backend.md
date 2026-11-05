@@ -1,10 +1,13 @@
 # Stateless Modrinth backend
 
-The Hono API owns catalog access, dependency resolution, and archive generation.
-The Next.js frontend remains a scaffold; no builder integration is implemented.
-There are no application accounts, saved packs, or cross-request selection state.
-The separate [local identity slice](../guides/local-identity.md) adds Supabase-backed
-`GET /me`; it does not add authentication requirements to the Modrinth routes.
+The Modrinth part of the Hono API owns catalog access, dependency resolution and
+archive generation. It does not persist packs or cross-request selections. The
+Next.js frontend remains a scaffold; no builder integration is implemented.
+
+Separate account routes provide [identity verification](../guides/local-identity.md),
+[username profiles](../guides/account-profiles.md) and [email/password access](../guides/local-account-access.md)
+backed by Supabase. Those stateful account/profile capabilities do not add
+user-authentication requirements to the public Modrinth routes.
 
 ## Request flow
 
