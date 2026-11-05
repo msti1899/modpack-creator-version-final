@@ -1,6 +1,6 @@
 # Backend API reference
 
-The independent Hono API verifies identity for `/me`; existing catalog/pack
+The independent Hono API verifies Clerk identity for `/me`; existing catalog/pack
 routes remain public. Application pack persistence is not implemented.
 Local base URL: `http://127.0.0.1:3001`. POST bodies must be JSON.
 For a complete example, see the [creation guide](../guides/create-modpack.md).
@@ -14,18 +14,27 @@ process, not external service connectivity.
 
 ### GET /me
 
-Requires `Authorization: Bearer <user access token>`. Supabase Auth validates it;
-API keys are not user sessions. Returns `{ user: { id, email } }`, with nullable
-email and no raw metadata or tokens. All responses are `no-store` and vary on
+Requires `Authorization: Bearer <Clerk session token>`. The Clerk SDK verifies
+the signature/timing using a configured RSA public key; the API enforces its
+issuer, authorized browser origin and user-session claims. API keys and old
+Supabase sessions are not accepted. Returns `{ user: { id, email } }`, with
+opaque Clerk `user_...` ID and nullable email. Email is null unless a signed
+string email claim exists; no profile lookup occurs. No raw metadata or tokens
+are returned. All responses are `no-store` and vary on
 Authorization. A 401 includes `WWW-Authenticate: Bearer`.
 
 Missing/malformed credentials return 401 without an upstream call. With credentials
-present, missing/malformed server configuration returns 503; upstream invalid/expired
-token responses return 401; network/protocol/oversized-response failures return
-502; timeouts return 504. Auth requests reject redirects, cap JSON at 64 KiB, and
-use a five-second timeout. Tokens are limited to 8192 characters.
+present, missing/malformed server configuration returns 503; invalid/expired
+tokens return 401; unexpected verification failures return 502. No Auth network
+lookup occurs. Tokens are limited to 8192 characters. Key rotation requires a
+configuration update; issued JWTs may remain valid until expiry after logout.
 
-Configuration and verification: [local identity guide](../guides/local-identity.md).
+Configure `CLERK_JWT_KEY` with the instance JWT public key (PEM, literal `\n`
+supported), `CLERK_ISSUER` with the exact HTTPS issuer origin, and
+`CLERK_AUTHORIZED_PARTIES` with comma-separated browser origins. HTTP is allowed
+only for loopback development origins. Use the same instance that issues user
+sessions; no secret key or local Supabase Auth service is needed by the API.
+See `apps/api/.env.example` and run `bun test apps/api/tests/identity.test.ts`.
 This establishes identity only, not group permissions or email-confirmation policy.
 
 ### GET /mods

@@ -1,3 +1,7 @@
+> Historical Supabase identity guide. Current `/me` verifies Clerk sessions;
+> use the [backend API reference](../reference/backend-api.md#get-me) and
+> `apps/api/.env.example` instead. Old Supabase tokens are not accepted.
+
 # Verify a local user's identity
 
 `GET /me` verifies a user access token with Supabase Auth and returns only
