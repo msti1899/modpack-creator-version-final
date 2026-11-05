@@ -36,6 +36,23 @@ the original context. Unresolved items are listed separately.
 
 - Every participant must register.
 - Offer Discord, Google, and traditional email/password authentication.
+- Password-based sign-in uses email only, not the username. Google and Discord
+  remain available as separate sign-in methods.
+- Users may link Google and Discord to an existing account and use those methods
+  without creating a second account. Linking is manual from account settings
+  while signed in; do not merge accounts automatically because emails match.
+  Users may unlink a provider only when another configured sign-in method remains.
+- Every account must choose a unique username, including Google and Discord
+  registrations (confirmed on 2026-11-05). Uniqueness is case-insensitive:
+  `Matias` and `matias` cannot belong to different accounts.
+- Usernames contain 3–20 characters from `a-z`, `A-Z`, `0-9`, and `_`, without
+  spaces or accents (example: `mati_1899`). Preserve the chosen letter casing
+  when displaying the username; uniqueness still ignores casing.
+  Users may change their username after
+  registration: the first change may be immediate, and subsequent changes require
+  30 days since the last change. After a rename, the previous username becomes
+  available for another person to use. The database enforces these username rules;
+  HTTP profile routes and full account workflows are not implemented yet.
 - Initially, each person belongs to one group, including group owners.
 - Initially, each group has one modpack and an owner.
 
