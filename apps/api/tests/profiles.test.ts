@@ -115,3 +115,35 @@ test("profile credentials and owner filters cannot be supplied through request d
   expect((await app.request("/profile/not-found")).status).toBe(404);
   expect((await app.request("/profile", { method: "DELETE" })).status).toBe(404);
 });
+
+test("profile database configuration is independently guarded against unsafe URLs and privileged keys", async () => {
+  let calls = 0;
+  const privileged = `a.${Buffer.from(JSON.stringify({ role: "service_role" })).toString("base64url")}.c`;
+  for (const database of [{}, { ...config, url: "http://remote.test" }, { ...config, url: "https://db.test/?secret=x" },
+    { ...config, url: "https://user:private@db.test" }, { ...config, publishableKey: "sb_secret_private" }, { ...config, publishableKey: privileged }]) {
+    const app = createApp(undefined, { ...config, fetcher: async () => Response.json(user) },
+      async () => { calls++; return Response.json([profile]); }, database);
+    const response = await request(app);
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "Profile service is not configured." });
+    expect(response.headers.get("cache-control")).toBe("no-store");
+  }
+  expect(calls).toBe(0);
+});
+
+test("profile data access can use a separate safe project without changing identity or owner scope", async () => {
+  const database = { url: "https://database.example.test", publishableKey: "sb_publishable_database_test" };
+  let calls = 0;
+  const app = createApp(undefined, { ...config, fetcher: async () => Response.json(user) }, async (url, init) => {
+    calls++;
+    const target = new URL(url);
+    expect(target.origin).toBe(database.url);
+    expect(target.pathname).toBe("/rest/v1/profiles");
+    expect(target.searchParams.get("user_id")).toBe("eq." + user.id);
+    expect(new Headers(init.headers).get("apikey")).toBe(database.publishableKey);
+    expect(new Headers(init.headers).get("authorization")).toBe("Bearer access-token");
+    return Response.json([profile]);
+  }, database);
+  expect((await request(app)).status).toBe(200);
+  expect(calls).toBe(1);
+});

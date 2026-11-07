@@ -119,6 +119,13 @@ and cap response JSON at 4 KiB. There are no automatic retries. A transport erro
 does not prove a write rolled back: read the profile before deciding to retry.
 No signup, provider-linking, or profile deletion endpoint is included.
 
+Database configuration is guarded independently from identity verification. The
+profile module accepts a separate safe database origin and publishable/anon key;
+unsafe/missing configuration returns 503 without a Data API call. API keys never
+authenticate the caller and privileged keys are rejected. The existing identity
+configuration remains the default until the Clerk cutover; no provider is changed
+by this preparatory adapter slice.
+
 See the [profile guide](../guides/account-profiles.md) for database guarantees.
 
 ### GET /mods

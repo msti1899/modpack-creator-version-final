@@ -1,9 +1,10 @@
 import { Hono } from "hono";
+import { databaseConfiguration, type DatabaseOptions } from "./database";
 import { requireIdentity, type IdentityEnv, type IdentityOptions } from "./identity";
 
 export type ProfileFetcher = (url: string, init: RequestInit) => Promise<Response>;
 class ProfileFailure extends Error {
-  constructor(readonly status: 400 | 401 | 404 | 409 | 502 | 504, message: string) { super(message); }
+  constructor(readonly status: 400 | 401 | 404 | 409 | 502 | 503 | 504, message: string) { super(message); }
 }
 const validUsername = (value: unknown): value is string =>
   typeof value === "string" && value.length >= 3 && value.length <= 20 && !/[^A-Za-z0-9_]/.test(value);
@@ -23,7 +24,7 @@ async function jsonBody(body: ReadableStream<Uint8Array> | null, max: number): P
   return JSON.parse(Buffer.concat(chunks).toString("utf8"));
 }
 
-export function profileRoutes(options: IdentityOptions, fetcher: ProfileFetcher) {
+export function profileRoutes(options: IdentityOptions, fetcher: ProfileFetcher, database: DatabaseOptions) {
   const app = new Hono<IdentityEnv>();
   app.on(["GET", "POST", "PATCH"], "/", requireIdentity(options), async (c) => {
     try {
@@ -39,13 +40,15 @@ export function profileRoutes(options: IdentityOptions, fetcher: ProfileFetcher)
         }
         username = input.username;
       }
-      // requireIdentity validates server configuration before this handler runs.
-      const url = new URL("/rest/v1/profiles", options.url);
+      let config: ReturnType<typeof databaseConfiguration>;
+      try { config = databaseConfiguration(database); }
+      catch { throw new ProfileFailure(503, "Profile service is not configured."); }
+      const url = new URL("/rest/v1/profiles", config.url);
       url.searchParams.set("select", "username,username_changed_at");
       url.searchParams.set("user_id", "eq." + c.get("identity").id);
       const response = await fetcher(url.href, {
         method, redirect: "error", cache: "no-store", signal: AbortSignal.timeout(5000),
-        headers: { apikey: options.publishableKey!, Authorization: c.req.header("Authorization")!.replace(/^Bearer +/i, "Bearer "),
+        headers: { apikey: config.key, Authorization: c.req.header("Authorization")!.replace(/^Bearer +/i, "Bearer "),
           Accept: "application/json", "Content-Type": "application/json", Prefer: "return=representation" },
         body: method === "GET" ? undefined : JSON.stringify(method === "POST" ? { user_id: c.get("identity").id, username } : { username }),
       });
