@@ -44,3 +44,10 @@ Delivery: cached feature-branch-chain; review-only children must not deploy inde
 - L16: R3a observed new retired-route404 expectation RED while upstream was still called. Removed only the obsolete email-management handler/tests; added regression coverage for no provider calls and unchanged credential DTOs. No Clerk setup or other identity behavior changes in this intermediate slice.
 
 - L17: R3a focused8tests111assertions,root45tests764assertions and54ownbaseline comparisons passed. Independent fresh-scratch verifier covered252retirementvariants and258unchanged-route differentials, plusroot45/764 andsnapshotfidelity; no findings. Parent repeated rootcheck. SQL/web unchanged; native review pending.
+
+- L18: R3a `0e94233` native four-lens review approved without findings and acknowledged; authority burned. No correction needed. R3b retires remaining register/login implementation, route mounting and tests, with explicit404/no-provider regression coverage.
+- L19: R3b retirement expectation observed RED201→GREEN404. Existing `/me`, profile and public behavior remain unchanged until the later Clerk identity cutover. Source is deliberately not an independently deployable partial migration; no provider, credential or stored data changes are performed here.
+
+- L20: User: "sigue" while R3b verification was in progress. Continue the approved local chain; no new publication, merge, deployment or candidate-review consent is inferred.
+
+- L21: R3b focused2tests9assertions,root39tests662assertions and42unchanged-route comparisons passed. Independent fresh-scratch verifier passed1680retirementvariants,20lazy-bodycases,568baseline comparisons androot39/662; no findings and source fidelity confirmed. Parent repeated rootcheck. Database/web unchanged; native review pending.

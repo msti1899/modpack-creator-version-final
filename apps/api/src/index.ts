@@ -3,7 +3,6 @@ import { bodyLimit } from "hono/body-limit";
 import { exportPack, PackError, resolve, search, type Fetcher } from "./modrinth";
 import { requireIdentity, type IdentityEnv, type IdentityOptions } from "./identity";
 import { profileRoutes, type ProfileFetcher } from "./profiles";
-import { passwordRoutes } from "./password-auth";
 import type { DatabaseOptions } from "./database";
 
 export function createApp(fetcher: Fetcher = fetch, identity: IdentityOptions = {
@@ -14,7 +13,6 @@ export function createApp(fetcher: Fetcher = fetch, identity: IdentityOptions = 
   app.get("/health", (c) => c.json({ status: "ok", service: "modpack-api" }));
   app.get("/me", requireIdentity(identity), (c) => c.json({ user: c.get("identity") }));
   app.route("/profile", profileRoutes(identity, profileFetcher, database));
-  app.route("/auth", passwordRoutes(identity));
   app.use("/packs/*", bodyLimit({ maxSize: 16_384, onError: (c) => c.json({ error: "Request body is too large." }, 400) }));
   app.get("/mods", async (c) => c.json(await search(fetcher, new URL(c.req.url).searchParams)));
   async function body(request: Request): Promise<Record<string, unknown>> {
