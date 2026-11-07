@@ -2,7 +2,7 @@
 
 - Date: 2026-11-05
 - Status: Accepted
-- Implementation: API verification and web account controls locally implemented; session bridge and final continuity records follow in later chain slices.
+- Implementation: Local integration in progress; see [task evidence](../../odd/tasks/clerk-auth.md).
 - Source: "ok entonces me parece bien, empezemos a integrar clerk en la estructura actual"
 - Supersedes: authentication provider in 0001/D8 and auth-email prerequisite in 0001/D10 only.
 

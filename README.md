@@ -34,7 +34,8 @@ For account access, configure `apps/web/.env.local` and `apps/api/.env` from
 their respective examples using the same Clerk instance. The web needs its
 publishable/secret keys; the API needs its JWT **public** key, issuer and allowed
 browser origins. Follow the identity guide rather than sharing credentials.
-Without keys the page remains usable with a setup message. Real Clerk sign-in needs network access but no local database.
+Without keys the page remains usable with a setup message; web `/api/me` is
+unavailable. Real Clerk sign-in needs network access but no local database.
 
 ## Check the scaffold
 
@@ -66,7 +67,9 @@ See the [modpack creation guide](docs/guides/create-modpack.md) for the stateles
 dependency-approval, and pack-download workflow. Supply an exact Minecraft and
 loader version; runtime compatibility is not guaranteed. No mods are redistributed.
 
-The API and frontend are separate applications. Their health/page tests do not require credentials or external services. `/health`
+The API and frontend are separate applications. Web `/api/me` is a thin
+same-origin session-forwarding adapter to Hono `/me`, not a second domain API.
+Their health/page tests do not require credentials or external services. `/health`
 checks the API process only; it does not claim database or email connectivity.
 
 ## Deployment direction

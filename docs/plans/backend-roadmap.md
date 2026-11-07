@@ -1,6 +1,6 @@
 # Backend roadmap
 
-Status: Approved; implementation in progress. Scope: backend only, no frontend or CD.
+Status: Approved; implementation in progress. Scope: backend plus the approved Clerk account-integration exception, no modpack frontend or CD.
 Source: the six-stage proposal approved by the user with "Go ahead with the plan."
 Last checkpoint: [current handoff](../handoff.md). This plan records intent;
 the handoff records the current working state and next action.
@@ -16,7 +16,7 @@ votes. Start with working vertical slices rather than modeling every table upfro
 | Milestone | Scope and acceptance | Current state |
 | --- | --- | --- |
 | 1. Reproducible database | Pinned local Supabase tooling, tracked migrations, configuration, and documentation. A disposable database can start and rebuild without cloud credentials. | Implemented and verified; [PR #6](https://github.com/msti1899/modpack-creator-version-final/pull/6) merged. |
-| 2. Identity and authentication | Hono validates Supabase sessions and exposes the caller's identity. Then complete email/password confirmation and recovery, Brevo delivery, and Google/Discord setup. Test invalid and expired sessions. | In progress: local `/me` slice implemented, independently verified, and native review approved. Parent branch published for the documentation PR; its own identity PR remains pending. Remaining account/provider workflows are not implemented. |
+| 2. Identity and authentication | Hono validates Clerk sessions; basic web account controls and a server-to-API identity check use the same Clerk instance. Supabase stays the database. Verify email/password confirmation/recovery and Google/Discord in Clerk before launch. | Local integration verified on `feat/clerk-auth`: types, 40 tests/1,019 assertions, build, public-route differential and independent verification passed. Delivery slicing/commits and native review pending; see [task evidence](../../odd/tasks/clerk-auth.md). Former Supabase identity is merged in baseline `d9493dc`; its review does not cover this replacement. No real login, email/OAuth, cloud setup or new publication is claimed. |
 | 3. Groups and permissions | One group per person, owner/member permissions, public direct admission, private invitations requiring approval, and ownership transfer before an owner leaves others behind. Test cross-group isolation and concurrent admission. | Planned. |
 | 4. Persisted modpack draft | One draft pack per group, owner-only edits, exact approved mod/dependency versions, reuse of existing Modrinth resolution/export. Failed writes leave no partial selection. | Planned. Existing stateless resolution/export is already implemented. |
 | 5. Published versions and sharing | Preserve earlier publications, explicit active-version selection by the owner, and links respecting access rules. Publishing does not automatically activate a version. | Planned. |
@@ -34,9 +34,9 @@ replace them or introduce new defaults.
   transactional behavior where needed, and documentation with each delivery.
 - Local tests, independent verification, native review, hosted CI, publication,
   and merge are separate evidence. Completion of one is not proof of the others.
-- Cloud Supabase, Brevo, and OAuth setup require separate authorized account
+- Cloud Supabase, Clerk, and OAuth setup require separate authorized account
   configuration. Local success does not prove production email or OAuth delivery.
-- Frontend, CD, CurseForge, multiple groups per user, multiple packs per group,
+- Modpack frontend, CD, CurseForge, multiple groups per user, multiple packs per group,
   and the desktop launcher remain outside this roadmap's current scope.
 
 ## Resolve before affected milestones
@@ -57,3 +57,4 @@ completed work. Record meaningful changes below and keep the
 - 2026-11-04: Recorded the approved six-stage plan; database foundation merged,
   local identity verified and its granted native review completed without findings. User requested durable plans and
   agent-to-agent continuity documentation.
+- 2026-11-05: User approved "ok entonces me parece bien, empezemos a integrar clerk en la estructura actual" and later "ok continua con los cambios entonces". Replace only authentication with Clerk and add basic web account controls; preserve the independent API, Supabase database and application-owned group rules. Brevo is no longer a prerequisite of this auth slice. Account setup, real delivery and publication remain separate.

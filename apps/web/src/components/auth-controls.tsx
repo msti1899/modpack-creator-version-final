@@ -10,6 +10,7 @@ export function AuthControls({ enabled }: { enabled: boolean }) {
       </Show>
       <Show when="signed-in">
         <UserButton />
+        <a href="/api/me" className="text-emerald-400 underline">Check API session</a>
       </Show>
     </nav>
   );

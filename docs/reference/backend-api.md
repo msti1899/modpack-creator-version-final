@@ -29,13 +29,16 @@ tokens return 401; unexpected verification failures return 502. No Auth network
 lookup occurs. Tokens are limited to 8192 characters. Key rotation requires a
 configuration update; issued JWTs may remain valid until expiry after logout.
 
-Configure `CLERK_JWT_KEY` with the instance JWT public key (PEM, literal `\n`
-supported), `CLERK_ISSUER` with the exact HTTPS issuer origin, and
-`CLERK_AUTHORIZED_PARTIES` with comma-separated browser origins. HTTP is allowed
-only for loopback development origins. Use the same instance that issues user
-sessions; no secret key or local Supabase Auth service is needed by the API.
-See `apps/api/.env.example` and run `bun test apps/api/tests/identity.test.ts`.
+Configuration and verification: [local identity guide](../guides/local-identity.md).
 This establishes identity only, not group permissions or email-confirmation policy.
+
+The web exposes a same-origin `GET /api/me` adapter: it obtains the Clerk token
+server-side and calls Hono `/me` at configured `API_URL`. It returns the same
+minimal identity, `no-store`, and `Vary: Cookie`. Missing web setup is 503,
+signed-out requests are 401, API/transport failures are 502, timeouts are 504;
+API 401/503/504 statuses are preserved without forwarding private error bodies.
+API responses are bounded to 16 KiB with a five-second fetch/body timeout and
+redirects are rejected. This does not move application business logic into Next.js.
 
 ### GET /mods
 
