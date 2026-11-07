@@ -39,3 +39,8 @@ Delivery: cached feature-branch-chain; review-only children must not deploy inde
 - L13: R2 separates guarded database configuration from identity without changing the current provider. Preserve default `database = identity` and existing caller behavior until R4 replaces it with explicit Clerk/database settings. Observed new guard RED200→GREEN503; focused and full checks/differentials are recorded at this child boundary. Original verified e4 implementation remains unchanged.
 
 - L14: R2 own focused8tests122assertions, root48tests945assertions and72baseline differentials passed. Independent fresh-scratch verifier passed103probes,57byte/header/status/ZIPcomparisons androot48/945; no blockers. Parent repeated rootcheck. Webbuild/DBnotrepeated because unchanged. Native review of this bounded adapter is pending.
+
+- L15: R2 `d95c577` native four-lens review approved without findings and acknowledged; authority burned. No correction needed. Next R3a retires email verification/recovery/password-management proxies and their tests/docs, preserving register/login until R3b.
+- L16: R3a observed new retired-route404 expectation RED while upstream was still called. Removed only the obsolete email-management handler/tests; added regression coverage for no provider calls and unchanged credential DTOs. No Clerk setup or other identity behavior changes in this intermediate slice.
+
+- L17: R3a focused8tests111assertions,root45tests764assertions and54ownbaseline comparisons passed. Independent fresh-scratch verifier covered252retirementvariants and258unchanged-route differentials, plusroot45/764 andsnapshotfidelity; no findings. Parent repeated rootcheck. SQL/web unchanged; native review pending.
