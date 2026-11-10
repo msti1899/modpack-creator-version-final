@@ -1,7 +1,7 @@
 # Access accounts with Clerk and application profiles
 
-Review-chain scope: this slice activates API identity/profile verification only.
-Web account controls and the same-origin bridge follow in later children. The
+Review-chain scope: API identity/profile verification and web account controls
+are connected locally. The same-origin bridge follows in a later child. The
 complete guide describes the finished chain, not an independently deployable slice.
 
 Clerk is the only account/session provider. Supabase stores application profiles;
