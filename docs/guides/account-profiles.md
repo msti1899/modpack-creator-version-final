@@ -1,12 +1,16 @@
 # Local account profiles
 
-The database stores one username per Supabase Auth user. Authenticated profile
-endpoints read, assign, and rename the caller's username. Existing `/me` and public
-Modrinth routes are unchanged. Full account/provider workflows remain unimplemented.
+This guide targets the completed Clerk cutover. The database review slice alone
+does not migrate the API and must not be deployed independently.
+
+The database stores one username per Clerk user ID. Authenticated profile
+endpoints read, assign, and rename the caller's username. Clerk owns accounts/sessions; application usernames remain database-owned,
+not automatically synchronized with Clerk usernames. Public Modrinth routes stay public.
 
 ## Use the profile endpoints
 
-With the [local identity configuration](local-identity.md) and a valid user token,
+With the [local identity configuration](local-identity.md), database configuration
+and a valid Clerk token carrying `role: "authenticated"`,
 GET `/profile` to read your profile. POST `{ "username": "Mati_1899" }` to assign
 the initial name; PATCH that same shape to rename it. Send the user token in the
 Authorization bearer header and JSON bodies with `Content-Type: application/json`.
@@ -21,7 +25,8 @@ the cooldown; the server does not automatically retry writes.
 ## Database contract
 
 `public.profiles` contains `user_id`, `username`, and nullable
-`username_changed_at`. A user without a profile has not chosen a username yet.
+`username_changed_at`. `user_id` is text and contains the verified Clerk subject.
+RLS compares it to `auth.jwt()->>'sub'`, not UUID-only `auth.uid()`. A user without a profile has not chosen a username yet.
 
 - Usernames use 3–20 ASCII letters, digits, or underscores; preserve letter casing.
 - The unique index compares `lower(username)` with the C collation. `Matias` and
@@ -50,3 +55,22 @@ The [task log](../../odd/tasks/account-profiles.md) separates database checks,
 independent verification, native review, HTTP implementation, and publication.
 No cloud project, email delivery, Google/Discord configuration, or deployment is
 part of this slice.
+
+## Database trust and legacy data
+
+Set API `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` independently of the Clerk
+verification settings; never use service-role credentials. Configure the database
+project to trust the same Clerk instance, and issue tokens with the authenticated
+role. The API rejects missing/privileged role claims before forwarding. Real
+provider/project setup requires separate authorization; synthetic local JWT tests
+are not proof that hosted trust is configured.
+
+The forward Clerk-owner migration retains every legacy UUID value as text,
+including username and cooldown; it does not create Clerk links or import users.
+Those rows remain reserved and inaccessible to Clerk subjects. No data is deleted
+or reassigned by matching email. Any later account-continuity operation requires
+explicit verified ownership and a separate plan. Apply through the normal migration
+process with backup/rollback planning; never reset an existing database as migration.
+
+References: [Clerk third-party auth](https://supabase.com/docs/guides/auth/third-party/clerk)
+and [profile ownership decision](../decisions/0003-clerk-profile-ownership.md).
