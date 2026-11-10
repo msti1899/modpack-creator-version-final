@@ -4,6 +4,7 @@ Snapshot: 2026-11-10. Application implementation: `00f3e88` on
 `feat/clerk-auth-replacement`, based on GitHub main `ad4056e` (including PR15).
 The byte-identical review-only sequence ends at `b1a237a` on
 `feat/clerk-review-slices`; intermediate commits must not be deployed separately.
+`main` now carries the ten reviewed work units at `a7ae8fb`.
 See [current tasks](../odd/tasks/clerk-auth-replacement.md) and
 [roadmap milestone 2](plans/backend-roadmap.md). Verify Git before resuming.
 
@@ -39,10 +40,12 @@ See [current tasks](../odd/tasks/clerk-auth-replacement.md) and
 
 ## Remaining work and exact next action
 
-Published as a feature-branch chain: draft tracker #30 with child PRs #31-#38.
-PR #16 is closed as replaced and its fork branch remains at `2818357`. Nothing is
-merged or deployed, and the tracker must not merge until the whole chain is accepted.
-Next action: review and integrate the chain in order (#31 first), then the tracker.
+Merged into `main` at `a7ae8fbb49de4911cd61c42924a596583fc3912f` by fast-forward.
+Chain PRs #30-#39 are closed: #31 merged into the tracker, the rest integrated by that
+fast-forward. Nothing is deployed. The predecessor PR #16 is closed as replaced and its
+fork branch remains at `2818357`.
+Next action: configure and verify hosted Clerk sign-in and Supabase third-party JWT trust
+in a non-production project before any release.
 
 Hosted Clerk sign-in/email/OAuth, hosted Supabase JWT trust and hosted CI have not
 been verified. The full local Supabase pgTAP stack was not rerun; isolated SQL,
