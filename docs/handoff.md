@@ -28,6 +28,7 @@ See [current tasks](../odd/tasks/clerk-auth-replacement.md) and
   baseline comparisons and 8 SQL groups, including retained data and unchanged
   state after rejected operations. Four documentation inconsistencies were corrected
   in one batch and independently rechecked.
+- Every chain boundary passes typecheck and the full suite (48, 45, 39, 38, 38, 44, 53, 56 and 56 tests, zero failures), so each published commit is independently green.
 - Native checking completed across 13 review ranges: 11 approved and acknowledged,
   plus 2 passive structural checks. All approved authority was consumed; do not replay.
   One severe web-middleware claim was refuted. Non-blocking warnings/suggestions
@@ -38,9 +39,10 @@ See [current tasks](../odd/tasks/clerk-auth-replacement.md) and
 
 ## Remaining work and exact next action
 
-Ask the user whether to publish this local replacement to the existing PR16.
-GitHub and PR16 have not been updated; no push, force-push, new PR, merge or
-deployment is authorized. Determine the safe branch-update approach before publishing.
+Published as a feature-branch chain: draft tracker #30 with child PRs #31-#38.
+PR #16 is closed as replaced and its fork branch remains at `2818357`. Nothing is
+merged or deployed, and the tracker must not merge until the whole chain is accepted.
+Next action: review and integrate the chain in order (#31 first), then the tracker.
 
 Hosted Clerk sign-in/email/OAuth, hosted Supabase JWT trust and hosted CI have not
 been verified. The full local Supabase pgTAP stack was not rerun; isolated SQL,

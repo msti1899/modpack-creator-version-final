@@ -1,6 +1,6 @@
 # Replace Supabase Auth with Clerk
 Objective: complete the Clerk-only authentication cutover while retaining Supabase Postgres and existing profile rules.
-Branch: `feat/clerk-auth-replacement`, baseline `ad4056e`; implementation `00f3e88`. Delivery target: existing PR16; local review-only sequence `feat/clerk-review-slices` at `b1a237a`, no publication or merge. Runner: pinned Bun 1.4.4 and isolated database fixtures.
+Branch: `feat/clerk-auth-replacement`, baseline `ad4056e`; implementation `00f3e88`. Delivery: feature-branch chain from `feat/clerk-auth-tracker` (tracker PR #30, children #31-#38), review-only sequence `feat/clerk-review-slices` at `b1a237a`. No merge or deployment. Runner: pinned Bun 1.4.4 and isolated database fixtures.
 
 ## Specs
 
@@ -15,6 +15,7 @@ Branch: `feat/clerk-auth-replacement`, baseline `ad4056e`; implementation `00f3e
 - T2 [S1,S3] inline, complete — local email/SMS/signup and email capture disabled; configuration RED/GREEN and pinned CLI acceptance passed. Four passive stale paragraphs corrected and independently rechecked. Risk: authentication configuration and local services. Commit: `00f3e88`.
 - T3 [S1-S3] independent verification, complete — 56 tests / 1200 assertions, 68 API probes, 24 bridge probes, 22 public baseline comparisons and 8 SQL groups passed; own frozen install, build and upgrade passed. No hosted setup/proof claimed. Commit: `00f3e88`.
 - T4 [S1-S4] inline native orchestration, complete — 13 immutable review ranges reconstructed without changing the final tree; 11 approved/acknowledged reviews and 2 passive checks. Original full candidate declined after context-limit refusal; no report or review-mode toggle. Commits: `2aa1854` through `b1a237a` (below).
+- T5 [S1-S4] inline, complete — published the verified replacement as a feature-branch chain: draft tracker #30 plus child PRs #31-#38, each at or under 400 changed lines. Every boundary passes typecheck and the full suite. PR #16 closed as replaced; its fork branch is untouched. Merge and deployment remain unperformed. Commits: `6d6d287` through `d1b9178`.
 
 | Review part | Commit | Outcome |
 | --- | --- | --- |
@@ -31,6 +32,27 @@ Branch: `feat/clerk-auth-replacement`, baseline `ad4056e`; implementation `00f3e
 | 11 | `50b38b6` | Approved and acknowledged |
 | 12 | `18fc6a5` | Approved and acknowledged |
 | 13 | `b1a237a` | Approved and acknowledged |
+
+## Delivery chain
+
+Feature-branch chain: children integrate into the tracker branch and `main` receives the
+chain only once the tracker is accepted.
+
+| PR | Branch | Commit | Content | Changed lines |
+| --- | --- | --- | --- | --- |
+| #30 (draft) | `feat/clerk-auth-tracker` | `6d6d287` | Profile owners, RLS and API scoping | 210 |
+| #31 | `feat/clerk-02-retire-recovery` | `18e4c65` | Retire Supabase recovery proxies | 312 |
+| #32 | `feat/clerk-03-retire-credentials` | `5f4fe86` | Remove credential sign-in and record the decision | 375 |
+| #33 | `feat/clerk-04-api-session` | `8c0a80b` | Verify Clerk sessions in the API | 400 |
+| #34 | `feat/clerk-05-guides` | `3f90dd5` | Local identity and access guides | 213 |
+| #35 | `feat/clerk-06-web` | `feb7725` | Web account controls and session bridge | 254 |
+| #36 | `feat/clerk-07-regression` | `14fd010` | Security, public regression and CI checks | 288 |
+| #37 | `feat/clerk-08-upgrade` | `241cc89` | Disposable upgrade and local provider config | 197 |
+| #38 | `feat/clerk-09-docs` | `d1b9178` | Closure documentation and handoff | 244 |
+
+Slices stay under the 400-line review budget without `size:exception`. Intermediate
+boundaries are coherent but not independently deployable; only the tracker merge is
+intended for `main`.
 
 ## Log
 
@@ -49,3 +71,4 @@ Branch: `feat/clerk-auth-replacement`, baseline `ad4056e`; implementation `00f3e
 - L13: User authorized smaller reviews with "dividir en mas chico" and selected "Continuar sin reportar". The exact full-candidate decline was validated; no GitHub report was performed. Reconstructed 13 review-only commits in a separate worktree; no intermediate state is independently deployable. Final `b1a237a` and `00f3e88` trees are identical (`6a4bf48`); the largest individual range is 400 changed lines. Original full diff: 52 files, 1376 additions and 876 deletions. Earlier size estimates in this log are historical forecasts, not final counts.
 - L14: All 13 parts completed: 11 native approvals were acknowledged and their authority consumed, with 2 passive documentation checks. Invalid reviewer responses were retried only when the same bound slot was reoffered. Part 8's severe middleware claim was refuted; remaining findings are non-blocking follow-ups, not corrections or reasons to reopen spent reviews. No runtime source was changed during review. This passive closure records observed outcomes only.
 - L15: Hosted CI, real Clerk sign-in/email/OAuth, Supabase third-party trust, publication, merge and deployment remain unperformed. Next action requires a user decision about updating the existing PR16; do not force-push, create additional PRs or configure providers automatically.
+- L16: User authorized publication. Rebuilt the verified tree as nine squashed work units on `ad4056e`; every boundary passes typecheck and the full suite (48, 45, 39, 38, 38, 44, 53, 56, 56 tests, zero failures), which the thirteen review ranges could not claim individually. Opened draft tracker #30 and child PRs #31-#38, closed #16 as replaced, left the fork branch at `2818357` untouched, and performed no merge, deployment or hosted configuration.
