@@ -22,3 +22,14 @@ test("the public page explains missing auth setup without rendering a broken sig
     else process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = previous;
   }
 });
+
+// Provider doubles prove application composition, not Clerk's dialogs or login.
+test("configured account states and missing-key gates compose in isolation", () => {
+  const probe = Bun.spawnSync([process.execPath, "run", "apps/web/tests/fixtures/clerk-controls-probe.tsx"], {
+    cwd: new URL("../../..", import.meta.url).pathname,
+    timeout: 10_000,
+  });
+  expect(probe.exitCode).toBe(0);
+  expect(probe.stderr.toString()).toBe("");
+  expect(probe.stdout.toString()).toContain("Configured controls composition passed");
+});
