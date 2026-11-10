@@ -1,7 +1,7 @@
 # Backend handoff
 
 Snapshot: 2026-11-07. Verify branch and commit before acting.
-Local review chain: `feat/clerk-review-05-web-accounts`, based on approved `6fa889b`.
+Local review chain: `feat/clerk-review-06-web-identity`, based on approved `34a1dbc`.
 Complete reconciled application reference: `feat/clerk-reconcile` at `e4dc96a`.
 Plan: [backend roadmap](plans/backend-roadmap.md), milestone 2.
 
@@ -27,20 +27,24 @@ deployment candidates. Do not apply the partial chain to a live database.
   reviewed and acknowledged. These review authorities are spent; do not replay.
 - R4 `6fa889b`: API Clerk identity/profile cutover independently verified,
   then native four-lens review approved without findings and acknowledged.
-- R5 web controls: typechecks and 39 tests / 698 assertions, offline frozen
-  install and credential-free production build passed independently. Local
-  fallback-page browser QA passed with no JavaScript errors or axe violations.
-  Configured Clerk dialogs and real provider flows were not exercised.
+- R5 `34a1dbc`: web controls independently verified and native review approved
+  and acknowledged. Non-blocking warning: configured signed-in/out control
+  assertions are not persisted; R7 tracks coverage without claiming real login.
+- R6 bridge: typechecks and 44 tests / 742 assertions passed independently,
+  including 30 grouped probes, 15 unchanged public comparisons and a
+  credential-free build. Real HTTP redirects did not forward the bearer;
+  unconfigured production `/api/me` returned 503 with no-store/Vary Cookie.
+  Parent repeated the focused five bridge tests / 44 assertions.
 - The complete `e4dc96a` reference previously passed independent API/database
   integration and credential-free web-build checks. This is not proof of hosted
   provider configuration, current hosted CI or a merged/published result.
 
 ## Next action
 
-Commit R5 and assess its exact range against `6fa889b`; request fresh consent
-when required. Continue R6 same-origin identity bridge and R7 regression/CI/
-continuity. The current `/api/me` link deliberately awaits R6; this partial chain
-is not independently deployable. Prior review grants cover only their candidates.
+Commit R6 and assess its exact range against `34a1dbc`; request fresh consent
+when required. Continue R7 regression/CI/continuity and persisted legacy-upgrade
+and configured-control coverage. This local chain is not a deployed provider
+integration. Prior review grants cover only their candidates.
 
 Publication, PR updates, merge, external account configuration and deployment
 remain separate user decisions. No remote publication is claimed for this chain.

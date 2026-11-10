@@ -1,8 +1,8 @@
 # Use Clerk identity locally
 
-Review-chain scope: API identity/profile verification and web account controls
-are connected locally. The same-origin bridge follows in a later child. The
-complete guide describes the finished chain, not an independently deployable slice.
+Review-chain scope: API identity/profile verification, web account controls and
+the same-origin identity bridge are connected locally. Final regression and
+continuity checks remain; hosted provider configuration is not established.
 
 Clerk handles accounts and sessions. The independent Hono API verifies Clerk
 session tokens at `GET /me`; Supabase remains the database. No user synchronization,
