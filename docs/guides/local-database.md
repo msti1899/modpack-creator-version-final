@@ -92,3 +92,21 @@ containers. Multiple checkouts need distinct project IDs and ports before starti
 Keep `.temp`, `.branches`, environment files, keys, and database dumps out of Git.
 See [Supabase local development](https://supabase.com/docs/guides/local-development)
 and [CLI reference](https://supabase.com/docs/reference/cli/introduction) for details.
+
+## Verify the legacy profile upgrade independently
+
+Run `bun run db:test:upgrade` with Docker available through the local
+`/var/run/docker.sock`. This rejects all arguments and ignores remote Docker
+contexts: it creates one PostgreSQL 17.11 Alpine container without networking or
+published ports, mounts only the SQL fixture directory read-only, and removes
+only its exact newly created container and anonymous data volume on completion
+or test failure. The first
+run can download the version-pinned [official PostgreSQL image](https://hub.docker.com/_/postgres).
+No existing development database, hosted URL or credential is accepted.
+
+The fixture applies the original migrations, seeds a UUID-owned profile before
+the Clerk migration, and asserts owner/name/cooldown retention, reserved names,
+Clerk access, rejection isolation and legacy-subject denial. Its small Auth
+helpers model claim extraction only; use the normal Supabase database suite for
+platform-specific schema checks. This does not prove hosted Clerk trust or login.
+Ordinary `bun test` remains Docker-free; CI invokes this upgrade probe separately.
