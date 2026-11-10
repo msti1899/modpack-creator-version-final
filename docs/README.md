@@ -14,8 +14,8 @@ feature logs only when the current task needs their evidence.
 | Guides | Complete a task step by step | [Create and download a modpack](guides/create-modpack.md); [Local database](guides/local-database.md); [Local identity](guides/local-identity.md); [Local account access](guides/local-account-access.md); [Account profiles](guides/account-profiles.md); [GitHub contribution workflow](guides/github-workflow.md) |
 | Reference | Look up contracts, parameters, errors, and limits | [Backend API](reference/backend-api.md) |
 | Architecture | Understand components, boundaries, and data flow | [Stateless Modrinth backend](architecture/modrinth-backend.md) |
-| Decisions | Understand accepted choices and their trade-offs | [Initial scope and stack](decisions/0001-project-baseline.md) |
-| Plans | Follow approved outcomes, sequence, acceptance criteria, and pending decisions | [Backend roadmap](plans/backend-roadmap.md) |
+| Decisions | Understand accepted choices and their trade-offs | [Initial scope and stack](decisions/0001-project-baseline.md); [Clerk identity](decisions/0002-clerk-identity.md); [Clerk profile owners](decisions/0003-clerk-profile-ownership.md) |
+| Plans | Follow approved outcomes, sequence, acceptance criteria, and pending decisions | [Backend roadmap](plans/backend-roadmap.md); [Clerk reconciliation](plans/clerk-reconciliation.md) |
 | Handoff | Resume from the latest verified state and next action | [Current checkpoint](handoff.md) |
 | Templates | Use a consistent structure for recurring records | [Decision template](templates/decision.md); [Plan template](templates/plan.md) |
 
@@ -51,6 +51,8 @@ without confirmation. Never store credentials or private invitation links here.
 | Record | Status | Scope |
 | --- | --- | --- |
 | [0001: Initial scope and stack](decisions/0001-project-baseline.md) | Accepted | Product, architecture, budget, and initial delivery |
+| [0002: Clerk identity](decisions/0002-clerk-identity.md) | Accepted | Clerk authentication; Supabase database and independent Hono API preserved |
+| [0003: Clerk profile ownership](decisions/0003-clerk-profile-ownership.md) | Accepted | Direct Clerk IDs, retained legacy rows and no automatic account linkage |
 
 ## Implementation evidence
 

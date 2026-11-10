@@ -83,7 +83,9 @@ eligibility.
 
 - Supabase PostgreSQL: application profiles now use verified Clerk user IDs and the existing naming rules. The
   API identity cutover, web account controls and identity bridge are local;
-  final review-chain regression and continuity work remain. Do not deploy this partial chain independently.
+  final regression checks passed locally; the final native review was explicitly
+  skipped for this candidate. Earlier slices were reviewed.
+  Do not deploy review-chain children independently.
 - Brevo: the former auth-email prerequisite is superseded by Clerk-managed
   account flows. Real provider/email setup and delivery remain separately verified.
 - Modrinth: the backend catalog and `.mrpack` export are implemented; frontend integration is deferred.
