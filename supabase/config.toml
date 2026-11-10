@@ -28,11 +28,19 @@ sql_paths = []
 enabled = false
 
 [auth]
+# Keep database JWT infrastructure for Clerk third-party trust, not user sign-in.
 enabled = true
 site_url = "http://127.0.0.1:3000"
 additional_redirect_urls = []
+enable_signup = false
 enable_anonymous_sign_ins = false
 minimum_password_length = 8
+
+[auth.email]
+enabled = false
+
+[auth.sms]
+enabled = false
 
 # Keep the foundation small; these services can be added with their features.
 [realtime]
@@ -42,8 +50,7 @@ enabled = false
 enabled = false
 
 [local_smtp]
-enabled = true
-port = 54324
+enabled = false
 
 [storage]
 enabled = false

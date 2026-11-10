@@ -2,7 +2,7 @@ begin;
 select plan(6);
 
 select has_schema('public', 'The application schema is available');
-select has_table('auth', 'users', 'Local Supabase Auth is installed');
+select has_table('auth', 'users', 'Historical auth schema remains available for migration replay');
 
 -- Transaction-only probes verify effective grants, not an assumed CLI default.
 create table public.__foundation_privilege_probe (id integer primary key);
