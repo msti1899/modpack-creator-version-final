@@ -16,7 +16,7 @@ votes. Start with working vertical slices rather than modeling every table upfro
 | Milestone | Scope and acceptance | Current state |
 | --- | --- | --- |
 | 1. Reproducible database | Pinned local Supabase tooling, tracked migrations, configuration, and documentation. A disposable database can start and rebuild without cloud credentials. | Implemented and verified; [PR #6](https://github.com/msti1899/modpack-creator-version-final/pull/6) merged. |
-| 2. Identity and authentication | Hono validates Supabase sessions and exposes the caller's identity. Then complete email/password confirmation and recovery, Brevo delivery, and Google/Discord setup. Test invalid and expired sessions. | In progress: `/me`, username profiles and local email/password registration/login are implemented, verified and reviewed; [PR12](https://github.com/msti1899/modpack-creator-version-final/pull/12) and [PR13](https://github.com/msti1899/modpack-creator-version-final/pull/13) are merged into main. Confirmation/recovery JSON endpoints are implemented and independently verified locally on `feat/email-confirmation-recovery`; native review is approved and acknowledged; [PR15](https://github.com/msti1899/modpack-creator-version-final/pull/15) is open against main, not merged. Real email/provider setup remains unimplemented. |
+| 2. Identity and authentication | Clerk manages account/session identity; Hono verifies signed sessions and preserves application username/profile rules. Supabase stores application data only. | Local Clerk reconciliation in progress; [tasks](../../odd/tasks/clerk-reconciliation.md) and [handoff](../handoff.md) record verified review slices. Hosted trust, real sign-in/email/OAuth and hosted CI remain unverified. |
 | 3. Groups and permissions | One group per person, owner/member permissions, public direct admission, private invitations requiring approval, and ownership transfer before an owner leaves others behind. Test cross-group isolation and concurrent admission. | Planned. |
 | 4. Persisted modpack draft | One draft pack per group, owner-only edits, exact approved mod/dependency versions, reuse of existing Modrinth resolution/export. Failed writes leave no partial selection. | Planned. Existing stateless resolution/export is already implemented. |
 | 5. Published versions and sharing | Preserve earlier publications, explicit active-version selection by the owner, and links respecting access rules. Publishing does not automatically activate a version. | Planned. |
@@ -34,8 +34,8 @@ replace them or introduce new defaults.
   transactional behavior where needed, and documentation with each delivery.
 - Local tests, independent verification, native review, hosted CI, publication,
   and merge are separate evidence. Completion of one is not proof of the others.
-- Cloud Supabase, Brevo, and OAuth setup require separate authorized account
-  configuration. Local success does not prove production email or OAuth delivery.
+- Hosted Supabase third-party Clerk trust and Clerk email/OAuth setup require
+  separate authorized account configuration. Local fixtures do not prove hosted delivery.
 - Frontend, CD, CurseForge, multiple groups per user, multiple packs per group,
   and the desktop launcher remain outside this roadmap's current scope.
 

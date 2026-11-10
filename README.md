@@ -3,9 +3,9 @@
 An open-source Minecraft modpack project. This initial scaffold contains two
 independent applications in a Bun workspace: a Next.js frontend and a Hono API.
 The backend supports Modrinth search, dependency resolution, and `.mrpack` export.
-The frontend is still a starter page. The backend verifies Supabase user identity
-at `/me`; application account workflows, groups, voting, and pack persistence
-are not implemented. See the [local identity guide](docs/guides/local-identity.md).
+The frontend is still a starter page. The backend verifies Clerk session identity at `/me` and protects application
+username profiles. Web account controls and the identity bridge are pending in
+this review chain; groups, voting, and pack persistence are not implemented. See the [local identity guide](docs/guides/local-identity.md).
 
 Confirmed product and architecture choices are recorded in the
 [project documentation](docs/README.md), alongside a reusable decision template.
@@ -82,10 +82,9 @@ eligibility.
 
 ## Integration status
 
-- Supabase PostgreSQL and Auth: local database, session verification, username
-  profiles were implemented before the Clerk cutover. This review-chain state
-  retires Supabase account proxies; Clerk identity/client integration follows.
-  It must not be deployed independently. See the backend API reference.
+- Supabase PostgreSQL: application profiles now use verified Clerk user IDs and the existing naming rules. The
+  API identity cutover is local; web account controls and bridge follow in later
+  review children. Do not deploy this partial chain independently.
 - Brevo: the former auth-email prerequisite is superseded by Clerk-managed
   account flows. Real provider/email setup and delivery remain separately verified.
 - Modrinth: the backend catalog and `.mrpack` export are implemented; frontend integration is deferred.

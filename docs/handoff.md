@@ -1,64 +1,46 @@
 # Backend handoff
 
-Snapshot: 2026-11-05. Verify current Git/PR state before acting.
-Application checkpoint: `main` at `d9e72d8`, after merged [PR13](https://github.com/msti1899/modpack-creator-version-final/pull/13).
+Snapshot: 2026-11-07. Verify branch and commit before acting.
+Local review chain: `feat/clerk-review-04-api`, based on approved `0e39d0d`.
+Complete reconciled application reference: `feat/clerk-reconcile` at `e4dc96a`.
 Plan: [backend roadmap](plans/backend-roadmap.md), milestone 2.
 
 ## Resume here
 
-Profiles and local email/password registration/login are merged into main.
-Email confirmation and password recovery are implemented locally on
-`feat/email-confirmation-recovery` at `bda4665`: functional and independent checks
-passed; native review approved and acknowledged. Published as
-[PR15](https://github.com/msti1899/modpack-creator-version-final/pull/15) against main;
-this feature is not merged. Check hosted CI separately from local evidence.
-Frontend, real email/provider setup and deployment remain out of scope.
+Clerk replaces Supabase Auth; Supabase remains the application database.
+Profile owners use Clerk IDs directly. Legacy UUID-owned rows remain unchanged
+as text, unlinked and inaccessible to Clerk sessions; do not link by email.
+Read [reconciliation tasks](../odd/tasks/clerk-reconciliation.md) for specs,
+review boundaries and exact remaining work, and [ADR0002](decisions/0002-clerk-identity.md)
+for the provider decision.
 
-## Current backend
+The original checkout has unrelated Supabase session-lifecycle work. Preserve it.
+Continue only in the isolated Clerk worktree. Review children are not independent
+deployment candidates. Do not apply the partial chain to a live database.
 
-- Public Modrinth search, dependency resolution and `.mrpack` export are stateless.
-- `/me` validates Supabase user sessions. GET/POST/PATCH `/profile` read, assign
-  and rename the caller's username under database RLS and restricted grants.
-- POST `/auth/register` and `/auth/login` delegate email/password access to
-  Supabase Auth. Username assignment remains a separate authenticated step.
-- Profile integration [PR12](https://github.com/msti1899/modpack-creator-version-final/pull/12)
-  and credential [PR13](https://github.com/msti1899/modpack-creator-version-final/pull/13)
-  are merged. The earlier tracker-order integration gap is resolved.
+## Verified local checkpoints
 
-- POST `/auth/verify` exchanges signup/recovery email hashes for JSON sessions;
-  POST `/auth/recover` acknowledges requests generically; PATCH `/auth/password`
-  updates only the authenticated user's password. No callback redirects or GET
-  token consumption. See [current feature tasks](../odd/tasks/email-confirmation-recovery.md).
+- R1 `54b326f`: profile owner migration and policies reviewed and acknowledged.
+  Its legacy-upgrade regression coverage warning remains assigned to R7.
+- R2 `d95c577`: independent guarded database configuration reviewed and acknowledged.
+- R3a `0e94233` and R3b `0e39d0d`: obsolete Supabase account proxies retired,
+  reviewed and acknowledged. These review authorities are spent; do not replay.
+- R4 API cutover: own typechecks and 38 tests / 696 assertions passed;
+  15 public-route comparisons matched status, headers and complete body/ZIP bytes.
+  Independent verification passed 26 grouped checks and 56 public/profile
+  comparisons; frozen offline install preserved the lockfile. Parent repeated
+  the root check. Commit/native review are the next local steps.
+- The complete `e4dc96a` reference previously passed independent API/database
+  integration and credential-free web-build checks. This is not proof of hosted
+  provider configuration, current hosted CI or a merged/published result.
 
-Contracts and limits: [API reference](reference/backend-api.md).
-Local flow: [account access](guides/local-account-access.md) and [profiles](guides/account-profiles.md).
-Accepted product rules: [baseline D3](decisions/0001-project-baseline.md).
+## Next action
 
-## Verified evidence
+Finish R4 independent verification, record its result, commit the API work unit,
+then assess that exact range against `0e39d0d`. Request fresh native consent if
+required; previous grants cover only their own candidates. Continue R5 web account
+controls, R6 identity bridge and R7 regression/CI/continuity afterward.
 
-- Current candidate: typechecks and 46 tests / 919 assertions passed.
-- Own 54 baseline comparisons matched status, headers and full bytes, including
-  credential inputs and `.mrpack` ZIP. Parent repeated the five new route tests.
-- Independent verification: 46 probes passed in fresh scratch state with a
-  disposable confirmation-enabled Supabase stack, including real email-token
-  verification, expiry/replay rejection, password recovery, account isolation,
-  unchanged state after rejection and streamed-response timeout. Four independent
-  baseline comparisons matched. No production email delivery was tested.
-- Earlier profile and registration/login native reviews were approved and spent;
-  do not replay them. Confirmation/recovery review also approved all four lenses
-  without findings; terminal acknowledgement completed. Do not replay this review.
-
-## Remaining work and working rules
-
-Next action: check PR15 and decide whether to merge; no merge is authorized yet.
-Refresh/logout and Google/Discord linking remain unimplemented. Groups, saved
-packs, publications and votes are later roadmap milestones. Local success does not establish complete authentication or production readiness.
-
-Use pinned commands in `package.json` and the local guides; verify Bun availability.
-Live database tests require disposable local Supabase/Docker state. Do not reset
-an existing developer database or configure external accounts without authorization.
-Preserve unrelated `.atl/`, `.gitattributes` and `graphify-out/`; hooks may rebuild
-Graphify data. Use Gentle AI ODD roles: explorer `gpt-6-luna`/high, verifier
-`gpt-6.1-sol`/medium; parent writes dependent work inline. Use feature-branch-chain
-when a feature needs review slices. Publication, merge and deployment permissions
-are scoped to each user request, not blanket approval for future work.
+Publication, PR updates, merge, external account configuration and deployment
+remain separate user decisions. No remote publication is claimed for this chain.
+Use pinned Bun 1.4.4. Never commit credentials or machine-specific review tokens.

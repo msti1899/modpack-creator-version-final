@@ -1,70 +1,100 @@
-# Verify a local user's identity
+# Use Clerk identity locally
 
-`GET /me` verifies a user access token with Supabase Auth and returns only
-`{ "user": { "id": "...", "email": "..." } }`. Email can be null. This slice
-does not add login screens, application profile tables, groups, or cloud setup.
+Review-chain scope: this slice activates API identity/profile verification only.
+Web account controls and the same-origin bridge follow in later children. The
+complete guide describes the finished chain, not an independently deployable slice.
 
-## Configure and run
+Clerk handles accounts and sessions. The independent Hono API verifies Clerk
+session tokens at `GET /me`; Supabase remains the database. No user synchronization,
+group permissions, or cloud setup is included in this integration.
 
-Start the [local database stack](local-database.md), then copy
-`apps/api/.env.example` to the ignored `apps/api/.env`. Use `bun run db:status`
-to find the local API URL and publishable key (or legacy `anon` key).
+## Configure the same Clerk instance in both applications
 
-Set `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in that file. Never use a secret
-or `service_role` key. A publishable key identifies the project, not a signed-in
-user. Status output can also contain privileged development credentials: do not
-commit it or post it in an issue. Restart `bun run dev:api` after changing config.
+Create or select your development instance yourself in the Clerk Dashboard.
+This repository does not provision accounts or redeem the Student Pack benefit.
+Never post credentials or session tokens in chat, logs, issues, or Git.
 
-Sign in to the local Supabase Auth service with its client or Auth endpoint to
-obtain a user access token, then use it from your own terminal:
+1. Copy `apps/web/.env.example` to the ignored `apps/web/.env.local`.
+   Replace `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` with that
+   instance's keys. Only the publishable key is public. Set `API_URL` to the
+   Hono API origin; locally it defaults to `http://127.0.0.1:3001`.
+2. Copy `apps/api/.env.example` to the ignored `apps/api/.env`.
+   Set `CLERK_JWT_KEY` to the **JWT public key (PEM)** from the same instance,
+   not a secret/API key. Literal `\n` escapes are supported.
+3. Set API `CLERK_ISSUER` to the exact token issuer origin (for example,
+   `https://your-instance.clerk.accounts.dev`) and `CLERK_AUTHORIZED_PARTIES`
+   to comma-separated **browser origins**, not API origins. The local example
+   permits `http://localhost:3000` and `http://127.0.0.1:3000`; deployed origins
+   must use HTTPS. Do not use wildcards or request-derived origins.
+4. Run `bun run dev` and open `http://localhost:3000`. Restart after changing
+   environment configuration. Production builds must be rebuilt with the web
+   configuration; adding runtime keys does not change an existing static page.
+5. Use **Create account** or **Sign in**, then the account menu to manage your
+   session or sign out. **Check API session** calls web `/api/me`, which gets
+   the Clerk session token server-side and forwards it to Hono `/me`.
 
-```sh
-curl -i http://127.0.0.1:3001/me \
-  -H "Authorization: Bearer $ACCESS_TOKEN"
-```
+The web route is only a transport adapter, not a second domain API. Catalog and
+pack behavior stays in Hono. Server-side forwarding requires no browser-to-API
+CORS or shared cross-domain cookies. Redirects from the API are rejected so
+credentials cannot be forwarded to a redirected host.
 
-Keep `ACCESS_TOKEN` in your own shell session; never paste it in chat, logs, or
-Git. The API never accepts a request-supplied Supabase URL. HTTP is allowed only
-for loopback development hosts; hosted configuration must use HTTPS without a
-path, query, embedded credentials, or fragment.
+With no web keys, the public starter page explains that setup is needed and
+`/api/me` returns 503. The API's health and catalog routes remain usable without
+Clerk or a running local database. No accountless Clerk app is created implicitly.
 
-## Behavior and limits
+## Identity contract and limits
 
-- Missing or malformed Bearer credentials return 401 before any outbound lookup.
-- With credentials present, missing or malformed server configuration returns 503.
-- Supabase rejects invalid/expired/non-user tokens: the API returns 401 with a
-  `WWW-Authenticate: Bearer` challenge, not the upstream error details.
-- A well-formed key for the wrong project can still be rejected upstream with 401;
-  local format checks do not prove that a key belongs to the configured project.
-- Auth network/protocol failures and upstream rate limits/server errors return
-  502; timeouts return 504. Neither is reported as a user logout.
-- Successful and error responses use `Cache-Control: no-store`. There is no
-  identity cache. Tokens are capped at 8192 characters; Auth JSON at 64 KiB;
-  the Auth request and body use a five-second timeout. Redirects are rejected.
+- `/me` returns `{ "user": { "id": "user_...", "email": null } }` by default.
+  Clerk IDs are opaque strings, **not Supabase UUIDs**. A signed string `email`
+  claim is returned if present; Clerk does not include it by default. The API
+  does not fetch or synchronize profiles or infer email verification.
+- Signature, expiry and token timing are checked by the Clerk SDK. The API also
+  requires the configured issuer, an allowed `azp`, a user ID and session ID;
+  pending session tasks are not accepted. Missing/malformed credentials return
+  401; missing/invalid API configuration returns 503. Unexpected verification
+  failures return 502 without exposing SDK diagnostics.
+- Responses are `no-store`. There is no shared identity cache. Bearer tokens
+  are limited to 8192 characters. `/api/me` bounds API JSON to 16 KiB and uses
+  a five-second upstream timeout; outages are not reported as logout.
+- Verification uses the configured RSA public key without an Auth network call.
+  Rotate the deployed key when the Clerk instance key changes. Logout/session
+  revocation is **not guaranteed to invalidate an issued JWT immediately**;
+  token expiry still matters. No online revocation lookup is implemented.
+- Supabase Auth tokens no longer authenticate `/me`. Existing remote users or
+  data are not imported or deleted. Before migrating any deployed installation,
+  plan account continuity and the session cutover separately.
 
-The middleware establishes identity, not group membership, ownership, or email
-confirmation policy. Local anonymous signup remains disabled by the foundation;
-this route adds no separate anonymous-user policy. Existing health and Modrinth
-routes remain public. A valid signed JWT is not guaranteed to become unusable
-immediately after every logout operation; session lifecycle remains Supabase's
-responsibility.
+## Supabase, provider setup and production
 
-## Implementation and verification
+The application profile table is retained with direct Clerk text owners, a
+preserving forward migration and signed-subject RLS. Configure API
+`SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` separately from Clerk settings;
+never use service-role credentials. Supabase must trust the same Clerk instance,
+and profile tokens must carry signed `role: "authenticated"`. Hosted trust setup
+requires separate authorization and verification; local signing fixtures do not
+establish it. Legacy UUID-owned rows remain intact but unlinked and reserved,
+without email-based account linking. See the [profile guide](account-profiles.md)
+and [ownership decision](../decisions/0003-clerk-profile-ownership.md).
 
-`apps/api/src/identity.ts` sends the user Bearer token and project `apikey` to the
-fixed `/auth/v1/user` endpoint. Supabase validates the access token; the backend
-does not authenticate users by decoding JWT claims. API-key payload inspection
-only rejects privileged legacy configuration; it does not verify user identity.
+Email/password, confirmation/recovery and Google/Discord availability follow your
+Clerk instance settings. Real email delivery and OAuth flows have not been proven
+by offline tests; production social providers require their own credentials.
+Brevo is not required by this local Clerk integration, and no email provider
+configuration was changed. Clerk production requires an owned domain and DNS
+setup. Student benefits and free domains have eligibility/expiry conditions;
+no perpetual free operation is promised.
 
-This trades one Auth network lookup per protected request for avoiding local
-signing-key management. The Auth fetch seam is independent of the existing
-Modrinth fetch seam, so catalog tests and public routes keep their behavior.
+## Verification
 
-Run `bun test apps/api/tests` and `bun run --filter @modpack/api typecheck` for
-deterministic checks. Disposable local-stack verification covers actual Auth
-tokens separately. Cloud login, real email delivery, Brevo, Google, Discord,
-refresh/logout endpoints, frontend work, and CD are outside this slice.
+Use `bun test apps/api/tests/identity.test.ts apps/web/tests`, `bun run check`,
+and `bun run build`. Offline tests generate disposable signing keys and exercise
+the real Clerk verifier; no real account, private instance key, database or email
+provider is needed. Credential-free checks do not establish real sign-in,
+OAuth/email delivery, hosted CI or deployment success.
+The root suite also runs `tests/auth-security.test.ts` (including real timeout
+signals); API tests pin the previous public status/header/body and ZIP contracts.
 
-See the [API reference](../reference/backend-api.md),
-[Supabase JWT verification](https://supabase.com/docs/guides/auth/jwts), and
-[API key documentation](https://supabase.com/docs/guides/getting-started/api-keys).
+Sources: [Clerk Next.js quickstart](https://clerk.com/docs/nextjs/getting-started/quickstart),
+[token verification](https://clerk.com/docs/reference/backend/verify-token),
+[Supabase third-party Clerk](https://supabase.com/docs/guides/auth/third-party/clerk),
+[Clerk production](https://clerk.com/docs/guides/development/deployment/production).
