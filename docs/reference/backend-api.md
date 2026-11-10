@@ -12,47 +12,18 @@ For a complete example, see the [creation guide](../guides/create-modpack.md).
 Returns `{ "status": "ok", "service": "modpack-api" }`. This checks the API
 process, not external service connectivity.
 
-### POST /auth/register, POST /auth/login
+### Retired Supabase account APIs
 
-Public credential endpoints accept only `{ email, password }`. Usernames,
-metadata, redirects, phone numbers and alternative grants are not accepted.
-Passwords are forwarded unchanged to Supabase Auth, never stored or logged by
-this API. Requests are limited to 2 KiB; email to 254 characters and password to
-1024 characters. Supabase owns password strength rules (local minimum: 8).
+POST `/auth/register`, POST `/auth/login`, POST `/auth/verify`, POST `/auth/recover`
+and PATCH `/auth/password` return 404 without contacting an Auth provider or
+returning session tokens. Do not reuse or retry these former credential/account
+proxies. Registration, sign-in and email/session management move to Clerk clients;
+the API does not add a second password/token issuer or redirect to one.
 
-Login returns 200; registration with an active session returns 201. Both return
-`{ user: { id, email }, session: { accessToken, refreshToken, expiresIn, tokenType } }`.
-`tokenType` is `bearer`. Treat both tokens as secrets; do not log or cache them.
-No provider metadata, provider tokens, upstream cookies or raw error details
-are forwarded. All credential responses are `no-store`.
-
-Registration without a session, or for an existing account, returns 202 with
-`{ user: null, session: null }`. This does not prove a new account or email delivery.
-Confirmation-enabled legacy accounts still require confirmation before login.
-The former `/auth/verify` proxy has been retired for the Clerk cutover. Auto-confirm settings can still reveal
-registration outcomes indirectly through session availability; this is not a
-complete account-enumeration or production abuse-protection solution.
-
-Errors: 400 for invalid input or rejected registration, 401 for generic failed
-login, 429 for Auth rate limits, 503 for missing/unsafe server configuration,
-502 for upstream network/protocol failures, 504 for timeout. Auth requests reject
-redirects, use a five-second timeout including response reading, and cap JSON at
-64 KiB. They use the configured publishable/legacy anon key, never service-role
-credentials or caller-supplied Authorization. There are no automatic retries.
-
-Registration does not create a profile. With an active access token, read
-`/profile` and assign the username through its existing POST operation. Account
-creation and profile assignment are not one transaction: a taken name does not
-delete the Auth account. Refresh/logout and provider-linking endpoints
-are not implemented here. See [local account access](../guides/local-account-access.md).
-
-### Retired email-management proxies
-
-POST `/auth/verify`, POST `/auth/recover` and PATCH `/auth/password` now return 404
-without calling any provider. These Supabase-specific completion/reset routes
-are intentionally retired for the Clerk cutover, not redirected to another token
-issuer. Clients must move to Clerk-managed account flows when the integration is
-complete. This intermediate feature-chain slice is not independently deployable.
+This bounded slice retires the remaining credential proxies. Identity validation
+for `/me` and `/profile` is unchanged until the next Clerk cutover slice. This
+review-chain state must not be deployed independently. See the
+[account cutover guide](../guides/local-account-access.md).
 
 ### GET /me
 

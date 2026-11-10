@@ -83,10 +83,11 @@ eligibility.
 ## Integration status
 
 - Supabase PostgreSQL and Auth: local database, session verification, username
-  profiles and email/password registration/login are implemented and merged.
-  Confirmation callbacks, recovery and Discord/Google configuration remain deferred.
-- Brevo: confirmation and password-recovery emails; verify sender eligibility
-  and real delivery before launch. No secondary email provider initially.
+  profiles were implemented before the Clerk cutover. This review-chain state
+  retires Supabase account proxies; Clerk identity/client integration follows.
+  It must not be deployed independently. See the backend API reference.
+- Brevo: the former auth-email prerequisite is superseded by Clerk-managed
+  account flows. Real provider/email setup and delivery remain separately verified.
 - Modrinth: the backend catalog and `.mrpack` export are implemented; frontend integration is deferred.
 
 The initial operating target is USD 0/month and approximately 15 users, not a

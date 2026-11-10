@@ -19,11 +19,13 @@ test("retired email-management proxies return 404 without calling an Auth provid
   expect(calls).toBe(0);
 });
 
-test("credential registration and login retain their contract until their own cutover slice", async () => {
-  const app = createApp(undefined, { ...configuration, fetcher: async () => Response.json(session) });
+test("retired credential proxies return 404 without calling providers or returning sessions", async () => {
+  let calls = 0;
+  const app = createApp(undefined, { ...configuration, fetcher: async () => { calls++; return Response.json(session); } });
   for (const path of ["/auth/register", "/auth/login"]) {
     const response = await app.request(path, { method: "POST", body: JSON.stringify({ email: user.email, password: "  Password1!  " }) });
-    expect(response.status).toBe(path.endsWith("register") ? 201 : 200);
-    expect(await response.json()).toEqual({ user, session: { accessToken: "access-token", refreshToken: "refresh-token", expiresIn: 3600, tokenType: "bearer" } });
+    expect(response.status).toBe(404);
+    expect(await response.text()).not.toMatch(/access-token|refresh-token|player@example/);
   }
+  expect(calls).toBe(0);
 });
