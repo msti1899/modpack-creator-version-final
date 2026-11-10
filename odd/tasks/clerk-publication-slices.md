@@ -9,13 +9,15 @@ Baseline: preserved `990444f`; coordinator `chore/clerk-publication-slices`; ass
 - S3: Preserve the chosen feature-branch-chain, original first four bounded children, and tracker. Split R4 into accepted decisions, API behavior with tests/reference, and operator guides; split R7 into workspace regression/CI, isolated database upgrade and final continuity. These children are review-only, not independently deployable.
 - S4: The earlier "push y pr" remains the intended delivery, but no merge, deployment, provider setup, history rewrite, or automatic replay of a declined/spent review is authorized. Keep original native review evidence distinct from new publication boundaries. Do not claim hosted CI or real Clerk flows passed.
 
+- S5: User: "Autorizo usar la sesión actual de GitHub CLI y las credenciales Git de origin para inspeccionar el remoto, hacer push y abrir el tracker borrador y las 12 PRs en msti1899/modpack-creator-version-final, sin force-push, merge ni despliegue." Publish exactly the selected tracker/children, preserve PR16 and all remote settings; verify remote identities/bases/counts and distinguish queued/running CI from success.
+
 ## Tasks
 
 - T1 [S1–S3] inline — complete; decisions `1d137e7` (84 lines), API `7e3e8ce` (400 lines), root38tests696assertions passed: preserve baseline; create decision and API boundaries. Route: understood dependent assembly, no parallel writer reason.
 - T2 [S1–S3] inline — complete; guides `c0a465d` (316 lines), web `735b137` (112), bridge `946e676` (207): operator guide, web controls and bridge children, with original behavior/own checks.
 - T3 [S1–S3] inline — complete; workspace regression `6b8e1d1` (288 lines), SQL upgrade `920982f` (170): independent workspace regression/CI and isolated upgrade children, each with their tests and documentation.
 - T4 [S1–S4] independent ODD verifier — complete; full checks and targeted link correction recheck passed: exact final fidelity, per-parent budgets/ancestry, root checks/build, SQL upgrade and documentation links. Risk: item 5 (delivery/CI boundary reconstruction).
-- T5 [S1–S4] inline — complete locally; final continuity and mirror recorded; remote publication awaiting explicit session confirmation: final continuity child and recovery mirror; report verified chain and remaining remote authorization/proof.
+- T5 [S1–S5] inline — complete; final continuity/mirror and authorized publication recorded (tracker PR17, children PR18–PR29): final continuity child and recovery mirror; report verified chain and remaining remote authorization/proof.
 
 ## Log
 
@@ -33,3 +35,5 @@ Baseline: preserved `990444f`; coordinator `chore/clerk-publication-slices`; ass
 
 - L8: Scoped correction recheck passed all12ancestryrelations andbudgets; ADR0002links resolve at every corrected prefix; final non-bookkeeping blobs ANDmodes match990444f. All original review/first-attempt publication references preserved. Parent repeated finalroot55/1195. No open findings. No repeated full verification sweep after correction; prior install/build/DB/prefix proof retained.
 - L9: Final publication plan contains12coherentchildren plus the draft/no-merge tracker. Native reviews remain attached to original candidates; repackaging unchanged source/history does not fabricate or replay approvals. No new auth behavior, dependencies, schema edits or CI behavior were introduced. Remote credential/session choice must be explicit before inspecting or using GitHub. Risk:item5, independently verified boundary reconstruction.
+
+- L10: 2026-11-10 S5 explicitly authorized current GitHub CLI and origin credentials. Confirmed account msti1899, remote main ad4056e and original PR16 open. Atomic ordinary push published13selectedrefs; trackerPR17draft and12childrenPR18–PR29 created and read back with exactbases/counts. Tracker body links all children. GitHub CI started (not claimed green). No force-push, merge, provider/remote settings changes or deployment; first-attempt and coordinator branches remain local only.

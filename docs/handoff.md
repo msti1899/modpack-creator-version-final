@@ -51,13 +51,18 @@ Smaller publication boundaries are reconstructed without changing the verified
 application, migrations or lock. Every child must stay at or below 400 changed
 lines against its immediate parent; independent verification passed, including
 a targeted correction of an intermediate documentation link. No exceptions are
-needed. See the [publication boundaries](plans/clerk-publication-slices.md). Existing remote PR16 has not been updated by this chain.
+needed. See the [publication boundaries](plans/clerk-publication-slices.md). Existing remote PR16 has not been modified by this chain.
 
-Next action: confirm the GitHub session/destination before remote inspection and
-publication of the tracker plus 12 children. No remote operation has occurred.
+Published: [draft tracker PR17](https://github.com/msti1899/modpack-creator-version-final/pull/17)
+and children PR18–PR29; their immediate bases and <=400-line budgets were verified
+through GitHub. Original PR16 remains open and untouched. No force-push, merge,
+remote settings changes or deployment occurred.
 
-Hosted CI has not run on these local commits. The workflow is configured, not
-proven green on GitHub. Hosted Clerk/Supabase trust, actual signup/login/email,
+Next action: inspect hosted checks from the tracker/child links, then obtain a
+separate integration/merge decision. Publication does not authorize merging.
+
+Hosted CI started after publication; terminal results have not yet been verified.
+Check the latest commit in PR29 before claiming the final workflow is green. Hosted Clerk/Supabase trust, actual signup/login/email,
 Google/Discord and account linking remain unverified and require authorized
 service configuration. No production-readiness claim follows from local tests.
 Publication, PR changes, merge and deployment remain separate user decisions.
