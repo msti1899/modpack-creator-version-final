@@ -16,7 +16,7 @@ votes. Start with working vertical slices rather than modeling every table upfro
 | Milestone | Scope and acceptance | Current state |
 | --- | --- | --- |
 | 1. Reproducible database | Pinned local Supabase tooling, tracked migrations, configuration, and documentation. A disposable database can start and rebuild without cloud credentials. | Implemented and verified; [PR #6](https://github.com/msti1899/modpack-creator-version-final/pull/6) merged. |
-| 2. Identity and authentication | Clerk manages account/session identity; Hono verifies signed sessions and preserves application username/profile rules. Supabase stores application data only. | Local Clerk reconciliation in progress; [tasks](../../odd/tasks/clerk-reconciliation.md) and [handoff](../handoff.md) record verified review slices. Hosted trust, real sign-in/email/OAuth and hosted CI remain unverified. |
+| 2. Identity and authentication | Clerk owns accounts, sessions and account-management flows. Hono verifies signed Clerk sessions; Supabase remains the profile database with subject-scoped RLS. Preserve username rules and existing rows without automatic linking. | Local replacement `00f3e88` is verified; its byte-identical 13-part review sequence completed with 11 approved/acknowledged reviews and 2 passive checks. Supabase credential/recovery proxies are retired. PR16 remains unchanged on GitHub; publication is not authorized. Hosted Clerk setup and third-party database trust are not configured or verified. |
 | 3. Groups and permissions | One group per person, owner/member permissions, public direct admission, private invitations requiring approval, and ownership transfer before an owner leaves others behind. Test cross-group isolation and concurrent admission. | Planned. |
 | 4. Persisted modpack draft | One draft pack per group, owner-only edits, exact approved mod/dependency versions, reuse of existing Modrinth resolution/export. Failed writes leave no partial selection. | Planned. Existing stateless resolution/export is already implemented. |
 | 5. Published versions and sharing | Preserve earlier publications, explicit active-version selection by the owner, and links respecting access rules. Publishing does not automatically activate a version. | Planned. |
@@ -34,8 +34,8 @@ replace them or introduce new defaults.
   transactional behavior where needed, and documentation with each delivery.
 - Local tests, independent verification, native review, hosted CI, publication,
   and merge are separate evidence. Completion of one is not proof of the others.
-- Hosted Supabase third-party Clerk trust and Clerk email/OAuth setup require
-  separate authorized account configuration. Local fixtures do not prove hosted delivery.
+- Cloud Supabase, Brevo, and OAuth setup require separate authorized account
+  configuration. Local success does not prove production email or OAuth delivery.
 - Frontend, CD, CurseForge, multiple groups per user, multiple packs per group,
   and the desktop launcher remain outside this roadmap's current scope.
 
@@ -68,6 +68,8 @@ completed work. Record meaningful changes below and keep the
 [handoff](../handoff.md) synchronized after each delivery.
 
 ### Change log
+
+- 2026-11-10: User requested "saca todo lo de supabase auth y deja lo de clerk reemplaza todo por clerk" and continued with "sigue". Replace application authentication with Clerk, retain database/profile rules and legacy rows, and disable local first-party providers. Publication, hosted setup and merge remain separate decisions. See [replacement tasks](../../odd/tasks/clerk-auth-replacement.md) for current proof.
 
 - 2026-11-05: User approved "Sí, devolver la sesión en JSON". Local confirmation
   and recovery endpoints passed functional and independent verification; native

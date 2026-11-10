@@ -1,9 +1,10 @@
 # Develop against local Supabase
 
-This foundation runs PostgreSQL, the Data API, Auth, and a local email inbox in
-Docker. It does not provision Supabase cloud resources, connect the Hono API to
-a database, or send email through Brevo. Application tables arrive with their
-respective backend features, not as speculative schema in this setup.
+This foundation runs PostgreSQL and the Data API in Docker. Clerk owns application
+accounts and sessions; Supabase email/password, SMS, anonymous sign-in, new signup
+and the local email inbox are disabled. Database JWT infrastructure and historical
+auth schema remain for third-party token verification and safe migration replay,
+not as an alternative application sign-in provider. No cloud resources are provisioned.
 
 ## Prerequisites and startup
 
@@ -26,15 +27,22 @@ Docker's default published-port binding set to `127.0.0.1`. An existing network
 with a different driver or binding is rejected, not modified. Do not replace
 `db:start` with a direct CLI start that bypasses this check.
 
-Local endpoints: Data API/Auth gateway on `http://127.0.0.1:54321`, PostgreSQL on
-`127.0.0.1:54322`, and the test email inbox on `http://127.0.0.1:54324`.
+Local endpoints: Data API gateway on `http://127.0.0.1:54321` and PostgreSQL on
+`127.0.0.1:54322`. There is no local email inbox.
 Studio, Storage, Realtime, analytics, the pooler, and edge runtime are disabled.
-The inbox captures local authentication messages; it does not prove real email delivery.
+Local database success does not prove hosted Clerk authentication or third-party trust.
 
-No application environment variables are needed yet. CLI status may show local
+See [local identity](local-identity.md) and [account profiles](account-profiles.md)
+for API environment and Clerk-to-database trust requirements. CLI status may show local
 development keys and connection information: never commit that output or put
 secret/service-role credentials in frontend code. The API's existing health
 endpoint remains a process check, not a database readiness check.
+
+The forward Clerk profile-owner migration retains existing UUID-owned rows as text
+without linking or deletion. Old rows are not automatically reassigned. Verify the
+upgrade in a new isolated PostgreSQL container with `bun run db:test:upgrade`;
+this command does not reset the developer database. Existing running stacks do
+not pick up configuration changes until deliberately restarted.
 
 ## Migrations and rebuilding
 
@@ -76,7 +84,8 @@ SQL tests live in `supabase/tests/database/`; pgTAP checks the foundation and
 effective opt-in privileges using transaction-only probes rolled back afterward.
 Migration replay is verified during setup using a scratch-only migration; no
 probe tables are part of the application schema. CI runs mocked launcher tests
-without Docker; the live database checks must be run locally.
+and the disposable Docker upgrade regression. The full local Supabase pgTAP
+suite remains a separate check; the upgrade probe does not reset that stack.
 
 ## Stop and troubleshoot
 
@@ -92,21 +101,3 @@ containers. Multiple checkouts need distinct project IDs and ports before starti
 Keep `.temp`, `.branches`, environment files, keys, and database dumps out of Git.
 See [Supabase local development](https://supabase.com/docs/guides/local-development)
 and [CLI reference](https://supabase.com/docs/reference/cli/introduction) for details.
-
-## Verify the legacy profile upgrade independently
-
-Run `bun run db:test:upgrade` with Docker available through the local
-`/var/run/docker.sock`. This rejects all arguments and ignores remote Docker
-contexts: it creates one PostgreSQL 17.11 Alpine container without networking or
-published ports, mounts only the SQL fixture directory read-only, and removes
-only its exact newly created container and anonymous data volume on completion
-or test failure. The first
-run can download the version-pinned [official PostgreSQL image](https://hub.docker.com/_/postgres).
-No existing development database, hosted URL or credential is accepted.
-
-The fixture applies the original migrations, seeds a UUID-owned profile before
-the Clerk migration, and asserts owner/name/cooldown retention, reserved names,
-Clerk access, rejection isolation and legacy-subject denial. Its small Auth
-helpers model claim extraction only; use the normal Supabase database suite for
-platform-specific schema checks. This does not prove hosted Clerk trust or login.
-Ordinary `bun test` remains Docker-free; CI invokes this upgrade probe separately.

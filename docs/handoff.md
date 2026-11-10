@@ -1,64 +1,52 @@
 # Backend handoff
 
-Snapshot: 2026-11-05. Verify current Git/PR state before acting.
-Application checkpoint: `main` at `d9e72d8`, after merged [PR13](https://github.com/msti1899/modpack-creator-version-final/pull/13).
-Plan: [backend roadmap](plans/backend-roadmap.md), milestone 2.
+Snapshot: 2026-11-10. Application implementation: `00f3e88` on
+`feat/clerk-auth-replacement`, based on GitHub main `ad4056e` (including PR15).
+The byte-identical review-only sequence ends at `b1a237a` on
+`feat/clerk-review-slices`; intermediate commits must not be deployed separately.
+See [current tasks](../odd/tasks/clerk-auth-replacement.md) and
+[roadmap milestone 2](plans/backend-roadmap.md). Verify Git before resuming.
 
-## Resume here
+## Current application
 
-Profiles and local email/password registration/login are merged into main.
-Email confirmation and password recovery are implemented locally on
-`feat/email-confirmation-recovery` at `bda4665`: functional and independent checks
-passed; native review approved and acknowledged. Published as
-[PR15](https://github.com/msti1899/modpack-creator-version-final/pull/15) against main;
-this feature is not merged. Check hosted CI separately from local evidence.
-Frontend, real email/provider setup and deployment remain out of scope.
+- Clerk owns accounts and sessions. Hono validates signed Clerk tokens for `/me`
+  and `/profile`; the Supabase credential/confirmation/recovery proxies are removed.
+- Supabase remains the profile database with subject-scoped JWT/RLS and no
+  service-role application bypass. The forward migration uses direct Clerk IDs,
+  retaining old UUID-owned rows without deletion, reassignment or email linking.
+  Existing username rules are preserved; legacy rows remain unlinked and reserved.
+- Local first-party Supabase email/SMS/signup, anonymous sign-in and SMTP capture
+  are disabled. Historical schema and JWT infrastructure remain for migration
+  replay and database third-party trust, not as another application login provider.
+- Public Modrinth search, resolution and `.mrpack` export remain unchanged.
 
-## Current backend
+## Observed verification
 
-- Public Modrinth search, dependency resolution and `.mrpack` export are stateless.
-- `/me` validates Supabase user sessions. GET/POST/PATCH `/profile` read, assign
-  and rename the caller's username under database RLS and restricted grants.
-- POST `/auth/register` and `/auth/login` delegate email/password access to
-  Supabase Auth. Username assignment remains a separate authenticated step.
-- Profile integration [PR12](https://github.com/msti1899/modpack-creator-version-final/pull/12)
-  and credential [PR13](https://github.com/msti1899/modpack-creator-version-final/pull/13)
-  are merged. The earlier tracker-order integration gap is resolved.
+- Types and final 56 tests / 1200 assertions passed; frozen installation did not
+  change the lockfile. Credential-free production build and disposable upgrade passed.
+- Independent verification passed: 68 API probes, 24 bridge probes, 22 exact public
+  baseline comparisons and 8 SQL groups, including retained data and unchanged
+  state after rejected operations. Four documentation inconsistencies were corrected
+  in one batch and independently rechecked.
+- Native checking completed across 13 review ranges: 11 approved and acknowledged,
+  plus 2 passive structural checks. All approved authority was consumed; do not replay.
+  One severe web-middleware claim was refuted. Non-blocking warnings/suggestions
+  remain follow-up material, not open corrections or new product requirements.
+- The oversized full candidate was explicitly declined after context-budget
+  refusal; there is no single full-candidate native approval. Per-range results
+  and commits are recorded in the task document. Review mode remains enabled.
 
-- POST `/auth/verify` exchanges signup/recovery email hashes for JSON sessions;
-  POST `/auth/recover` acknowledges requests generically; PATCH `/auth/password`
-  updates only the authenticated user's password. No callback redirects or GET
-  token consumption. See [current feature tasks](../odd/tasks/email-confirmation-recovery.md).
+## Remaining work and exact next action
 
-Contracts and limits: [API reference](reference/backend-api.md).
-Local flow: [account access](guides/local-account-access.md) and [profiles](guides/account-profiles.md).
-Accepted product rules: [baseline D3](decisions/0001-project-baseline.md).
+Ask the user whether to publish this local replacement to the existing PR16.
+GitHub and PR16 have not been updated; no push, force-push, new PR, merge or
+deployment is authorized. Determine the safe branch-update approach before publishing.
 
-## Verified evidence
+Hosted Clerk sign-in/email/OAuth, hosted Supabase JWT trust and hosted CI have not
+been verified. The full local Supabase pgTAP stack was not rerun; isolated SQL,
+the upgrade regression and independent database probes supplied local evidence.
+Do not reset a developer database or configure external accounts without consent.
 
-- Current candidate: typechecks and 46 tests / 919 assertions passed.
-- Own 54 baseline comparisons matched status, headers and full bytes, including
-  credential inputs and `.mrpack` ZIP. Parent repeated the five new route tests.
-- Independent verification: 46 probes passed in fresh scratch state with a
-  disposable confirmation-enabled Supabase stack, including real email-token
-  verification, expiry/replay rejection, password recovery, account isolation,
-  unchanged state after rejection and streamed-response timeout. Four independent
-  baseline comparisons matched. No production email delivery was tested.
-- Earlier profile and registration/login native reviews were approved and spent;
-  do not replay them. Confirmation/recovery review also approved all four lenses
-  without findings; terminal acknowledgement completed. Do not replay this review.
-
-## Remaining work and working rules
-
-Next action: check PR15 and decide whether to merge; no merge is authorized yet.
-Refresh/logout and Google/Discord linking remain unimplemented. Groups, saved
-packs, publications and votes are later roadmap milestones. Local success does not establish complete authentication or production readiness.
-
-Use pinned commands in `package.json` and the local guides; verify Bun availability.
-Live database tests require disposable local Supabase/Docker state. Do not reset
-an existing developer database or configure external accounts without authorization.
-Preserve unrelated `.atl/`, `.gitattributes` and `graphify-out/`; hooks may rebuild
-Graphify data. Use Gentle AI ODD roles: explorer `gpt-6-luna`/high, verifier
-`gpt-6.1-sol`/medium; parent writes dependent work inline. Use feature-branch-chain
-when a feature needs review slices. Publication, merge and deployment permissions
-are scoped to each user request, not blanket approval for future work.
+This closure changes only passive status records, not the reviewed application,
+tests, dependencies, configuration or migrations. Preserve unrelated `.atl/`,
+`graphify-out/`, other worktrees and the original implementation commit.

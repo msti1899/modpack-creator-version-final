@@ -4,9 +4,10 @@ The Modrinth part of the Hono API owns catalog access, dependency resolution and
 archive generation. It does not persist packs or cross-request selections. The
 Next.js frontend remains a scaffold; no builder integration is implemented.
 
-Separate account routes provide [identity verification](../guides/local-identity.md),
-[username profiles](../guides/account-profiles.md) and [email/password access](../guides/local-account-access.md)
-backed by Supabase. Those stateful account/profile capabilities do not add
+Separate routes provide [Clerk identity verification](../guides/local-identity.md)
+and [username profiles](../guides/account-profiles.md) stored in Supabase Postgres.
+[Account access](../guides/local-account-access.md) is managed exclusively by Clerk,
+not Supabase credential proxies. Those stateful account/profile capabilities do not add
 user-authentication requirements to the public Modrinth routes.
 
 ## Request flow

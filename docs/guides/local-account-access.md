@@ -1,8 +1,9 @@
 # Access accounts with Clerk and application profiles
 
-Review-chain scope: API identity/profile verification, web account controls and
-the same-origin identity bridge are connected locally. Final regression and
-continuity checks remain; hosted provider configuration is not established.
+API identity/profile verification, web account controls and the same-origin
+identity bridge are connected locally. Current regression, independent verification
+and the smaller native review sequence completed locally. Hosted provider configuration
+is not established. See the [current handoff](../handoff.md) for delivery state.
 
 Clerk is the only account/session provider. Supabase stores application profiles;
 there is no second Supabase password/token flow in the Hono API.

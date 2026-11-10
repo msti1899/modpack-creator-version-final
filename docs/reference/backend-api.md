@@ -115,8 +115,8 @@ Check the status before treating an export response as a ZIP.
 
 ## Sources
 
-- [Supabase Auth REST contract](https://github.com/supabase/auth/blob/master/openapi.yaml)
-- [Supabase signup behavior](https://supabase.com/docs/reference/javascript/auth-signup)
+- [Clerk session token verification](https://clerk.com/docs/reference/backend/verify-token)
+- [Supabase Clerk third-party trust](https://supabase.com/docs/guides/auth/third-party/clerk)
 - [PostgREST table operations](https://docs.postgrest.org/en/v14/references/api/tables_views.html)
 - [PostgREST database error mapping](https://docs.postgrest.org/en/v14/references/errors.html)
 - [Modrinth API](https://docs.modrinth.com/api/)
