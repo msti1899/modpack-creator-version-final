@@ -1,15 +1,17 @@
 import { expect, test } from "bun:test";
 import { createApp } from "../src/index";
+import { clerk, clerkToken } from "./fixtures/clerk";
+const accessToken = clerkToken();
 
-const user = { id: "11111111-1111-4111-8111-111111111111", email: "player@example.test" };
+const user = { id: "user_player", email: "player@example.test" };
 const config = { url: "http://127.0.0.1:54321", publishableKey: "sb_publishable_test" };
 const profile = { username: "Matias", username_changed_at: null };
 function setup(data = async (_url: string, _init: RequestInit) => Response.json([profile])) {
   return createApp(async () => { throw new Error("Profiles must not call Modrinth"); },
-    { ...config, fetcher: async () => Response.json(user) }, data);
+    clerk, data, config);
 }
 function request(app: ReturnType<typeof createApp>, method = "GET", body?: unknown) {
-  return app.request("/profile", { method, headers: { authorization: "bearer access-token", "content-type": "application/json" },
+  return app.request("/profile", { method, headers: { authorization: `bearer ${accessToken}`, "content-type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body) });
 }
 
@@ -21,7 +23,7 @@ test("profile reads require identity and scope Data API access to the verified o
     expect(target.origin + target.pathname).toBe(config.url + "/rest/v1/profiles");
     expect(target.searchParams.get("user_id")).toBe("eq." + user.id);
     expect(target.searchParams.get("select")).toBe("username,username_changed_at");
-    expect(new Headers(init.headers).get("authorization")).toBe("Bearer access-token");
+    expect(new Headers(init.headers).get("authorization")).toBe(`Bearer ${accessToken}`);
     expect(new Headers(init.headers).get("apikey")).toBe(config.publishableKey);
     expect(init.redirect).toBe("error");
     expect(init.cache).toBe("no-store");
@@ -61,7 +63,7 @@ test("profile writes reject invalid names, forged fields, and unbounded JSON bef
     expect((await request(app, "POST", body)).status).toBe(400);
     expect((await request(app, "PATCH", body)).status).toBe(400);
   }
-  expect((await app.request("/profile", { method: "POST", headers: { authorization: "Bearer token" }, body: "not json" })).status).toBe(400);
+  expect((await app.request("/profile", { method: "POST", headers: { authorization: `Bearer ${accessToken}` }, body: "not json" })).status).toBe(400);
   expect(calls).toBe(0);
   for (const username of ["A_1", "Z".repeat(20)]) expect((await request(app, "POST", { username })).status).toBe(201);
 });
@@ -106,23 +108,22 @@ test("profile credentials and owner filters cannot be supplied through request d
     expect((await app.request("/profile", { method, headers: { authorization: "Bearer bad token" } })).status).toBe(401);
   }
   expect(calls).toBe(0);
-  const response = await app.request("/profile?user_id=other&select=private", { headers: { authorization: "Bearer access-token" } });
+  const response = await app.request("/profile?user_id=other&select=private", { headers: { authorization: `Bearer ${accessToken}` } });
   expect(response.status).toBe(200);
   expect(calls).toBe(1);
-  expect(await (await app.request("/me", { headers: { authorization: "Bearer access-token" } })).json()).toEqual({ user });
+  expect(await (await app.request("/me", { headers: { authorization: `Bearer ${accessToken}` } })).json()).toEqual({ user });
   expect((await app.request("/health")).status).toBe(200);
   expect((await app.request("/not-found")).status).toBe(404);
   expect((await app.request("/profile/not-found")).status).toBe(404);
   expect((await app.request("/profile", { method: "DELETE" })).status).toBe(404);
 });
 
-test("profile database configuration is independently guarded against unsafe URLs and privileged keys", async () => {
+test("profile database configuration is independent, guarded and never accepts privileged keys", async () => {
   let calls = 0;
   const privileged = `a.${Buffer.from(JSON.stringify({ role: "service_role" })).toString("base64url")}.c`;
   for (const database of [{}, { ...config, url: "http://remote.test" }, { ...config, url: "https://db.test/?secret=x" },
     { ...config, url: "https://user:private@db.test" }, { ...config, publishableKey: "sb_secret_private" }, { ...config, publishableKey: privileged }]) {
-    const app = createApp(undefined, { ...config, fetcher: async () => Response.json(user) },
-      async () => { calls++; return Response.json([profile]); }, database);
+    const app = createApp(undefined, clerk, async () => { calls++; return Response.json([profile]); }, database);
     const response = await request(app);
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "Profile service is not configured." });
@@ -131,17 +132,38 @@ test("profile database configuration is independently guarded against unsafe URL
   expect(calls).toBe(0);
 });
 
+test("legacy Supabase credential endpoints are absent under Clerk-only auth", async () => {
+  const app = setup();
+  for (const [method, path] of [["POST", "/auth/register"], ["POST", "/auth/login"], ["POST", "/auth/verify"],
+    ["POST", "/auth/recover"], ["PATCH", "/auth/password"], ["POST", "/auth/refresh"], ["POST", "/auth/logout"]]) {
+    expect((await app.request(path, { method, headers: { authorization: `Bearer ${accessToken}` }, body: "{}" })).status).toBe(404);
+  }
+});
+
+test("profile access never forwards a Clerk token with missing or privileged database role", async () => {
+  let calls = 0;
+  const app = setup(async () => { calls++; return Response.json([profile]); });
+  for (const role of [undefined, "anon", "service_role", "postgres", { private: true }]) {
+    const authorization = `Bearer ${clerkToken({ role })}`;
+    expect((await app.request("/me", { headers: { authorization } })).status).toBe(200);
+    const response = await app.request("/profile", { headers: { authorization } });
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toBe("Bearer");
+  }
+  expect(calls).toBe(0);
+});
+
 test("profile data access can use a separate safe project without changing identity or owner scope", async () => {
   const database = { url: "https://database.example.test", publishableKey: "sb_publishable_database_test" };
   let calls = 0;
-  const app = createApp(undefined, { ...config, fetcher: async () => Response.json(user) }, async (url, init) => {
+  const app = createApp(undefined, clerk, async (url, init) => {
     calls++;
     const target = new URL(url);
     expect(target.origin).toBe(database.url);
     expect(target.pathname).toBe("/rest/v1/profiles");
     expect(target.searchParams.get("user_id")).toBe("eq." + user.id);
     expect(new Headers(init.headers).get("apikey")).toBe(database.publishableKey);
-    expect(new Headers(init.headers).get("authorization")).toBe("Bearer access-token");
+    expect(new Headers(init.headers).get("authorization")).toBe(`Bearer ${accessToken}`);
     return Response.json([profile]);
   }, database);
   expect((await request(app)).status).toBe(200);
