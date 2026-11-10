@@ -33,11 +33,11 @@ jobs:
         run: python3 --version
       - name: Install frozen workspace dependencies
         run: bun install --frozen-lockfile
-      - name: Typecheck backend
-        run: bun run --filter @modpack/api typecheck
-      - name: Test backend
+      - name: Typecheck workspace
+        run: bun run typecheck
+      - name: Test workspace
         env:
           TMPDIR: ${{ runner.temp }}
-        run: bun test apps/api/tests
-      - name: Test local database launcher
-        run: bun test scripts/tests
+        run: bun test
+      - name: Build web without provider credentials
+        run: bun run build
