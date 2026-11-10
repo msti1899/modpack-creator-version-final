@@ -55,7 +55,7 @@ are retained locally for audit only; do not publish them.
 | 9 | `feat/clerk-chain-06-web-identity` | 207 |
 | 10 | `feat/clerk-chain-07a-workspace-regression` | 288 |
 | 11 | `feat/clerk-chain-07b-profile-upgrade` | 170 |
-| 12 | `feat/clerk-chain-07c-continuity` | 238 |
+| 12 | `feat/clerk-chain-07c-continuity` | 277 |
 
 The final continuity child may add a few passive closure lines; its final count
 must still be checked before publication. All other counts are frozen commits.
