@@ -12,41 +12,33 @@ For a complete example, see the [creation guide](../guides/create-modpack.md).
 Returns `{ "status": "ok", "service": "modpack-api" }`. This checks the API
 process, not external service connectivity.
 
-### Retired Supabase account APIs
-
-POST `/auth/register`, POST `/auth/login`, POST `/auth/verify`, POST `/auth/recover`
-and PATCH `/auth/password` return 404 without contacting an Auth provider or
-returning session tokens. Do not reuse or retry these former credential/account
-proxies. Registration, sign-in and email/session management move to Clerk clients;
-the API does not add a second password/token issuer or redirect to one.
-
-This bounded slice retires the remaining credential proxies. Identity validation
-for `/me` and `/profile` is unchanged until the next Clerk cutover slice. This
-review-chain state must not be deployed independently. See the
-[account cutover guide](../guides/local-account-access.md).
-
 ### GET /me
 
-Requires `Authorization: Bearer <user access token>`. Supabase Auth validates it;
-API keys are not user sessions. Returns `{ user: { id, email } }`, with nullable
-email and no raw metadata or tokens. All responses are `no-store` and vary on
-Authorization. A 401 includes `WWW-Authenticate: Bearer`.
+Requires a Clerk user-session bearer token. The API verifies its RSA signature,
+expiry/not-before time, configured issuer and allowed browser origin, and rejects
+non-user, pending or sessionless identities. Returns only `{ user: { id, email } }`,
+with opaque `user_...` IDs and nullable signed-claim email. Unsigned request data
+never supplies identity. All responses are `no-store` and vary on Authorization.
 
-Missing/malformed credentials return 401 without an upstream call. With credentials
-present, missing/malformed server configuration returns 503; upstream invalid/expired
-token responses return 401; network/protocol/oversized-response failures return
-502; timeouts return 504. Auth requests reject redirects, cap JSON at 64 KiB, and
-use a five-second timeout. Tokens are limited to 8192 characters.
+Missing/malformed/rejected credentials return 401 with `WWW-Authenticate: Bearer`;
+missing/unsafe Clerk configuration returns 503; unexpected verifier failures return
+502. Tokens are capped at 8192 characters. Offline verification does not promise
+immediate logout revocation. Account, confirmation, recovery and session lifecycle
+are owned by Clerk, not by a second API password/token issuer.
 
-Configuration and verification: [local identity guide](../guides/local-identity.md).
-This establishes identity only, not group permissions or email-confirmation policy.
+The old Supabase `/auth/register`, `/auth/login`, `/auth/verify`, `/auth/recover`
+and `/auth/password` proxies are intentionally removed (404). No replacement
+refresh/logout proxy is added. Clients must migrate to Clerk controls/session APIs;
+this is an explicit auth-contract cutover, not backward-compatible provider mixing.
+See [local identity](../guides/local-identity.md) and [account access](../guides/local-account-access.md).
 
 ### GET /profile, POST /profile, PATCH /profile
 
-All three require a Supabase user bearer token and inherit `/me`'s authentication
+All three require a verified Clerk user-session bearer token and inherit `/me`'s authentication
 errors and `no-store`/Authorization cache headers. The API derives the owner from
-verified identity and forwards the user's token to the Data API under RLS, never
-a service-role key. Query parameters cannot select another owner or more columns.
+verified Clerk identity and forwards the unchanged user token to the Data API
+under RLS. Its signed `role` must be exactly `authenticated`; missing/other roles
+return 401 before database access. Privileged API keys are never accepted. Query parameters cannot select another owner or more columns.
 
 - GET returns `{ profile: { username, usernameChangedAt } }`, or `{ profile: null }`
   before initial assignment. `usernameChangedAt` is null until the first rename.
@@ -66,12 +58,13 @@ and cap response JSON at 4 KiB. There are no automatic retries. A transport erro
 does not prove a write rolled back: read the profile before deciding to retry.
 No signup, provider-linking, or profile deletion endpoint is included.
 
-Database configuration is guarded independently from identity verification. The
-profile module accepts a separate safe database origin and publishable/anon key;
-unsafe/missing configuration returns 503 without a Data API call. API keys never
-authenticate the caller and privileged keys are rejected. The existing identity
-configuration remains the default until the Clerk cutover; no provider is changed
-by this preparatory adapter slice.
+Database configuration is independent of Clerk: missing/unsafe Supabase URL or
+publishable/anon key returns 503. URLs use HTTPS except loopback development; no
+embedded credentials, query or path is allowed. Supabase must separately trust the
+same Clerk instance's JWTs; hosted trust setup is not performed by this code.
+Owners are text Clerk IDs, using signed JWT `sub` for RLS. Legacy UUID-owned rows
+are retained without reassignment and are not visible to Clerk users. Existing
+names remain reserved, including legacy rows. No email-based account linking.
 
 See the [profile guide](../guides/account-profiles.md) for database guarantees.
 

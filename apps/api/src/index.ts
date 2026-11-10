@@ -1,14 +1,17 @@
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { exportPack, PackError, resolve, search, type Fetcher } from "./modrinth";
-import { requireIdentity, type IdentityEnv, type IdentityOptions } from "./identity";
 import { profileRoutes, type ProfileFetcher } from "./profiles";
 import type { DatabaseOptions } from "./database";
+import { requireIdentity, type IdentityEnv, type IdentityOptions } from "./identity";
 
 export function createApp(fetcher: Fetcher = fetch, identity: IdentityOptions = {
-  url: process.env.SUPABASE_URL,
-  publishableKey: process.env.SUPABASE_PUBLISHABLE_KEY,
-}, profileFetcher: ProfileFetcher = fetch, database: DatabaseOptions = identity) {
+  jwtKey: process.env.CLERK_JWT_KEY,
+  issuer: process.env.CLERK_ISSUER,
+  authorizedParties: process.env.CLERK_AUTHORIZED_PARTIES?.split(",").map((value) => value.trim()),
+}, profileFetcher: ProfileFetcher = fetch, database: DatabaseOptions = {
+  url: process.env.SUPABASE_URL, publishableKey: process.env.SUPABASE_PUBLISHABLE_KEY,
+}) {
   const app = new Hono<IdentityEnv>();
   app.get("/health", (c) => c.json({ status: "ok", service: "modpack-api" }));
   app.get("/me", requireIdentity(identity), (c) => c.json({ user: c.get("identity") }));

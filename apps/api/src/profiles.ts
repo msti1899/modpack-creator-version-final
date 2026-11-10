@@ -28,6 +28,7 @@ export function profileRoutes(options: IdentityOptions, fetcher: ProfileFetcher,
   const app = new Hono<IdentityEnv>();
   app.on(["GET", "POST", "PATCH"], "/", requireIdentity(options), async (c) => {
     try {
+      if (c.get("databaseRole") !== "authenticated") throw new ProfileFailure(401, "Authentication required.");
       const method = c.req.method;
       let username: unknown;
       if (method !== "GET") {
