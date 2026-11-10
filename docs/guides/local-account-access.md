@@ -1,8 +1,8 @@
 # Access accounts with Clerk and application profiles
 
-Review-chain scope: this slice activates API identity/profile verification only.
-Web account controls and the same-origin bridge follow in later children. The
-complete guide describes the finished chain, not an independently deployable slice.
+Review-chain scope: API identity/profile verification, web account controls and
+the same-origin identity bridge are connected locally. Final regression and
+continuity checks remain; hosted provider configuration is not established.
 
 Clerk is the only account/session provider. Supabase stores application profiles;
 there is no second Supabase password/token flow in the Hono API.

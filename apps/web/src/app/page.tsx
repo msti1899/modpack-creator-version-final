@@ -1,3 +1,6 @@
+import { AuthControls } from "../components/auth-controls";
+import { hasClerkConfiguration } from "../lib/auth-config";
+
 export default function Home() {
   return (
     <main className="mx-auto max-w-2xl px-6 py-24">
@@ -8,8 +11,9 @@ export default function Home() {
       </p>
       <p className="mt-3 text-pretty text-zinc-400">
         Next.js frontend and an independent Hono API running on Bun.
-        Authentication and modpack features are not connected yet.
+        Clerk provides account access; the modpack interface is not connected yet.
       </p>
+      <AuthControls enabled={hasClerkConfiguration()} />
       <a
         className="mt-8 inline-block rounded text-emerald-400 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-400"
         href="https://nextjs.org/docs"
