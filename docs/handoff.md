@@ -34,10 +34,14 @@ delivery; they were not rerun during it:
   web/API session checks. Anonymous requests and altered signatures returned
   401; sign-out cleared the web session. Both fixtures were removed. See the
   [identity-test evidence](handoff-history-2026-11-12.md#real-identity-tests-and-remaining-prerequisites-2026-11-12).
-- Hosted profiles/RLS remain blocked: tested JWTs lacked signed
-  `role: "authenticated"`, and hosted `public.profiles` was absent. No profile
-  rows were written. Third-party database trust, full OAuth and real email
-  delivery remain unverified. Offline JWT expiry still limits immediate revocation.
+- Hosted profiles/RLS were blocked in that earlier checkpoint because tested JWTs
+  lacked a signed `role: "authenticated"` and hosted `public.profiles` was absent.
+  That block was later removed with explicit authorization: the three repository
+  migrations are applied to the selected test project, Clerk Development signs the
+  role claim, Supabase trusts the Clerk issuer, and real-session profile lifecycle
+  plus cross-user isolation passed. All fixtures were removed and
+  `public.profiles` is back to zero rows. Full OAuth and real email delivery remain
+  unverified. Offline JWT expiry still limits immediate revocation.
 
 Earlier application merge/review records are historical evidence in the archived
 handoff and [feature log](../odd/tasks/clerk-auth-replacement.md). Local ancestry
@@ -51,15 +55,27 @@ verified and must not be inferred from this document.
    ignored environment files and unrelated work.
 2. For startup, use the [recorded localhost-binding workaround](handoff-history-2026-11-12.md#local-startup-correction-and-api-configuration).
    For development scope, read [roadmap milestone 2](plans/backend-roadmap.md#delivery-order).
-3. The next application action is a permission decision: obtain explicit
-   authorization to prepare the selected test database with repository migrations
-   and configure the authenticated role / necessary Clerk-Supabase JWT trust.
-   Only then rerun the blocked profile/RLS checks with disposable fixtures.
+3. Hosted preparation is done under explicit user authorization: the three
+   repository migrations are applied to the selected test project, the Clerk
+   Development instance signs `role: "authenticated"`, and the user enabled the
+   Clerk provider in Supabase third-party auth. All three were verified by
+   readback and by real sessions; see
+   [the hosted verification record](../odd/tasks/hosted-profile-verification.md).
+4. Hosted Clerk → Supabase trust is now enabled by the user and verified with real
+   sessions: profile lifecycle, cross-user isolation, denied delete/column writes,
+   anonymous and malformed-token rejection all behaved as specified, and the
+   fixture rows/users were removed afterwards.
+5. Remaining unverified areas are only those needing separate accounts or mailboxes:
+   full Google/Discord OAuth completion and real email delivery. Do not claim them
+   from the `+clerk_test` OTP path. See
+   [the hosted verification record](../odd/tasks/hosted-profile-verification.md).
 
-The earlier fixture-only authorization does not authorize migrations, resets,
-external settings or new hosted tests. Full OAuth/email verification additionally
-needs controlled provider accounts and a real test inbox. Do not access ambient
-CLI sessions or credentials under this documentation-only authorization.
+Two fixture profile rows and both fixture users were created only for these checks
+and then deleted; `public.profiles` is back to zero rows. The earlier fixture-only
+authorization does not authorize resets, unrelated hosted settings or
+external-provider changes. Full OAuth/email verification additionally needs
+controlled provider accounts and a real test inbox. Do not access ambient CLI
+sessions or credentials beyond the explicitly authorized test projects.
 
 ## Documentation maintenance
 

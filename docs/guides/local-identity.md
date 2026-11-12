@@ -38,6 +38,23 @@ pack behavior stays in Hono. Server-side forwarding requires no browser-to-API
 CORS or shared cross-domain cookies. Redirects from the API are rejected so
 credentials cannot be forwarded to a redirected host.
 
+### Localhost binding fallback
+
+On a workstation where Clerk-enabled requests hang or fail with a loopback
+self-proxy error when Next binds to `127.0.0.1`, use the existing scripts in two
+terminals and explicitly align the web bind with the browser origin:
+
+```sh
+PATH="$HOME/.bun/bin:$PATH" bun run dev:api
+PATH="$HOME/.bun/bin:$PATH" bun run dev:web --hostname localhost
+```
+
+Open `http://localhost:3000`; the API remains at `http://127.0.0.1:3001`.
+The hostname override applies only to this invocation; package scripts and the
+default Turbopack bundler are unchanged. Clerk must stay configured: clearing its
+keys is a diagnostic fallback, not a solution. A Development handshake redirect
+can precede the browser's final response; check rendering after that handshake.
+
 With no web keys, the public starter page explains that setup is needed and
 `/api/me` returns 503. The API's health and catalog routes remain usable without
 Clerk or a running local database. No accountless Clerk app is created implicitly.
