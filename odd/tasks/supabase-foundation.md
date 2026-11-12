@@ -3,8 +3,8 @@ First delivery of the approved backend roadmap; branch: feat/supabase-foundation
 Delivery: ask-on-risk; forecast about 300 authored lines plus generated CLI configuration and lockfile. No cloud provisioning, frontend, or CD. Publication authorized in L14.
 
 ## Specs
-- S1: User approval: "Go ahead with the plan." This delivery covers the approved first step, "Base de datos reproducible": local Supabase setup, versioned migration workflow, configuration example and setup documentation. Acceptance: start and reconstruct a disposable local database from scratch without repository secrets.
-- S2: "despliega solo sub agentes de gentle-ai"; confirmed ODD roles only. "odd explorer usa gpt 6 luna" overrides the explorer model to gpt-6-luna/high. Parent implements inline; an odd-verify uses gpt-6.1-sol/medium for environment/security checks.
+- S1: The user approved the roadmap plan. This delivery covers the approved first step, a reproducible database: local Supabase setup, versioned migration workflow, configuration example and setup documentation. Acceptance: start and reconstruct a disposable local database from scratch without repository secrets.
+- S2: The user restricted delegation to gentle-ai subagents and confirmed ODD roles only, overriding the explorer model to gpt-6-luna/high. Parent implements inline; an odd-verify uses gpt-6.1-sol/medium for environment/security checks.
 - S3: Preserve the independent Hono/Bun API, existing Modrinth behavior and user-owned untracked files. Later roadmap steps (auth, groups, persistence, versions, votes) remain separate deliveries; do not invent domain tables in the foundation.
 - Checks: exact CLI version; start/status; migration replay on a new disposable local project; baseline database tests; frozen dependency install; existing backend tests/typecheck; local-only binding and ignored runtime artifacts; independent verifier. Report image/network/runtime failures honestly.
 
@@ -14,8 +14,8 @@ Delivery: ask-on-risk; forecast about 300 authored lines plus generated CLI conf
 - T3 [S1-S3] Independent verification for risk items 2/5 and native review applicability — odd-verify plus parent orchestration; complete; independent verification passed and native risk/reliability review approved/acknowledged; implementation5b94207, evidence8f27b37.
 
 ## Log
-- L1: User approved the six-step backend proposal: "Go ahead with the plan." Current delivery is the local database foundation; no external account setup has been authorized.
-- L2: User delegation corrections: "despliega solo sub agentes de gentle-ai", "si", "odd explorer usa gpt 6 luna". Generic explorer stopped; configured gpt-6.1-luna rejected as unavailable; odd-explorer successfully used the explicit gpt-6-luna override. Worker override remains unspecified if later needed.
+- L1: The user approved the six-step backend proposal. Current delivery is the local database foundation; no external account setup has been authorized.
+- L2: The user limited delegation to gentle-ai subagents, confirmed ODD roles and overrode the explorer model to gpt-6-luna. Generic explorer stopped; configured gpt-6.1-luna rejected as unavailable; odd-explorer successfully used the explicit gpt-6-luna override. Worker override remains unspecified if later needed.
 - L3: Docker29.9.2 is running and standard local ports are free. Supabase CLI absent. Official explorer verified stable CLI3.0.0 and Bun devDependency installation. Current CLI config exposure defaults must be inspected directly; no speculative global privilege migration will be added.
 - L4: A real security-default migration establishes the workflow; real domain migrations will accompany their features. Verify replay with a scratch-only migration probe rather than committing fabricated app tables. Local test resets affect only databases created for this verification. No destructive operations on existing user data.
 - L5: Risk: item5 (CLI dependency and local environment setup), item2 (network binding and secret handling). Retain existing fixture API tests and frozen lockfile behavior.
@@ -33,4 +33,4 @@ Delivery: ask-on-risk; forecast about 300 authored lines plus generated CLI conf
 
 - L13: User granted additional review. Native risk and reliability captures ran concurrently over the immutable14-file371-line slice; no findings. Exact acknowledgement returned gentle-ai.review-acknowledged/v1, actionacknowledged, authorityburned for review-59a55928b506aefb and targetsha256:fd6db8f70f35a1fb35079eb4165e522a748a5f28bbd59c2e34bfbb84eb4917ee. All first-delivery tasks complete; no native review remains pending for that unchanged slice. No push/PR/cloud operations performed.
 
-- L14: User requested "commit y pr ya". Published feat/supabase-foundation and opened PR6 https://github.com/msti1899/modpack-creator-version-final/pull/6 against main. Slice includes implementation5b94207, evidence8f27b37 and reviewed-closureba25794; no unrelated parent work. Local source was already committed, so no empty commit was created. Hosted CI results are reported separately from local verification.
+- L14: The user authorized committing and opening the PR. Published feat/supabase-foundation and opened PR6 https://github.com/msti1899/modpack-creator-version-final/pull/6 against main. Slice includes implementation5b94207, evidence8f27b37 and reviewed-closureba25794; no unrelated parent work. Local source was already committed, so no empty commit was created. Hosted CI results are reported separately from local verification.

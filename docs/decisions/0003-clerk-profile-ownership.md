@@ -2,7 +2,7 @@
 
 - Date: 2026-11-06
 - Status: Accepted; implementation and verification tracked separately.
-- Source: "Sí, usar directamente el ID de Clerk" after approval of PR16 reconciliation.
+- Source: Owner decision to use Clerk IDs directly, made after approving the PR16 reconciliation.
 - Supersedes: ADR0002's initial exclusion of profile schema migration only.
 
 ## Decision and consequences

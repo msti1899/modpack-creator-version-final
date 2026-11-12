@@ -5,10 +5,29 @@ Delivery: feature-branch-chain (previously chosen); database slice then HTTP sli
 
 ## Specs
 
-- S1: "Sí, nombre de usuario único"; "Sí, cuentan como el mismo nombre" for `Matias`/`matias`; "Sí, usemos ese formato" for 3–20 ASCII letters, digits, underscore, no spaces/accents; "No, conservar las mayúsculas al mostrarlo". Require one globally case-insensitive unique username per authenticated user; preserve display casing. Acceptance: pgTAP and HTTP format/collision/ownership tests.
-- S2: "Sí, podrá cambiarlo"; "Sí, cada 30 días"; "Sí, queda libre"; "No, el primer cambio puede ser inmediato". Initial assignment is not a rename; first rename can be immediate; later renames require 30 days; previous name is released. Acceptance: transactional database tests at 29/30 days, rejected writes unchanged, and concurrent collision/rename probes.
-- S3: "bueno ultima pregunta y a seguir con backend". Implement the next local backend slice without more product questions. Implementation choice: own-profile routes separate from existing `/me`, forwarding only a verified user's token to Supabase Data API. Preserve `/me`, health and Modrinth contracts. Acceptance: existing suite, separate profile route tests and disposable live Auth/Data API check. No frontend, dependencies, cloud setup, deployment, or remote publication.
-- S4: "No, solo con email"; "Sí, permitir vincularlos"; "Sí, vinculación manual desde ajustes"; "Sí, debe quedar otro método de acceso". Record these account decisions but defer password/provider workflows; do not silently implement automatic account merging or claim the full authentication milestone complete.
+- S1: The user confirmed a single unique username per account, case-insensitive
+  (`Matias` and `matias` collide), using 3–20 ASCII letters, digits and underscore
+  without spaces or accents, while preserving display casing. Require one globally
+  case-insensitive unique username per authenticated user; preserve display casing.
+  Acceptance: pgTAP and HTTP format/collision/ownership tests.
+- S2: The user confirmed that users may change their username, that the first
+  change may be immediate, that later changes require 30 days, and that the
+  previous name is released. Initial assignment is not a rename; first rename can
+  be immediate; later renames require 30 days; previous name is released.
+  Acceptance: transactional database tests at 29/30 days, rejected writes unchanged,
+  and concurrent collision/rename probes.
+- S3: The user asked to close the last product question and continue with the
+  backend. Implement the next local backend slice without more product questions.
+  Implementation choice: own-profile routes separate from existing `/me`, forwarding
+  only a verified user's token to Supabase Data API. Preserve `/me`, health and
+  Modrinth contracts. Acceptance: existing suite, separate profile route tests and
+  disposable live Auth/Data API check. No frontend, dependencies, cloud setup,
+  deployment, or remote publication.
+- S4: The user confirmed email-only password sign-in, allowing users to link
+  Google and Discord manually from settings, and requiring another sign-in method
+  to remain before unlinking one. Record these account decisions but defer
+  password/provider workflows; do not silently implement automatic account merging
+  or claim the full authentication milestone complete.
 
 ## Tasks
 
@@ -18,7 +37,8 @@ Delivery: feature-branch-chain (previously chosen); database slice then HTTP sli
 
 ## Log
 
-- L1: User: "bueno ultima pregunta y a seguir con backend"; final answer: "Sí, debe quedar otro método de acceso".
+- L1: The user closed the final product question and chose to continue with the
+  backend, confirming that another sign-in method must remain configured.
 - L2: Read-only ODD explorer mapped identity middleware and local database tooling. Parent spot-checked `identity.ts`, `index.ts`, pgTAP and local runner. Parent implements inline: the units depend on each other, so no parallel writer reason exists. Independent verification required by named security/migration/concurrency risks.
 - L3: GitHub confirms PR7 merged; cached `origin/main` at `d9493dc` includes PR8 identity merge and PR7 docs. Created `feat/account-profiles-db` from that base carrying only the approved local documentation clarifications. Preserve untracked `.atl/`, `.gitattributes`, `graphify-out/`.
 - L4: Local Bun is available via `/tmp/modpack-bootstrap.h6VoA4/node_modules/.bin/bun`; no test stack is running. Live checks use a disposable external scratch copy, never reset an existing developer database. Database first, then protected HTTP adapter. Native review remains user-owned and enabled.
@@ -28,8 +48,8 @@ Delivery: feature-branch-chain (previously chosen); database slice then HTTP sli
 
 - L7: User granted T1 review. Risk, resilience, readability, and reliability reviews completed without findings; exact acknowledgement succeeded. T1 commit `86e168a` is reviewed. No correction was needed. HTTP T2 remains pending; no remote publication or deployment was performed.
 
-- L8: User requested "commit push y pr". Published draft tracker PR9 (`feat/account-profiles` to `main`) and database PR10 (`feat/account-profiles-db` to tracker). Reviewed DB code remains `86e168a`; closure `2b640dc`; child includes the tracker plan through ordinary merges. Publication bookkeeping is passive documentation. T2 remains pending; no merge or deployment performed.
-- L9: User: "sigamos". GitHub confirms tracker9 merged before child10. `origin/main` at `422326a` has the earlier plan only; merged DB code is on `origin/feat/account-profiles` at `cd5465d`. Created dependent `feat/account-profiles-api` there; no agent merge or remote publication is authorized for this continuation. T1 app/SQL bytes match reviewed checkpoint.
+- L8: The user authorized committing, pushing and opening the PR. Published draft tracker PR9 (`feat/account-profiles` to `main`) and database PR10 (`feat/account-profiles-db` to tracker). Reviewed DB code remains `86e168a`; closure `2b640dc`; child includes the tracker plan through ordinary merges. Publication bookkeeping is passive documentation. T2 remains pending; no merge or deployment performed.
+- L9: The user asked to continue. GitHub confirms tracker9 merged before child10. `origin/main` at `422326a` has the earlier plan only; merged DB code is on `origin/feat/account-profiles` at `cd5465d`. Created dependent `feat/account-profiles-api` there; no agent merge or remote publication is authorized for this continuation. T1 app/SQL bytes match reviewed checkpoint.
 - L10: T2 uses the existing public Hono `createApp`/`app.request` seam and injected outbound fetchers: `GET /profile` returns own profile or null; `POST /profile` assigns the initial username; `PATCH /profile` renames an existing profile. Bodies contain only `username`; owner/timestamp come from verified identity/database. POST and PATCH remain separate to avoid unsafe read-then-upsert or granting ownership updates. Responses expose only username and nullable `usernameChangedAt`. Existing `/me`, catalog and pack behavior are regression seams. No database migration, credential changes, or new dependencies are needed.
 - L11: Observed RED then GREEN for missing profile route, assignment/rename, invalid/forged bodies, missing-profile/conflict errors, and unknown-route preservation. Scoped identity middleware to supported methods rather than a prefix-wide guard so unknown routes remain 404. Focused6tests96assertions; root types and35tests627assertions pass. Fourteen live Hono/Auth/Data API scenarios pass. Differential baseline/candidate checks match status, headers and full response bytes for24cases, including mrpack ZIP and each existing route with missing/valid/invalid credentials. Independent verification and native review pending; no remote publication.
 
@@ -37,6 +57,6 @@ Delivery: feature-branch-chain (previously chosen); database slice then HTTP sli
 
 - L13: User granted the T2 candidate review. Four exact provider-issued captures ran concurrently in risk/resilience/readability/reliability order; all findings were empty. Last admitted event approved; exact acknowledgement succeeded. No correction was needed. T2 source commit `f0346fe` is reviewed; local profile feature implementation and verification are complete. Publication/integration remains separate and unauthorized by this review consent.
 
-- L14: User requested "push y pr ya a laburar". Pushed `feat/account-profiles-api` and opened PR11 against `feat/account-profiles` (database already on that branch). HTTP source `f0346fe` and review closure `8bf89f9` are published. No application/database bytes changed during publication. Final integration into main remains pending; no agent merge/deployment performed.
+- L14: The user authorized pushing and opening the PR without further delay. Pushed `feat/account-profiles-api` and opened PR11 against `feat/account-profiles` (database already on that branch). HTTP source `f0346fe` and review closure `8bf89f9` are published. No application/database bytes changed during publication. Final integration into main remains pending; no agent merge/deployment performed.
 
-- L15: User requested "Abrí la PR de integración a main, sin hacer merge". Opened draft integration PR12 from `feat/account-profiles` to `main`, combining already-reviewed/merged PR10 and PR11. Initial aggregate13files630lines; one slicing pass retained existing coherent review slices and recommended a maintainer size exception, not an approval. No GitHub merge, deployment, or application/database source changes.
+- L15: The user requested an integration PR to `main` without a merge. Opened draft integration PR12 from `feat/account-profiles` to `main`, combining already-reviewed/merged PR10 and PR11. Initial aggregate13files630lines; one slicing pass retained existing coherent review slices and recommended a maintainer size exception, not an approval. No GitHub merge, deployment, or application/database source changes.

@@ -1,7 +1,7 @@
 # Backend roadmap
 
 Status: Approved; implementation in progress. Scope: backend only, no frontend or CD.
-Source: the six-stage proposal approved by the user with "Go ahead with the plan."
+Source: the six-stage proposal approved by the user.
 Last checkpoint: [current handoff](../handoff.md). This plan records intent and
 milestone progress; the handoff owns environment-specific evidence, delivery
 state and the next action. Completed work from the documentation reorganization
@@ -76,9 +76,11 @@ completed work. Record meaningful changes below and keep the
   repeating stale PR/publication state and review counts. Earlier observations
   remain in the historical handoff and feature log; this is not new runtime proof.
 
-- 2026-11-10: User requested "saca todo lo de supabase auth y deja lo de clerk reemplaza todo por clerk" and continued with "sigue". Replace application authentication with Clerk, retain database/profile rules and legacy rows, and disable local first-party providers. Publication, hosted setup and merge remain separate decisions. See [replacement tasks](../../odd/tasks/clerk-auth-replacement.md) for current proof.
+- 2026-11-10: The user directed replacing all Supabase authentication with Clerk
+  and asked to continue. Replace application authentication with Clerk, retain
+  database/profile rules and legacy rows, and disable local first-party providers. Publication, hosted setup and merge remain separate decisions. See [replacement tasks](../../odd/tasks/clerk-auth-replacement.md) for current proof.
 
-- 2026-11-05: User approved "Sí, devolver la sesión en JSON". Local confirmation
+- 2026-11-05: The user approved returning the session as JSON. Local confirmation
   and recovery endpoints passed functional and independent verification; native
   review is approved and acknowledged; PR15 is published, not merged. No frontend or external service setup.
 
@@ -86,29 +88,29 @@ completed work. Record meaningful changes below and keep the
   remains partial; next unfinished local scope is confirmation callbacks and
   password recovery. Historical delivery logs remain unchanged.
 
-- 2026-11-05: User confirmed "Sí, debe quedar otro método de acceso": provider
-  unlinking is allowed only when another configured sign-in method remains.
-- 2026-11-05: User confirmed "Sí, vinculación manual desde ajustes": link providers
-  manually from settings while signed in, without automatic email-based merging.
-- 2026-11-05: User confirmed "Sí, permitir vincularlos": existing accounts may
-  link Google and Discord as additional sign-in methods; linking flow remains open.
-- 2026-11-05: User confirmed "No, solo con email": password-based sign-in accepts
-  email only, not username; Google and Discord remain approved methods.
-- 2026-11-05: User confirmed "No, conservar las mayúsculas al mostrarlo": preserve
-  chosen display casing while enforcing case-insensitive username uniqueness.
-- 2026-11-05: User confirmed "No, el primer cambio puede ser inmediato": no
-  registration cooldown applies to the first change; later changes require 30 days.
-- 2026-11-05: User confirmed "Sí, queda libre": after a rename, the previous
-  username becomes available for another person to use.
-- 2026-11-05: User confirmed "Sí, cada 30 días": username changes are limited
-  to once every 30 days; first-rename timing and previous-name reuse remain open.
-- 2026-11-05: User confirmed "Sí, podrá cambiarlo": users may change their
-  username after registration; frequency and previous-name reuse remain open.
-- 2026-11-05: User confirmed "Sí, usemos ese formato": usernames use 3–20
-  characters from `a-z`, `0-9`, and `_`, without spaces or accents.
-- 2026-11-05: User confirmed "Sí, cuentan como el mismo nombre" for `Matias`
-  and `matias`; account username uniqueness must be case-insensitive.
-- 2026-11-05: User confirmed "Sí, nombre de usuario único" for all accounts,
+- 2026-11-05: The user confirmed that one sign-in method must remain configured
+  before a provider can be unlinked.
+- 2026-11-05: The user confirmed manual provider linking from account settings
+  while signed in, without automatic email-based merging.
+- 2026-11-05: The user confirmed that existing accounts may link Google and
+  Discord as additional sign-in methods; the linking flow remains open.
+- 2026-11-05: The user confirmed email-only password sign-in, without usernames;
+  Google and Discord remain approved methods.
+- 2026-11-05: The user confirmed preserving chosen display casing while enforcing
+  case-insensitive username uniqueness.
+- 2026-11-05: The user confirmed that no cooldown applies to the first username
+  change; later changes require 30 days.
+- 2026-11-05: The user confirmed that a renamed-away username becomes available
+  for another person to use.
+- 2026-11-05: The user confirmed a 30-day interval between username changes;
+  first-rename timing and previous-name reuse remained open at that point.
+- 2026-11-05: The user confirmed that users may change their username after
+  registration; frequency and previous-name reuse remained open at that point.
+- 2026-11-05: The user confirmed the 3–20 character format using `a-z`, `0-9`,
+  and `_`, without spaces or accents.
+- 2026-11-05: The user confirmed that `Matias` and `matias` count as the same
+  name, so account username uniqueness is case-insensitive.
+- 2026-11-05: The user confirmed that every account needs a unique username,
   including Google and Discord registrations. Added this requirement to milestone
   2's account-onboarding scope; the existing `/me` slice remains unchanged.
 - 2026-11-04: Recorded the approved six-stage plan; database foundation merged,
