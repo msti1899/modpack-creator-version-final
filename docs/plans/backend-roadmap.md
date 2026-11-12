@@ -19,7 +19,7 @@ votes. Start with working vertical slices rather than modeling every table upfro
 | --- | --- | --- |
 | 1. Reproducible database | Pinned local Supabase tooling, tracked migrations, configuration, and documentation. A disposable database can start and rebuild without cloud credentials. | Implemented and verified; [PR #6](https://github.com/msti1899/modpack-creator-version-final/pull/6) merged. |
 | 2. Identity and authentication | Clerk owns accounts, sessions and account-management flows. Hono verifies signed Clerk sessions; Supabase remains the profile database with subject-scoped RLS. Preserve username rules and existing rows without automatic linking. | Verified on the selected test project: the Clerk replacement is integrated locally; the three repository migrations are applied; Clerk Development signs `role: "authenticated"`; Supabase third-party Clerk trust is enabled; and real-session profile/RLS isolation passed. Remaining: full Google/Discord OAuth completion and real email delivery. See the [current handoff](../handoff.md#application-checkpoint) and the [hosted verification record](../../odd/tasks/hosted-profile-verification.md). |
-| 3. Groups and permissions | One group per person, owner/member permissions, public direct admission, private invitations requiring approval, and ownership transfer before an owner leaves others behind. Test cross-group isolation and concurrent admission. | Planned. |
+| 3. Groups and permissions | One group per person, owner/member permissions, public direct admission, private invitations requiring approval, and immediate ownership transfer before an owner leaves others behind. Test cross-group isolation and concurrent admission. | Implemented locally; authorized test-project migration and real SQL isolation/concurrent-admission checks passed. Native review, actual pgTAP and real-session group-flow proof remain pending; no publication or merge. See [doc02](../delivery/doc02-groups-permissions.md) and [groups tasks](../../odd/tasks/groups-permissions.md). |
 | 4. Persisted modpack draft | One draft pack per group, owner-only edits, exact approved mod/dependency versions, reuse of existing Modrinth resolution/export. Failed writes leave no partial selection. | Planned. Existing stateless resolution/export is already implemented. |
 | 5. Published versions and sharing | Preserve earlier publications, explicit active-version selection by the owner, and links respecting access rules. Publishing does not automatically activate a version. | Planned. |
 | 6. Voting | Owner-created concrete proposals and chosen duration, fixed electorate, absolute majority, early approval, and binding owner incorporation without automatic publication. Resolve pending lifecycle rules first. | Planned. |
@@ -70,6 +70,8 @@ completed work. Record meaningful changes below and keep the
 [handoff](../handoff.md) synchronized after each delivery.
 
 ### Change log
+
+- 2026-11-12: The owner resumed milestone 3 and confirmed immediate ownership transfer without recipient acceptance. Database-only local draft is not a completed delivery; no new hosted change, publication or merge is authorized.
 
 - 2026-11-12: Documentation reorganization leaves approved scope and milestone
   acceptance unchanged. Milestone 2 now links the current checkpoint instead of

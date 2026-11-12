@@ -1,6 +1,6 @@
 # Backend API reference
 
-The independent Hono API verifies identity for `/me` and `/profile`; catalog/pack
+The independent Hono API verifies identity for `/me`, `/profile` and group routes; catalog/pack
 routes remain public. Application pack persistence is not implemented.
 Local base URL: `http://127.0.0.1:3001`. POST bodies must be JSON.
 For a complete example, see the [creation guide](../guides/create-modpack.md).
@@ -67,6 +67,56 @@ are retained without reassignment and are not visible to Clerk users. Existing
 names remain reserved, including legacy rows. No email-based account linking.
 
 See the [profile guide](../guides/account-profiles.md) for database guarantees.
+
+### Groups
+
+All group operations require `/me`'s verified Clerk bearer and `/profile`'s exact
+signed `authenticated` database role, independent Supabase configuration and
+no-store/Authorization cache behavior. The caller is derived from the token,
+never a submitted owner ID. See the [group guide](../guides/groups.md) for flows.
+
+| Method and path | JSON body | Success |
+| --- | --- | --- |
+| POST `/groups` | `{ name, visibility }` | 201 `{ group }`; creator becomes owner/member |
+| GET `/groups/me` | None | 200 `{ group }`, or `{ group: null }`; embeds up to 50 members/requests and next cursors |
+| GET `/groups/me/members` | Query: `limit` 1–100 (default 50), opaque `cursor` | 200 `{ members, nextCursor }`; caller's group only |
+| GET `/groups/me/requests` | Query: `limit` 1–100 (default 50), opaque `cursor` | 200 `{ requests, nextCursor }`; owner only |
+| POST `/groups/:groupId/join` | None or `{}` | 200 `{ group }`; public groups only |
+| POST `/groups/me/invitation` | None or `{}` | 201 `{ invitation: { token, createdAt } }`; private owner only; rotates |
+| DELETE `/groups/me/invitation` | None or `{}` | 200 `{ invitation: null }` |
+| GET `/groups/invitations/:token` | None | 200 `{ invitation: { groupId, name, ownerUsername, requested, member } }` |
+| POST `/groups/invitations/:token/requests` | None or `{}` | 201 `{ request: { groupId, status: "pending", createdAt } }`; duplicate pending request is idempotent |
+| POST `/groups/me/requests/:userId/approve` | None or `{}` | 200 `{ group }`; owner only |
+| POST `/groups/me/requests/:userId/reject` | None or `{}` | 200 `{ request: { userId, status: "rejected" } }`; owner only |
+| POST `/groups/me/ownership` | `{ userId }` | 200 `{ group }`; immediate transfer to a member |
+| DELETE `/groups/me/membership` | None or `{}` | 200 `{ groupId, groupDeleted }` |
+
+`group` contains `id`, `name`, `visibility`, `ownerId`, `role`, `createdAt`,
+`memberCount`, `members: [{ userId, username, role, joinedAt }]`,
+`membersNextCursor`, `invitation`, `requests: [{ userId, username, createdAt }]`
+and `requestsNextCursor`. Embedded collections hold at most 50 entries; a non-null
+cursor continues through the paged endpoints until it returns null. Roles are
+`owner` or `member`. Only the owner receives pending requests and, for private
+groups, the active invitation. Other callers receive null for both owner-only
+fields. Page responses contain only `members` or `requests` plus `nextCursor`,
+and reject unknown query parameters or malformed cursors.
+
+Bodies are capped at 1 KiB and reject unknown fields. Names retain Unicode/casing,
+trim surrounding Unicode spaces, contain 1–60 characters without controls or
+U+FEFF, and need not be unique. Visibility is exactly `public` or `private`. IDs
+are UUIDs; member IDs are Clerk `user_...` subjects; invitation tokens contain 64
+lowercase hex digits. Queries cannot select another caller or additional fields.
+There is no listing, group-edit, expulsion, invitation-expiry or pack-persistence
+endpoint.
+
+Invalid input returns 400; authentication 401; owner/public-admission denial 403;
+missing group/request or invalid invitation 404; membership/profile/conflict
+conditions 409. In particular, an owner cannot leave other members behind and an
+already-grouped applicant cannot be approved into a second group. A sole-owner
+leave deletes the group and dependent group records. Transport/protocol failures
+return safe 502 errors, missing/unsafe database configuration 503, and timeouts
+504. No SQL details are exposed. Requests reject redirects, use a five-second
+timeout, cap response JSON at 256 KiB, and never automatically retry writes.
 
 ### GET /mods
 

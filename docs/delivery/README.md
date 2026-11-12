@@ -13,10 +13,8 @@ For the latest state and next action, use the [current handoff](../handoff.md).
 | Record | Date | Outcome |
 | --- | --- | --- |
 | [doc01: Documentation reorganization](doc01-documentation-reorganization.md) | 2026-11-12 | Start numbered records, clarify document ownership, and separate the current checkpoint from historical reports. |
+| [doc02: Groups and permissions](doc02-groups-permissions.md) | 2026-11-12 | Implement group admission and permissions, record real database race checks and HTTP verification, and distinguish pending pgTAP, session and review proof. |
 | [doc03: Remove owner quotations](doc03-owner-quote-removal.md) | 2026-11-12 | Replace quotations of the owner's messages with neutral decision summaries and forbid them in future documentation. |
-
-`doc02` is reserved for the groups and permissions delivery prepared in a separate
-session; numbers are not reused when an earlier unit lands later.
 
 ## Add the next record
 
