@@ -48,8 +48,9 @@ defaults for them. Write `None` when there are no known open questions.
 ## Source
 
 Link the originating discussion, issue, or specification when available. For
-conversation-only decisions, record the confirmation date and a short exact
-quote; distinguish user confirmation from a technical recommendation.
+conversation-only decisions, record the confirmation date and a concise paraphrase
+of the decision. Never quote the owner's messages or selected options; state the
+outcome and distinguish a confirmed decision from a recommendation.
 
 ## Change history
 

@@ -6,7 +6,8 @@ Baseline: <branch and commit checked before the work>
 
 ## Objective
 
-<What the work was intended to achieve and its approved source.>
+<What the work was intended to achieve and its approved source. Paraphrase the
+owner's decision; do not quote their messages or selected options.>
 
 ## Changes and rationale
 

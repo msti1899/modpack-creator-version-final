@@ -1,7 +1,8 @@
 # <Plan title>
 
 Status: <Proposed | Approved | In progress | Blocked | Complete>
-Source: <user request or approval; distinguish explicit choices from assumptions>
+Source: <user request or approval; paraphrase the decision, never quote the owner;
+distinguish explicit choices from assumptions>
 Current checkpoint: <link to handoff or relevant feature task log>
 
 ## Outcome and boundaries

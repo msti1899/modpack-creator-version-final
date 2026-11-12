@@ -17,3 +17,9 @@ Keep new plans under `docs/plans/`, using [the plan template](docs/templates/pla
 Use the user's approved scope; proposals are not requirements. Keep credentials
 and machine-specific review tokens out of documentation. Publication and external
 service setup remain explicit user decisions. Use Gentle AI ODD roles for delegation.
+
+Never quote the project owner's messages, questions, option labels or replies in
+documentation. Record what was decided in neutral prose, with the date and the
+affected scope, and distinguish an approved decision from a proposal. The same rule
+applies to task logs, plans, decisions, delivery records, handoffs and agent notes.
+Do not add "verbatim" quotations of the owner; describe the decision instead.

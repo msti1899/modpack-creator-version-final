@@ -108,8 +108,8 @@ web/API architecture and Supabase PostgreSQL choice remain accepted.
   repository layout is an implementation choice, not a requirement for separate
   repositories or a shared launcher backend.
 
-The project owner explicitly requested: "quiero separar la api como decision de
-arqiutectura", then confirmed "Sí, Hono + Bun".
+The project owner requested separating the API as a deliberate architectural
+decision, then chose Hono with Bun.
 
 The trade-off is additional deployment, configuration, and authentication
 coordination compared with keeping endpoints inside Next.js. An embedded Hono
@@ -144,8 +144,8 @@ to configure Brevo alongside Clerk.
   real delivery must still be verified.
 - Do not treat the default Supabase testing SMTP as a public email solution.
 
-The project owner confirmed: "entonces dejemos brevo" after discussing a second
-provider. No account configuration or email delivery has been performed.
+The project owner decided to keep Brevo alone after discussing a second provider.
+No account configuration or email delivery has been performed.
 
 ### D11: Start with infrastructure, not domain implementation
 

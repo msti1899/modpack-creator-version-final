@@ -2,7 +2,7 @@
 
 Status: Complete; both profile slices integrated into main through PR12.
 Source: Approved backend continuation and the user's feature-branch-chain choice;
-publication authorized on 2026-11-05 with "commit push y pr".
+publication of commits and pull requests authorized on 2026-11-05.
 Current checkpoint: [backend handoff](../handoff.md).
 
 ## Outcome and boundaries

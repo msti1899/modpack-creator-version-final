@@ -34,6 +34,11 @@ just to fill a category. An accepted decision is not evidence of implementation.
 - The handoff owns the latest verified checkpoint, blockers and next action.
 - Delivery records own dated outcomes and evidence for a completed work unit.
 
+Never quote the project owner. Record each approved decision as neutral prose with
+its date and scope, and separate decisions from proposals or agent suggestions.
+This applies to every document here and in `odd/tasks/`; do not reintroduce
+quotations, option labels or "verbatim" attributions.
+
 Link the owning document instead of copying its changing details. A milestone may
 summarize progress, but should link the handoff for environment and delivery state
 rather than repeat review counts, PR status or workstation observations.

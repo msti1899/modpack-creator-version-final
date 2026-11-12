@@ -6,31 +6,35 @@ Branch: `main` at `22318bc`; delivery: hosted test setup only, no commits or pub
 
 ### S1 — Explicit hosted preparation authorization
 
-User response, verbatim: "autorizo".
+The user authorized this preparation.
 
-Accepted question, verbatim: "¿Autorizás aplicar las migraciones existentes y configurar `role: authenticated` y la integración JWT Clerk–Supabase **solo en el proyecto de pruebas**, sin resetear ni borrar datos existentes, para completar las pruebas RLS?"
+Accepted question: apply the existing migrations and configure `role: authenticated`
+and the Clerk–Supabase JWT integration only in the test project, without resetting
+or deleting existing data, so the RLS checks can be completed.
 
 Apply only the three existing reviewed migrations to Supabase project `zzzvbvhiyvtaenzpycqg`. Configure only the necessary claim/trust for Clerk application `app_3LwV8fF7rZ2uUICwbp0ISFd71Xl`, Development instance. Preserve unrelated configuration and existing data. Native CLI labels the selected primary database branch "production"; the exact project, not another branch/project, was selected and authorized by the user for testing.
 
 ### S2 — Complete the remaining applicable tests
 
-User request, verbatim: "hace todas las pruebas vos".
+The user asked for all remaining tests to be run by the agent.
 
 Rerun the blocked profile and RLS checks with uniquely tagged disposable users and rows. Keep the already-verified identity checks as prior evidence, refreshing real sessions as needed. Remove only receipt-bound fixtures. Do not claim full OAuth or real mailbox delivery without the required provider accounts/inbox.
 
 ### S3 — Preserve the original safety boundaries
 
-User constraints, verbatim:
+User constraints:
 
-- "No imprimas claves, tokens ni el contenido de mis archivos .env."
-- "Usa la clave pública JWT de Clerk para CLERK_JWT_KEY y la clave publishable de Supabase; nunca service_role."
-- "No despliegues, publiques, hagas commits, configures servicios externos ni apliques migraciones o reseteos sin mi autorización explícita."
+- Do not print keys, tokens or the contents of the environment files.
+- Use Clerk's public JWT key for `CLERK_JWT_KEY` and Supabase's publishable key;
+  never `service_role`.
+- Do not deploy, publish, commit, configure external services, or apply migrations
+  or resets without explicit authorization.
 
 S1 authorizes only the specified test migrations/JWT configuration; it does not authorize resets, deployments, publishing, commits, unrelated configuration or deletion of existing data. Use the previously authorized CLI sessions without extracting their credentials. Stop affected work when native capability or required proof is unavailable.
 
 ### S4 — Follow current Supabase guidance
 
-User instruction, verbatim: "Use the supabase skill."
+The user asked the agent to follow the Supabase skill guidance.
 
 Review the current changelog, explicit hosted targeting/consent, table grants and RLS. Existing migration files remain unchanged. Use no seed/custom-role/vault updates, and never infer schema or integration success from health alone.
 
@@ -42,11 +46,11 @@ Review the current changelog, explicit hosted targeting/consent, table grants an
 
 ## Log
 
-L1 — User request, verbatim: "hace todas las pruebas vos".
+L1 — The user asked for all tests to be run by the agent.
 
 L2 — The user consented to two disposable Clerk users and their profiles, with cleanup restricted to those fixtures. Both original users completed real identity tests and were deleted; no profile rows were created. The hosted schema and signed role claim were missing.
 
-L3 — User response to the S1 question, verbatim: "autorizo". Later instruction, verbatim: "Use the supabase skill."
+L3 — The user authorized the S1 preparation and later asked for the Supabase skill guidance.
 
 L4 — Route: parent inline, no parallel-writer or context writer unit; read-only exploration compressed migration/CLI context. A bounded preflight worker ran native reads/dry-run without mutations. User prohibition overrides automatic work-unit commits.
 
