@@ -176,6 +176,20 @@ function environment(value: string): string {
   if (!["required", "optional", "unsupported"].includes(value)) fail("A mod has invalid client/server support metadata.");
   return value;
 }
+async function approvedSelection(fetcher: Fetcher, config: Settings): Promise<Selection> {
+  const selection = new Selection(new Catalog(fetcher), config, false);
+  await selection.loadPins();
+  await selection.complete();
+  return selection;
+}
+
+/** Validate an explicit draft selection without adding or updating dependencies. */
+export async function validateDraftSelection(fetcher: Fetcher, input: RecordValue) {
+  const config = settings(input);
+  await approvedSelection(fetcher, config);
+  return config;
+}
+
 export async function exportPack(fetcher: Fetcher, input: RecordValue) {
   const config = settings(input);
   const name = text(input.name, "pack name");
@@ -183,9 +197,7 @@ export async function exportPack(fetcher: Fetcher, input: RecordValue) {
   const loaderVersion = text(input.loaderVersion, "loader version", 50);
   if (!/^[A-Za-z0-9_.+\-]+$/.test(loaderVersion)) throw new PackError("Invalid loader version.", 400);
   if (!config.versionIds.length) throw new PackError("Select at least one mod.", 400);
-  const selection = new Selection(new Catalog(fetcher), config, false);
-  await selection.loadPins();
-  await selection.complete();
+  const selection = await approvedSelection(fetcher, config);
   const filenames = new Set<string>();
   const files = [...selection.versions.values()].map((selected) => {
     const file = selected.files.find((candidate) => candidate.primary) ?? selected.files[0];
