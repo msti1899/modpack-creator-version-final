@@ -1,13 +1,15 @@
 # Current handoff
 
-Checkpoint: 2026-11-12. Active branch: `feat/groups-permissions` (rebased onto
-`main` at `9219a87`). Milestone 3 implementation is committed as `71dac1f` and published
-in [PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45);
-Backend CI passed. Its authorized test-project migrations are applied.
-Application baseline before documentation publication: `main` at
+Checkpoint: 2026-11-12. This worktree has two application branches recorded
+separately. Milestone 3 lives on `feat/groups-permissions` (rebased onto `main` at
+`9219a87`), committed as `71dac1f` and published in
+[PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45) with
+Backend CI passing and its authorized test-project migrations applied. Milestone 4
+lives on `feat/pack-drafts`, based on that milestone-3 branch. Application baseline
+before documentation publication: `main` at
 `22318bced38c3011a656ce85bb47509265800d28`; `a7ae8fb` is an ancestor.
-Verify the current branch and HEAD; later documentation commits do not change
-that application baseline. This is a resume point, not a session history.
+Verify the branch and HEAD before resuming; later documentation commits do not
+change that application baseline. This is a resume point, not a session history.
 
 ## Current work
 
@@ -15,7 +17,8 @@ Milestone 3 is implemented, committed and published; see
 [groups tasks](../odd/tasks/groups-permissions.md), [group guide](guides/groups.md)
 and [doc02 evidence](delivery/doc02-groups-permissions.md). The Hono API exposes
 thirteen authenticated group operations, including two paged reads. Immediate
-ownership transfer was confirmed. No frontend, persisted pack or voting was added.
+ownership transfer was confirmed. That branch adds no frontend or voting, and pack
+persistence exists only on the separate milestone-4 branch below.
 
 The user explicitly broadened authorization to necessary implementation and
 hosted testing on the selected test project via its current Supabase MCP connection.
@@ -71,6 +74,41 @@ consent was granted only for the earlier candidate. Do not reset, delete unrelat
 data, change Clerk, publish or merge. Resolve delivery slicing before any commit;
 publication and deployment are not authorized. Keep the dashboard open while
 review/required proof is pending.
+
+## Milestone 4: persisted drafts
+
+Milestone 4 is implemented on `feat/pack-drafts`, based on `feat/groups-permissions`.
+The owner decided that changing a draft's Minecraft version or loader requires the
+whole selection to remain compatible; an incompatible change is rejected without
+clearing or substituting approved versions. One draft per group is created lazily on
+first save; members read and export their own group's draft and only the current owner
+writes it. See [draft tasks](../odd/tasks/pack-drafts.md),
+[doc04](delivery/doc04-pack-drafts.md) and the
+[draft guide](guides/pack-drafts.md).
+
+Proof: RED was observed for the draft HTTP and SQL slices before implementation.
+`bun run check` passes 86 tests / 1687 assertions with both app typechecks, and the
+focused draft suite passes 14 tests. Independent verification reproduced no blocker
+(12 HTTP probes, 73 native SQL assertions, 23 public differential cases unchanged).
+Under explicit bounded authorization the draft migration was applied once to the
+selected test project and verified at md5/sha256 parity; 100 native PostgreSQL
+assertions, a committed authenticated flow and two real two-connection races passed,
+and every fixture was removed with the baseline empty-set hash restored. Two native
+review candidates were approved and acknowledged; the second approval covers the
+current source bytes.
+
+Missing proof: actual pgTAP (local PostgreSQL is unavailable), a signed
+Clerk->Hono->PostgREST draft request, and HTTP-side Modrinth validation through a
+deployed API. Database checks prove authorization, format and atomicity, not remote
+catalog validation or JWT signature admission.
+
+Delivery state: committed and pushed on `feat/pack-drafts`; no pull request, merge or
+deployment is recorded. Review advisories still open as later work: group error-map
+HTTP coverage, draft 404 and malformed-body precedence, empty/50/51/duplicate
+selection coverage through the routes, focused-test gating, the database suite using
+native assertions inside pgTAP framing, absent failure-path observability, no
+degraded mode when a pinned version disappears, and the approved irreversible
+sole-owner deletion.
 
 ## Previous documentation delivery
 
