@@ -1,15 +1,16 @@
 # Modpack Creator
 
-An open-source Minecraft modpack project. This initial scaffold contains two
-independent applications in a Bun workspace: a Next.js frontend and a Hono API.
-The backend supports Modrinth search, dependency resolution, and `.mrpack` export.
-The frontend is still a starter page. The backend verifies Clerk session identity at `/me` and protects application
-username profiles. Web account controls and the same-origin identity bridge are connected locally; groups, voting, and pack persistence are not implemented. See the [local identity guide](docs/guides/local-identity.md).
+An open-source project for creating and sharing Minecraft modpacks. Two independent
+applications share a Bun workspace: a Next.js frontend and a Hono API.
+The API implements Modrinth search, dependency resolution, `.mrpack` export,
+Clerk session verification and application profile endpoints. The frontend has
+account controls and a same-origin identity bridge, not a complete modpack editor.
+Groups, voting and pack persistence remain planned.
 
-Confirmed product and architecture choices are recorded in the
-[project documentation](docs/README.md), alongside a reusable decision template.
-For ongoing work, use the [backend roadmap](docs/plans/backend-roadmap.md) and
-[current handoff](docs/handoff.md).
+Start with the local quick path below, or choose a task in the
+[documentation index](docs/README.md). The [current handoff](docs/handoff.md)
+records environment-specific verification and blockers; an implemented endpoint
+does not imply that its hosted dependencies are configured.
 
 ## Run locally
 
@@ -25,15 +26,19 @@ bun run dev
 - API health check: http://localhost:3001/health
 
 Run either application independently with `bun run dev:web` or `bun run dev:api`.
+For Clerk configuration, use the [local identity guide](docs/guides/local-identity.md).
+The [historical startup report](docs/handoff-history-2026-11-12.md#local-startup-correction-and-api-configuration)
+records the previously verified localhost-binding workaround.
 The API defaults to port 3001; optionally copy `apps/api/.env.example` to
 `apps/api/.env` to configure `PORT`. Never commit real environment files.
 
-## Check the scaffold
+## Check locally
 
 For the optional local database foundation, follow the
 [Supabase development guide](docs/guides/local-database.md). It uses a pinned
-local CLI and Docker; no cloud account or application database connection is
-configured yet. The existing Modrinth endpoints still run without a database.
+local CLI and Docker without requiring a cloud account. The existing Modrinth
+endpoints still run without a database. Profile setup has separate prerequisites
+in the [profile guide](docs/guides/account-profiles.md).
 
 ```bash
 bun run check
@@ -79,16 +84,13 @@ Bun on Vercel is currently beta. Vercel Hobby is limited to personal,
 non-commercial use and has usage quotas; open source alone does not establish
 eligibility.
 
-## Integration status
+## Continue reading
 
-- Supabase PostgreSQL: application profiles now use verified Clerk user IDs and the existing naming rules. The
-  API identity cutover, web account controls and identity bridge are local;
-  current regression checks and independent verification passed locally. The
-  review-only sequence completed: 11 native reviews approved and acknowledged,
-  plus 2 passive documentation checks. No publication, merge or deployment is implied.
-- Brevo: the former auth-email prerequisite is superseded by Clerk-managed
-  account flows. Real provider/email setup and delivery remain separately verified.
-- Modrinth: the backend catalog and `.mrpack` export are implemented; frontend integration is deferred.
+- [Documentation index](docs/README.md): guides, contracts, architecture and decisions.
+- [Backend roadmap](docs/plans/backend-roadmap.md): approved future milestones.
+- [Current handoff](docs/handoff.md): latest checkpoint and next action.
+- [Delivery records](docs/delivery/README.md): numbered records of completed work,
+  starting with the documentation reorganization rather than project inception.
 
 The initial operating target is USD 0/month and approximately 15 users, not a
 guarantee of unlimited free service. Do not add service credentials until the

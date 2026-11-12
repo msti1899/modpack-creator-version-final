@@ -2,8 +2,10 @@
 
 Status: Approved; implementation in progress. Scope: backend only, no frontend or CD.
 Source: the six-stage proposal approved by the user with "Go ahead with the plan."
-Last checkpoint: [current handoff](../handoff.md). This plan records intent;
-the handoff records the current working state and next action.
+Last checkpoint: [current handoff](../handoff.md). This plan records intent and
+milestone progress; the handoff owns environment-specific evidence, delivery
+state and the next action. Completed work from the documentation reorganization
+onward is indexed in [delivery records](../delivery/README.md).
 
 ## Outcome
 
@@ -16,7 +18,7 @@ votes. Start with working vertical slices rather than modeling every table upfro
 | Milestone | Scope and acceptance | Current state |
 | --- | --- | --- |
 | 1. Reproducible database | Pinned local Supabase tooling, tracked migrations, configuration, and documentation. A disposable database can start and rebuild without cloud credentials. | Implemented and verified; [PR #6](https://github.com/msti1899/modpack-creator-version-final/pull/6) merged. |
-| 2. Identity and authentication | Clerk owns accounts, sessions and account-management flows. Hono verifies signed Clerk sessions; Supabase remains the profile database with subject-scoped RLS. Preserve username rules and existing rows without automatic linking. | Local replacement `00f3e88` is verified; its byte-identical 13-part review sequence completed with 11 approved/acknowledged reviews and 2 passive checks. Supabase credential/recovery proxies are retired. PR16 remains unchanged on GitHub; publication is not authorized. Hosted Clerk setup and third-party database trust are not configured or verified. |
+| 2. Identity and authentication | Clerk owns accounts, sessions and account-management flows. Hono verifies signed Clerk sessions; Supabase remains the profile database with subject-scoped RLS. Preserve username rules and existing rows without automatic linking. | Partial: the Clerk replacement is integrated locally; hosted profile/RLS prerequisites and full provider verification remain open. See the [current handoff](../handoff.md#application-checkpoint) for dated environment evidence and the [feature log](../../odd/tasks/clerk-auth-replacement.md) for earlier implementation/review records. |
 | 3. Groups and permissions | One group per person, owner/member permissions, public direct admission, private invitations requiring approval, and ownership transfer before an owner leaves others behind. Test cross-group isolation and concurrent admission. | Planned. |
 | 4. Persisted modpack draft | One draft pack per group, owner-only edits, exact approved mod/dependency versions, reuse of existing Modrinth resolution/export. Failed writes leave no partial selection. | Planned. Existing stateless resolution/export is already implemented. |
 | 5. Published versions and sharing | Preserve earlier publications, explicit active-version selection by the owner, and links respecting access rules. Publishing does not automatically activate a version. | Planned. |
@@ -68,6 +70,11 @@ completed work. Record meaningful changes below and keep the
 [handoff](../handoff.md) synchronized after each delivery.
 
 ### Change log
+
+- 2026-11-12: Documentation reorganization leaves approved scope and milestone
+  acceptance unchanged. Milestone 2 now links the current checkpoint instead of
+  repeating stale PR/publication state and review counts. Earlier observations
+  remain in the historical handoff and feature log; this is not new runtime proof.
 
 - 2026-11-10: User requested "saca todo lo de supabase auth y deja lo de clerk reemplaza todo por clerk" and continued with "sigue". Replace application authentication with Clerk, retain database/profile rules and legacy rows, and disable local first-party providers. Publication, hosted setup and merge remain separate decisions. See [replacement tasks](../../odd/tasks/clerk-auth-replacement.md) for current proof.
 

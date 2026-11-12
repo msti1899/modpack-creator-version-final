@@ -3,9 +3,10 @@
 Choose a document by the question you need to answer. Decisions explain why;
 they are not a substitute for usage instructions, API contracts, or architecture.
 
-To resume work, start with the [current handoff](handoff.md), then the relevant
-milestone in the [backend roadmap](plans/backend-roadmap.md). Read historical
-feature logs only when the current task needs their evidence.
+To run the project, start with the [root README](../README.md). To resume
+development, read the [current handoff](handoff.md), then the relevant milestone
+in the [backend roadmap](plans/backend-roadmap.md). To see what a completed
+delivery changed, use the [numbered delivery records](delivery/README.md).
 
 ## Documentation map
 
@@ -17,18 +18,45 @@ feature logs only when the current task needs their evidence.
 | Decisions | Understand accepted choices and their trade-offs | [Initial scope and stack](decisions/0001-project-baseline.md); [Clerk identity](decisions/0002-clerk-identity.md); [Clerk profile ownership](decisions/0003-clerk-profile-ownership.md) |
 | Plans | Follow approved outcomes, sequence, acceptance criteria, and pending decisions | [Backend roadmap](plans/backend-roadmap.md) |
 | Handoff | Resume from the latest verified state and next action | [Current checkpoint](handoff.md) |
-| Templates | Use a consistent structure for recurring records | [Decision template](templates/decision.md); [Plan template](templates/plan.md) |
+| Delivery records | Read what changed, why, what was checked, and what remained at that time | [Numbered deliveries](delivery/README.md) |
+| Templates | Use a consistent structure for recurring records | [Decision template](templates/decision.md); [Plan template](templates/plan.md); [Delivery template](templates/delivery.md) |
 
 Keep local setup commands in the [root README](../README.md). Add new documents
 under the relevant directory and link them here. Do not create empty documents
 just to fill a category. An accepted decision is not evidence of implementation.
 
+## Keep each fact in one place
+
+- Guides own current task instructions and expected results.
+- Reference owns API contracts; architecture owns component boundaries and flows.
+- Decisions own accepted choices and their rationale, not the live delivery state.
+- Plans own intended scope, acceptance criteria and sequence.
+- The handoff owns the latest verified checkpoint, blockers and next action.
+- Delivery records own dated outcomes and evidence for a completed work unit.
+
+Link the owning document instead of copying its changing details. A milestone may
+summarize progress, but should link the handoff for environment and delivery state
+rather than repeat review counts, PR status or workstation observations.
+
 ## Maintain continuity
 
 Record new plans under `docs/plans/`. Mark approval explicitly, keep proposed
 ideas separate, and update only affected milestones when the user changes scope.
-At a delivery or interruption, update `docs/handoff.md` with the verified snapshot,
-pending work, and next action. Link detailed evidence rather than copying logs.
+At a delivery or interruption, replace the current handoff with the latest
+verified snapshot, pending work and exact next action. Link detailed evidence
+rather than appending session transcripts. Keep earlier evidence in its existing
+feature log or a dated historical record before removing it from the handoff.
+
+For a completed coherent change, add one numbered delivery record using the
+[delivery convention](delivery/README.md) and [template](templates/delivery.md).
+Update the relevant guide or reference with current behavior; the delivery record
+links those instructions rather than duplicating them. An interrupted session
+updates the handoff, not a new delivery number.
+
+The [handoff history through 2026-11-12](handoff-history-2026-11-12.md) preserves
+the earlier checkpoint and workstation reports. It is historical evidence, not
+the startup or resume instructions for the current session. Earlier work is not
+being retroactively converted into numbered deliveries.
 
 ## Record a decision
 
@@ -56,6 +84,10 @@ without confirmation. Never store credentials or private invitation links here.
 
 ## Implementation evidence
 
-Keep commands and setup instructions in the [root README](../README.md).
-Record tests, builds, migrations, or release evidence in the relevant decision
-only when observed. Keep `Accepted`, `Implemented`, and `Verified` distinct.
+Keep the quick startup path in the [root README](../README.md) and detailed task
+instructions in guides. Record observed tests, builds, migrations and delivery
+outcomes in the relevant delivery record; existing feature logs remain evidence
+for earlier work. Decisions link evidence when needed instead of becoming test
+journals. Keep accepted, implemented, verified, committed, published, merged and
+deployed states distinct. Include the date and environment of observations;
+previous success is not a fresh check.
