@@ -1,57 +1,68 @@
-# Backend handoff
+# Current handoff
 
-Snapshot: 2026-11-10. Application implementation: `00f3e88` on
-`feat/clerk-auth-replacement`, based on GitHub main `ad4056e` (including PR15).
-The byte-identical review-only sequence ends at `b1a237a` on
-`feat/clerk-review-slices`; intermediate commits must not be deployed separately.
-`main` now carries the ten reviewed work units at `a7ae8fb`.
-See [current tasks](../odd/tasks/clerk-auth-replacement.md) and
-[roadmap milestone 2](plans/backend-roadmap.md). Verify Git before resuming.
+Checkpoint: 2026-11-12. Application baseline before documentation publication: `main` at
+`22318bced38c3011a656ce85bb47509265800d28`; `a7ae8fb` is an ancestor.
+Verify the current branch and HEAD; later documentation commits do not change
+that application baseline. This is a resume point, not a session history.
 
-## Current application
+## Current work
 
-- Clerk owns accounts and sessions. Hono validates signed Clerk tokens for `/me`
-  and `/profile`; the Supabase credential/confirmation/recovery proxies are removed.
-- Supabase remains the profile database with subject-scoped JWT/RLS and no
-  service-role application bypass. The forward migration uses direct Clerk IDs,
-  retaining old UUID-owned rows without deletion, reassignment or email linking.
-  Existing username rules are preserved; legacy rows remain unlinked and reserved.
-- Local first-party Supabase email/SMS/signup, anonymous sign-in and SMTP capture
-  are disabled. Historical schema and JWT infrastructure remain for migration
-  replay and database third-party trust, not as another application login provider.
-- Public Modrinth search, resolution and `.mrpack` export remain unchanged.
+The documentation reorganization starts the numbered delivery record at
+[doc01](delivery/doc01-documentation-reorganization.md). Earlier work remains in
+its existing records; [the previous handoff](handoff-history-2026-11-12.md)
+preserves the original checkpoint and workstation reports in full.
+Doc01 is structurally verified; local application checks were not rerun.
 
-## Observed verification
+The current delivery changes documentation only. Pre-existing local changes in
+`apps/web/next-env.d.ts` and `docs/guides/local-identity.md`, untracked `.atl/`,
+and generated `apps/web/AGENTS.md` are unrelated and must be preserved.
+Publication uses two sequential PRs to `main`: history preservation, then this
+reorganization. See doc01 and the GitHub PR records for CI and merge evidence;
+publication does not authorize deployment or external service changes.
 
-- Types and final 56 tests / 1200 assertions passed; frozen installation did not
-  change the lockfile. Credential-free production build and disposable upgrade passed.
-- Independent verification passed: 68 API probes, 24 bridge probes, 22 exact public
-  baseline comparisons and 8 SQL groups, including retained data and unchanged
-  state after rejected operations. Four documentation inconsistencies were corrected
-  in one batch and independently rechecked.
-- Every chain boundary passes typecheck and the full suite (48, 45, 39, 38, 38, 44, 53, 56 and 56 tests, zero failures), so each published commit is independently green.
-- Native checking completed across 13 review ranges: 11 approved and acknowledged,
-  plus 2 passive structural checks. All approved authority was consumed; do not replay.
-  One severe web-middleware claim was refuted. Non-blocking warnings/suggestions
-  remain follow-up material, not open corrections or new product requirements.
-- The oversized full candidate was explicitly declined after context-budget
-  refusal; there is no single full-candidate native approval. Per-range results
-  and commits are recorded in the task document. Review mode remains enabled.
+## Application checkpoint
 
-## Remaining work and exact next action
+The following application results were recorded before this documentation
+delivery; they were not rerun during it:
 
-Merged into `main` at `a7ae8fbb49de4911cd61c42924a596583fc3912f` by fast-forward.
-Chain PRs #30-#39 are closed: #31 merged into the tracker, the rest integrated by that
-fast-forward. Nothing is deployed. The predecessor PR #16 is closed as replaced and its
-fork branch remains at `2818357`.
-Next action: configure and verify hosted Clerk sign-in and Supabase third-party JWT trust
-in a non-production project before any release.
+- Clerk owns accounts and sessions. Hono verifies Clerk tokens for `/me` and
+  protects profile endpoints; Supabase remains the profile database. Public
+  Modrinth search, resolution and `.mrpack` export remain implemented.
+- Local `bun run check` passed with 56 tests / 1200 assertions, and the production
+  build passed. See the [startup/configuration evidence](handoff-history-2026-11-12.md#local-startup-correction-and-api-configuration).
+- Two disposable users completed real Clerk Development password sign-in and
+  web/API session checks. Anonymous requests and altered signatures returned
+  401; sign-out cleared the web session. Both fixtures were removed. See the
+  [identity-test evidence](handoff-history-2026-11-12.md#real-identity-tests-and-remaining-prerequisites-2026-11-12).
+- Hosted profiles/RLS remain blocked: tested JWTs lacked signed
+  `role: "authenticated"`, and hosted `public.profiles` was absent. No profile
+  rows were written. Third-party database trust, full OAuth and real email
+  delivery remain unverified. Offline JWT expiry still limits immediate revocation.
 
-Hosted Clerk sign-in/email/OAuth, hosted Supabase JWT trust and hosted CI have not
-been verified. The full local Supabase pgTAP stack was not rerun; isolated SQL,
-the upgrade regression and independent database probes supplied local evidence.
-Do not reset a developer database or configure external accounts without consent.
+Earlier application merge/review records are historical evidence in the archived
+handoff and [feature log](../odd/tasks/clerk-auth-replacement.md). Local ancestry
+was checked for this checkpoint; earlier application PR/CI state was not rechecked. No deployment
+has been recorded. Services were last recorded as running; liveness is not freshly
+verified and must not be inferred from this document.
 
-This closure changes only passive status records, not the reviewed application,
-tests, dependencies, configuration or migrations. Preserve unrelated `.atl/`,
-`graphify-out/`, other worktrees and the original implementation commit.
+## Resume
+
+1. Verify the branch, commit and local changes against this snapshot. Preserve
+   ignored environment files and unrelated work.
+2. For startup, use the [recorded localhost-binding workaround](handoff-history-2026-11-12.md#local-startup-correction-and-api-configuration).
+   For development scope, read [roadmap milestone 2](plans/backend-roadmap.md#delivery-order).
+3. The next application action is a permission decision: obtain explicit
+   authorization to prepare the selected test database with repository migrations
+   and configure the authenticated role / necessary Clerk-Supabase JWT trust.
+   Only then rerun the blocked profile/RLS checks with disposable fixtures.
+
+The earlier fixture-only authorization does not authorize migrations, resets,
+external settings or new hosted tests. Full OAuth/email verification additionally
+needs controlled provider accounts and a real test inbox. Do not access ambient
+CLI sessions or credentials under this documentation-only authorization.
+
+## Documentation maintenance
+
+Use [the documentation index](README.md) to choose the owning document. Complete
+work units get a [numbered delivery record](delivery/README.md); interruptions
+update this checkpoint. No retrospective doc numbers are assigned to earlier work.
