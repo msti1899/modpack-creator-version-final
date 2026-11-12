@@ -1,8 +1,8 @@
 # Current handoff
 
 Checkpoint: 2026-11-12. Active branch: `feat/groups-permissions`, HEAD
-`30ead7dbc22a201d77061ab99f296e7193375540` (hosted-profile documentation merged).
-Milestone 3 is committed as `71dac1f` on `feat/groups-permissions` and published
+`bed3f21` (rebased onto `main` at `9219a87`).
+Milestone 3 is committed as `71dac1f` and published
 in [PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45);
 Backend CI passed. Its authorized test-project migrations are applied.
 Application baseline before documentation publication: `main` at
@@ -12,10 +12,11 @@ that application baseline. This is a resume point, not a session history.
 
 ## Current work
 
-Milestone 3 is implemented locally; see [groups tasks](../odd/tasks/groups-permissions.md),
-[group guide](guides/groups.md) and [doc02 evidence](delivery/doc02-groups-permissions.md).
-The Hono API exposes eleven authenticated group operations. Immediate ownership
-transfer was confirmed by the user. No frontend, persisted pack or voting was added.
+Milestone 3 is implemented, committed and published; see
+[groups tasks](../odd/tasks/groups-permissions.md), [group guide](guides/groups.md)
+and [doc02 evidence](delivery/doc02-groups-permissions.md). The Hono API exposes
+thirteen authenticated group operations, including two paged reads. Immediate
+ownership transfer was confirmed. No frontend, persisted pack or voting was added.
 
 The user explicitly broadened authorization to necessary implementation and
 hosted testing on the selected test project via its current Supabase MCP connection.

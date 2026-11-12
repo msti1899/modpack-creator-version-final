@@ -3,7 +3,8 @@
 Date: 2026-11-12
 Scope: Backend groups, membership, owner permissions and admission; no frontend,
 pack persistence, voting, deployment or publication.
-Baseline: `feat/groups-permissions` from `30ead7dbc22a201d77061ab99f296e7193375540`.
+Baseline: `feat/groups-permissions` rebased onto `main` at
+`9219a87`; the original milestone branch point was `30ead7d`.
 
 ## Objective
 
@@ -14,7 +15,7 @@ selected test project, not resets, deletion of unrelated data or publication.
 
 ## Changes and rationale
 
-- Four group tables and eleven authenticated RPCs enforce one group per account,
+- Four group tables and thirteen authenticated group RPCs enforce one group per account,
   public direct admission, private invitation plus owner approval, immediate
   ownership transfer and transfer-before-leave. Sole-owner departure deletes the
   group and its dependent membership/invitation/request records.
