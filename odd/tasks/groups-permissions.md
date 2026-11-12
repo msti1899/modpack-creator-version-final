@@ -1,6 +1,7 @@
 # Groups and permissions
 
-Branch: `feat/groups-permissions`; baseline `30ead7dbc22a201d77061ab99f296e7193375540`. Delivery: ask-on-risk; no publication authorized.
+Branch: `feat/groups-permissions`, rebased onto `main` at `9219a87`; original
+branch point `30ead7dbc22a201d77061ab99f296e7193375540`. Published in PR #45.
 Runner: `bun run check`, `bun run db:test` (local Supabase), `bun run db:test:upgrade`.
 
 ## Specs

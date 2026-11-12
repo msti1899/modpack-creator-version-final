@@ -1,8 +1,7 @@
 # Current handoff
 
-Checkpoint: 2026-11-12. Active branch: `feat/groups-permissions`, HEAD
-`bed3f21` (rebased onto `main` at `9219a87`).
-Milestone 3 is committed as `71dac1f` and published
+Checkpoint: 2026-11-12. Active branch: `feat/groups-permissions` (rebased onto
+`main` at `9219a87`). Milestone 3 implementation is committed as `71dac1f` and published
 in [PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45);
 Backend CI passed. Its authorized test-project migrations are applied.
 Application baseline before documentation publication: `main` at
