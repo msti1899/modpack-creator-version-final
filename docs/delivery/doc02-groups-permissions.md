@@ -83,13 +83,16 @@ commands, RED/GREEN evidence and retained probe locations.
 Implementation and guide/reference are present; applicable native SQL and HTTP
 checks passed with the missing proof above. This record does not claim full
 verification or a native review receipt. The current checkpoint owns subsequent
-review and delivery state. Source changes are uncommitted; no PR, merge or
-deployment was performed. The initial migration and its forward trigger fix are
-applied only to the authorized test project; native targeted validation is pending.
+review and delivery state. Source changes were committed as `71dac1f` and published
+in [PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45);
+Backend CI passed. No merge or deployment was performed. The initial migration and
+its forward trigger fix are applied only to the authorized test project; native
+targeted validation is pending.
 
 ## Remaining work
 
-Native candidate review was explicitly consented; its bounded correction and
-targeted validation govern review closure. Actual pgTAP and real-session group-flow checks remain
+Native candidate review was explicitly consented, but the review stopped with
+three of four lenses complete and no receipt; its bounded correction/targeted
+validation govern any later closure. Actual pgTAP and real-session group-flow checks remain
 unverified. Local commit/slicing and any publication follow separate repository
 policy and authorization. Resume from the [current handoff](../handoff.md).

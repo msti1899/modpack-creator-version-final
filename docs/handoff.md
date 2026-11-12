@@ -2,8 +2,10 @@
 
 Checkpoint: 2026-11-12. Active branch: `feat/groups-permissions`, HEAD
 `30ead7dbc22a201d77061ab99f296e7193375540` (hosted-profile documentation merged).
-Milestone 3 source changes are uncommitted; its authorized test-project migration
-`20261112201725` is applied. Application baseline before documentation publication: `main` at
+Milestone 3 is committed as `71dac1f` on `feat/groups-permissions` and published
+in [PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45);
+Backend CI passed. Its authorized test-project migrations are applied.
+Application baseline before documentation publication: `main` at
 `22318bced38c3011a656ce85bb47509265800d28`; `a7ae8fb` is an ancestor.
 Verify the current branch and HEAD; later documentation commits do not change
 that application baseline. This is a resume point, not a session history.
@@ -52,6 +54,10 @@ stack), Docker-dependent upgrade runner, and a full real-session group flow
 through Clerk/Hono/PostgREST. Manually set database claims do not verify JWT
 admission. Hosted security/performance advisor findings and their design context
 are recorded in doc02; do not claim a clean report or complete end-to-end proof.
+
+Delivery state: commit `71dac1f`, PR #45, Backend CI passed in 41 seconds. No merge
+or deployment is authorized. The PR explicitly records the native-review and proof
+gaps below.
 
 Next action: the native review is blocked. Its bound recovery produced a
 successor `reviewing` state without a negotiated continuation, and one retained
