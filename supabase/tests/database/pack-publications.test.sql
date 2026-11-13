@@ -31,7 +31,8 @@ select pg_temp.assert(not has_function_privilege('authenticated', 'public.pack_p
 select pg_temp.assert(not has_function_privilege('authenticated', 'public.current_clerk_sub()', 'EXECUTE'), 'the subject helper is not a client RPC');
 
 insert into public.profiles(user_id, username) values
-  ('user_pubowner', 'PubOwner'), ('user_pubmember', 'PubMember'), ('user_puboutsider', 'PubOutsider');
+  ('user_pubowner', 'PubOwner'), ('user_pubmember', 'PubMember'), ('user_puboutsider', 'PubOutsider'),
+  ('user_pubdeparted', 'PubDeparted');
 
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"user_pubowner","role":"authenticated"}', true);
@@ -104,6 +105,14 @@ select pg_temp.assert(public.my_pack_publication(current_setting('test.pub_first
 select pg_temp.assert(public.my_pack_publication(current_setting('test.pub_first_id')::uuid)->>'role' = 'member', 'a member is not reported as owner');
 select pg_temp.expect_error($q$select public.publish_pack_draft('Friends','2.0.0','0.16.0',1)$q$, 'Only the group owner may manage published versions.');
 select pg_temp.expect_error($q$select public.activate_pack_publication(current_setting('test.pub_first_id')::uuid)$q$, 'Only the group owner may manage published versions.');
+
+-- A member who leaves a surviving group loses publication access on the next request.
+select set_config('request.jwt.claims', '{"sub":"user_pubdeparted","role":"authenticated"}', true);
+select public.join_public_group(current_setting('test.pub_group')::uuid);
+select pg_temp.assert(public.my_pack_publication(current_setting('test.pub_first_id')::uuid)->'publication'->>'sequence' = '1', 'a joining member reads the history');
+select public.leave_group();
+select pg_temp.expect_error($q$select public.my_pack_publications(20, null)$q$, 'Group required.');
+select pg_temp.expect_error($q$select public.my_pack_publication(current_setting('test.pub_first_id')::uuid)$q$, 'Group required.');
 
 select set_config('request.jwt.claims', '{"sub":"user_puboutsider","role":"authenticated"}', true);
 select pg_temp.expect_error('select public.my_pack_publications(20, null)', 'Group required.');
