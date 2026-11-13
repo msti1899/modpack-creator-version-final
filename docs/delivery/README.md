@@ -20,6 +20,7 @@ For the latest state and next action, use the [current handoff](../handoff.md).
 | [doc06: Group voting](doc06-voting.md) | 2026-11-12 | Add owner-created mod-addition votes with a frozen electorate, absolute majority, early approval, cancellation and binding owner incorporation without publication. |
 | [doc07: Local database proof](doc07-local-database-proof.md) | 2026-11-12 | Run actual pgTAP, the upgrade regression, real multi-session races and signed-token PostgREST checks on a real local stack, and record what they still cannot prove. |
 | [doc08: Account and session runtime proof](doc08-account-session-proof.md) | 2026-11-13 | Prove a real Clerk email/password session against `/me` and `/profile`, exercise the app's own sign-in and sign-out controls in a browser, pin the environment-driven configuration and session-lookup failure branches, and withdraw an earlier defect report that came from a blocked dev origin. |
+| [doc09: Catalog discovery contract](doc09-catalog-discovery.md) | 2026-11-13 | Reject unknown search parameters, add sort/category/environment/author filters, add exact project lookup, and enrich the result payload; record pinning evidence and a measured page size. |
 
 ## Add the next record
 

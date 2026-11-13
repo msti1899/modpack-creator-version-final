@@ -2,11 +2,12 @@ import { indexArchive } from "./zip";
 
 export type Fetcher = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 export class PackError extends Error {
-  constructor(message: string, readonly status: 400 | 409 | 502 | 504) { super(message); }
+  constructor(message: string, readonly status: 400 | 404 | 409 | 502 | 504) { super(message); }
 }
 type RecordValue = Record<string, unknown>;
 const object = (value: unknown): value is RecordValue => value !== null && typeof value === "object" && !Array.isArray(value);
 const identifier = /^[A-Za-z0-9_-]{1,100}$/;
+const searchParameters = new Set(["query", "gameVersion", "loader", "offset", "sort", "category", "environment", "author"]);
 const loaders = { fabric: "fabric-loader", forge: "forge", neoforge: "neoforge", quilt: "quilt-loader" } as const;
 type Loader = keyof typeof loaders;
 type Settings = { gameVersion: string; loader: Loader; versionIds: string[] };
@@ -37,7 +38,7 @@ class Catalog {
   private cache = new Map<string, Promise<unknown>>();
   private deadline = Date.now() + 20_000;
   constructor(private fetcher: Fetcher) {}
-  async get(path: string, missingIsConflict = true): Promise<unknown> {
+  async get(path: string, missingIsConflict = true, missingIsNotFound = false): Promise<unknown> {
     if (Date.now() >= this.deadline) throw new PackError("Modrinth timed out. Please try again.", 504);
     const cached = this.cache.get(path);
     if (cached) return cached;
@@ -53,7 +54,10 @@ class Catalog {
         const timeout = error instanceof Error && ["TimeoutError", "AbortError"].includes(error.name);
         throw new PackError(timeout ? "Modrinth timed out. Please try again." : "Could not contact Modrinth.", timeout ? 504 : 502);
       }
-      if (response.status === 404 && missingIsConflict) fail("A selected mod or dependency is unavailable.");
+      if (response.status === 404) {
+        if (missingIsConflict) fail("A selected mod or dependency is unavailable.");
+        if (missingIsNotFound) throw new PackError("Mod not found.", 404);
+      }
       if (!response.ok) throw new PackError("Modrinth could not complete the request. Please try again later.", 502);
       try { return await response.json(); } catch { throw new PackError("Modrinth returned invalid JSON.", 502); }
     })();
@@ -142,20 +146,93 @@ class Selection {
 }
 
 export async function search(fetcher: Fetcher, input: URLSearchParams) {
+  for (const key of input.keys()) if (!searchParameters.has(key)) throw new PackError("Invalid query parameter.", 400);
+  // Repeated single-value parameters would otherwise be silently narrowed to the first value.
+  for (const key of ["query", "gameVersion", "loader", "offset", "sort", "environment", "author"]) if (input.getAll(key).length > 1) throw new PackError("Invalid query parameter.", 400);
   const config = settings({ gameVersion: input.get("gameVersion"), loader: input.get("loader"), versionIds: [] });
   const query = input.get("query") ?? "";
   if (query.length > 100 || /[\x00-\x1f\x7f]/.test(query)) throw new PackError("Invalid search query.", 400);
   const offsetText = input.get("offset") ?? "0";
   const offset = Number(offsetText);
   if (!/^\d+$/.test(offsetText) || !Number.isSafeInteger(offset) || offset > 10000) throw new PackError("Invalid search offset.", 400);
-  const params = new URLSearchParams({ query, offset: String(offset), limit: "20", facets: JSON.stringify([["project_type:mod"], [`categories:${config.loader}`], [`versions:${config.gameVersion}`]]) });
+  const sort = input.get("sort") ?? "relevance";
+  if (!["relevance", "downloads", "follows", "newest", "updated"].includes(sort)) throw new PackError("Invalid search sort.", 400);
+  const categories = [...new Set(input.getAll("category").flatMap((value) => value.split(",")))];
+  for (const category of categories) if (!/^[a-z0-9-]{1,64}$/.test(category)) throw new PackError("Invalid search category.", 400);
+  const environment = input.get("environment");
+  if (environment !== null && !["client", "server"].includes(environment)) throw new PackError("Invalid search environment.", 400);
+  const author = input.get("author");
+  if (author !== null && !/^[A-Za-z0-9_-]{1,64}$/.test(author)) throw new PackError("Invalid search author.", 400);
+  const facets = [["project_type:mod"], [`categories:${config.loader}`], [`versions:${config.gameVersion}`]];
+  if (categories.length) facets.push(categories.map((category) => `categories:${category}`));
+  // "Runs on this side": a mod that declares the side as optional still works there.
+  if (environment) facets.push(environment === "client" ? ["client_side:required", "client_side:optional"] : ["server_side:required", "server_side:optional"]);
+  if (author) facets.push([`author:${author}`]);
+  const params = new URLSearchParams({ query, offset: String(offset), limit: "20", index: sort, facets: JSON.stringify(facets) });
   const result = await new Catalog(fetcher).get(`/search?${params}`, false);
   if (!object(result) || !Array.isArray(result.hits) || !Number.isSafeInteger(result.total_hits) || Number(result.total_hits) < 0) throw new PackError("Modrinth returned invalid search results.", 502);
-  const hits = result.hits.map((hit) => {
-    if (!object(hit) || typeof hit.project_id !== "string" || typeof hit.title !== "string" || typeof hit.slug !== "string" || typeof hit.description !== "string" || hit.project_type !== "mod") throw new PackError("Modrinth returned an invalid mod result.", 502);
-    return { projectId: hit.project_id, title: hit.title, description: hit.description, slug: hit.slug };
-  });
+  const hits = result.hits.map((item) => modSummary(item, object(item) ? item.project_id : undefined));
   return { hits, total: result.total_hits, offset };
+}
+type ModSummary = {
+  projectId: string; slug: string; title: string; description: string;
+  iconUrl: string | null; downloads: number | null; follows: number | null; author: string | null;
+  categories: string[]; clientSide: string | null; serverSide: string | null; latestVersion: string | null;
+};
+const invalidResult = () => new PackError("Modrinth returned an invalid mod result.", 502);
+function optionalText(value: unknown, limit: number): string | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== "string" || value.length > limit || /[\x00-\x1f\x7f]/.test(value)) throw invalidResult();
+  return value;
+}
+function optionalCount(value: unknown): number | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) throw invalidResult();
+  return value;
+}
+function optionalIcon(value: unknown): string | null {
+  const icon = optionalText(value, 500);
+  if (icon === null) return null;
+  let url: URL;
+  try { url = new URL(icon); } catch { throw invalidResult(); }
+  if (url.protocol !== "https:" || url.username || url.password) throw invalidResult();
+  return icon;
+}
+function optionalCategories(value: unknown): string[] {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value) || value.length > 50) throw invalidResult();
+  return value.map((category) => {
+    if (typeof category !== "string" || !category || category.length > 64 || /[\x00-\x1f\x7f]/.test(category)) throw invalidResult();
+    return category;
+  });
+}
+function optionalSide(value: unknown): string | null {
+  if (value === undefined || value === null) return null;
+  if (!["required", "optional", "unsupported"].includes(value as string)) throw invalidResult();
+  return value as string;
+}
+/**
+ * One projection shared by search hits and exact lookup. Enriched fields that the
+ * upstream omits normalize to null/[]; fields that are present but malformed fail.
+ */
+function modSummary(value: unknown, projectId: unknown): ModSummary {
+  if (!object(value) || typeof projectId !== "string" || typeof value.slug !== "string" || typeof value.title !== "string" || typeof value.description !== "string" || value.project_type !== "mod") throw invalidResult();
+  return {
+    projectId, slug: value.slug, title: value.title, description: value.description,
+    iconUrl: optionalIcon(value.icon_url), downloads: optionalCount(value.downloads),
+    follows: optionalCount(value.follows ?? value.followers), author: optionalText(value.author, 64),
+    categories: optionalCategories(value.categories), clientSide: optionalSide(value.client_side),
+    serverSide: optionalSide(value.server_side), latestVersion: optionalText(value.latest_version, 64),
+  };
+}
+/** Look up one project by ID or slug. A missing or non-mod project is a 404, never a 502. */
+export async function modDetail(fetcher: Fetcher, value: string) {
+  if (!/^[A-Za-z0-9_-]{1,64}$/.test(value)) throw new PackError("Invalid Modrinth identifier.", 400);
+  const project = await new Catalog(fetcher).get(`/project/${value}`, false, true);
+  if (!object(project)) throw new PackError("Modrinth returned an invalid project.", 502);
+  if (typeof project.project_type !== "string") throw new PackError("Modrinth returned an invalid project.", 502);
+  if (project.project_type !== "mod") throw new PackError("Mod not found.", 404);
+  return modSummary(project, project.id);
 }
 export async function resolve(fetcher: Fetcher, input: RecordValue) {
   const config = settings(input);

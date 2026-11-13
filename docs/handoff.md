@@ -186,6 +186,40 @@ State: merged to `main` through
 rerun because the slice changes no SQL, and no deployment, hosted setting or external
 service was touched.
 
+## Backend completion M3: catalog discovery (feat/catalog-discovery)
+
+The third milestone of the [completion plan](plans/backend-completion.md) is implemented
+on `feat/catalog-discovery`, cut from `main` at `6a552bf`. It is not published and not
+merged.
+
+`GET /mods` now rejects unknown query parameters and accepts `sort`, `category`,
+`environment` and `author` alongside the existing query, version, loader and offset.
+`GET /mods/:idOrSlug` returns one mod summary and distinguishes not-found from upstream
+failure, and every result carries an enriched summary. The environment filter means
+"runs on that side" (required or optional), not "exclusive to that side". See
+[doc09](delivery/doc09-catalog-discovery.md) and
+[catalog tasks](../odd/tasks/catalog-discovery.md).
+
+Proof: `bun run check` passes 153 tests and 2655 assertions with both typechecks, up from
+131. The pinning tests were shown to fail when their behavior was mutated, and the
+mutations were reverted. A page of 20 enriched hits measured 14473 bytes. The public
+regression golden was recaptured and only the `GET /mods` hash changed.
+
+Independent verification met S1–S8 with no blocker: it reproduced the suite, showed the
+branch tests fail against the baseline source, and confirmed that baseline-valid requests
+change only by the added payload keys and an upstream `index=relevance` parameter. Three
+advisories were corrected in `ced57f8`; the rest are recorded limits in
+[doc09](delivery/doc09-catalog-discovery.md).
+
+Remaining: selector data for Minecraft and loader options and an exact-version picker
+are still undecided; no web client consumes the new fields; no real-upstream, hosted or
+deployed check ran. Native review approved the slice on 2026-11-13 over three lenses and
+burned its acknowledgement; its eight informational advisories are recorded in
+[doc09](delivery/doc09-catalog-discovery.md) as later work, including the missing cap on
+distinct `category` values and the lack of per-hit degradation on upstream schema drift.
+
+Next action: independently verify the branch, then decide its review and publication.
+
 ## Resume
 
 1. Verify the branch, commit and local changes against this snapshot. Preserve

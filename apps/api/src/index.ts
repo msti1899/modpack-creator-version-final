@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
-import { exportPack, PackError, resolve, search, type Fetcher } from "./modrinth";
+import { exportPack, modDetail, PackError, resolve, search, type Fetcher } from "./modrinth";
 import { profileRoutes, type ProfileFetcher } from "./profiles";
 import { groupRoutes } from "./groups";
 import { packDraftRoutes } from "./pack-drafts";
@@ -29,6 +29,10 @@ export function createApp(fetcher: Fetcher = fetch, identity: IdentityOptions = 
   app.route("/groups/me/votes", voteRoutes(identity, fetcher, profileFetcher, database));
   app.use("/packs/*", bodyLimit({ maxSize: 16_384, onError: (c) => c.json({ error: "Request body is too large." }, 400) }));
   app.get("/mods", async (c) => c.json(await search(fetcher, new URL(c.req.url).searchParams)));
+  app.get("/mods/:idOrSlug", async (c) => {
+    if ([...new URL(c.req.url).searchParams.keys()].length) throw new PackError("Invalid query parameter.", 400);
+    return c.json(await modDetail(fetcher, c.req.param("idOrSlug")));
+  });
   async function body(request: Request): Promise<Record<string, unknown>> {
     let value: unknown;
     try { value = await request.json(); } catch { throw new PackError("Invalid JSON body.", 400); }

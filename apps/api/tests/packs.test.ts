@@ -34,7 +34,7 @@ test("search filters mods by exact Minecraft version and loader", async () => {
   const { api, calls } = app({ "/search": { hits: [{ project_id: "main", title: "Main", description: "A mod", slug: "main", project_type: "mod" }], total_hits: 1, offset: 0 } });
   const response = await api.request("/mods?query=test&gameVersion=1.21.1&loader=fabric&offset=0");
   expect(response.status).toBe(200);
-  expect(await response.json()).toEqual({ hits: [{ projectId: "main", title: "Main", description: "A mod", slug: "main" }], total: 1, offset: 0 });
+  expect(await response.json()).toEqual({ hits: [{ projectId: "main", slug: "main", title: "Main", description: "A mod", iconUrl: null, downloads: null, follows: null, author: null, categories: [], clientSide: null, serverSide: null, latestVersion: null }], total: 1, offset: 0 });
   expect(JSON.parse(calls[0]!.searchParams.get("facets")!)).toEqual([["project_type:mod"], ["categories:fabric"], ["versions:1.21.1"]]);
 });
 
