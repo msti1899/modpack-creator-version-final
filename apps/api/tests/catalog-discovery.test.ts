@@ -151,7 +151,19 @@ test("exact project lookup returns one summary and distinguishes not-found from 
   const { api, calls } = app((url) => ["/v2/project/sodium", "/v2/project/AbCdEf12"].includes(url.pathname) ? Response.json(project) : new Response("missing", { status: 404 }));
   const found = await api.request("/mods/sodium");
   expect(found.status).toBe(200);
-  expect(await found.json()).toEqual({ projectId: "AbCdEf12", slug: "sodium", title: "Sodium", description: "Rendering" });
+  expect(await found.json()).toEqual({
+    projectId: "AbCdEf12", slug: "sodium", title: "Sodium", description: "Rendering",
+    iconUrl: null, downloads: null, follows: null, author: null, categories: [],
+    clientSide: null, serverSide: null, latestVersion: null,
+  });
+  const detailed = app(() => Response.json({
+    ...project, icon_url: "https://cdn.modrinth.com/data/x/icon.png", followers: 7,
+    client_side: "optional", server_side: "unsupported", categories: ["optimization"],
+  }));
+  expect(await (await detailed.api.request("/mods/sodium")).json()).toMatchObject({
+    iconUrl: "https://cdn.modrinth.com/data/x/icon.png", follows: 7,
+    clientSide: "optional", serverSide: "unsupported", categories: ["optimization"],
+  });
   expect(calls.map((url) => url.pathname)).toEqual(["/v2/project/sodium"]);
   expect((await api.request("/mods/AbCdEf12")).status).toBe(200);
   const missing = await api.request("/mods/missing");
@@ -163,6 +175,69 @@ test("exact project lookup returns one summary and distinguishes not-found from 
   expect((await app(() => new Response("boom", { status: 500 })).api.request("/mods/sodium")).status).toBe(502);
   expect((await createApp(async () => { throw new DOMException("timeout", "TimeoutError"); }).request("/mods/sodium")).status).toBe(504);
   expect((await app(() => Response.json({ ...project, project_type: "resourcepack" })).api.request("/mods/sodium")).status).toBe(404);
+  expect((await app(() => Response.json({ id: project.id, slug: project.slug, title: project.title, description: project.description })).api.request("/mods/sodium")).status).toBe(502);
+});
+
+test("hits carry the enriched summary and normalize absent fields", async () => {
+  const enriched = hit("main", {
+    icon_url: "https://cdn.modrinth.com/data/main/icon.png", downloads: 12, follows: 3, author: "owner",
+    categories: ["technology"], client_side: "required", server_side: "unsupported", latest_version: "2.0",
+  });
+  const { api } = app(searchPage([enriched], 1));
+  expect(await (await api.request("/mods?gameVersion=1.21.1&loader=fabric")).json()).toEqual({
+    hits: [{
+      projectId: "main", slug: "main", title: "main", description: "main description",
+      iconUrl: "https://cdn.modrinth.com/data/main/icon.png", downloads: 12, follows: 3, author: "owner",
+      categories: ["technology"], clientSide: "required", serverSide: "unsupported", latestVersion: "2.0",
+    }], total: 1, offset: 0,
+  });
+  const bare = app(searchPage([hit("main")], 1));
+  const normalized = (await (await bare.api.request("/mods?gameVersion=1.21.1&loader=fabric")).json()) as { hits: Record<string, unknown>[] };
+  expect(normalized.hits[0]).toMatchObject({
+    iconUrl: null, downloads: null, follows: null, author: null, categories: [],
+    clientSide: null, serverSide: null, latestVersion: null,
+  });
+});
+
+test("malformed summary fields are rejected instead of forwarded", async () => {
+  for (const extra of [
+    { downloads: -1 }, { downloads: 1.5 }, { follows: "many" }, { author: 5 }, { author: "a".repeat(65) },
+    { icon_url: "http://example.test/icon.png" }, { icon_url: 5 }, { categories: ["ok", 5] },
+    { categories: Array(51).fill("ok") }, { client_side: "sometimes" }, { latest_version: "x".repeat(65) },
+  ]) {
+    const { api } = app(searchPage([hit("main", extra)], 1));
+    expect([JSON.stringify(extra), (await api.request("/mods?gameVersion=1.21.1&loader=fabric")).status]).toEqual([JSON.stringify(extra), 502]);
+  }
+});
+
+test("a full page of enriched hits stays under 32 KiB", async () => {
+  const hits = Array.from({ length: 20 }, (_, index) => hit(`project${index}`, {
+    slug: `mod-slug-${index}-${"s".repeat(30)}`,
+    title: `Mod title ${index} ${"t".repeat(60)}`,
+    description: "d".repeat(300),
+    icon_url: `https://cdn.modrinth.com/data/${index}/icon.png`,
+    downloads: 123456789,
+    follows: 1234567,
+    author: "author_name",
+    categories: ["technology", "decoration", "optimization"],
+    client_side: "required",
+    server_side: "optional",
+    latest_version: "1.0.0",
+  }));
+  const { api } = app(searchPage(hits, 400));
+  const response = await api.request("/mods?gameVersion=1.21.1&loader=fabric");
+  const bytes = Buffer.byteLength(await response.text());
+  console.log(`Enriched 20-hit page: ${bytes} bytes`);
+  expect(bytes).toBeLessThan(32768);
+});
+
+test("repeated single-value parameters are rejected instead of narrowed", async () => {
+  const { api, calls } = app();
+  for (const query of ["sort=downloads&sort=newest", "environment=client&environment=server", "author=a&author=b", "loader=fabric&loader=forge", "offset=0&offset=20"]) {
+    const response = await api.request(`/mods?gameVersion=1.21.1&${query}`);
+    expect([query, response.status]).toEqual([query, 400]);
+  }
+  expect(calls).toHaveLength(0);
 });
 
 test("malformed hits are rejected instead of being forwarded", async () => {

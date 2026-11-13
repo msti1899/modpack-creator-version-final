@@ -186,6 +186,31 @@ State: merged to `main` through
 rerun because the slice changes no SQL, and no deployment, hosted setting or external
 service was touched.
 
+## Backend completion M3: catalog discovery (feat/catalog-discovery)
+
+The third milestone of the [completion plan](plans/backend-completion.md) is implemented
+on `feat/catalog-discovery`, cut from `main` at `6a552bf`. It is not published and not
+merged.
+
+`GET /mods` now rejects unknown query parameters and accepts `sort`, `category`,
+`environment` and `author` alongside the existing query, version, loader and offset.
+`GET /mods/:idOrSlug` returns one mod summary and distinguishes not-found from upstream
+failure, and every result carries an enriched summary. The environment filter means
+"runs on that side" (required or optional), not "exclusive to that side". See
+[doc09](delivery/doc09-catalog-discovery.md) and
+[catalog tasks](../odd/tasks/catalog-discovery.md).
+
+Proof: `bun run check` passes 147 tests and 2625 assertions with both typechecks, up from
+131. The pinning tests were shown to fail when their behavior was mutated, and the
+mutations were reverted. A page of 20 enriched hits measured 14473 bytes. The public
+regression golden was recaptured and only the `GET /mods` hash changed.
+
+Remaining: selector data for Minecraft and loader options and an exact-version picker
+are still undecided; no web client consumes the new fields; no real-upstream, hosted or
+deployed check ran; no native candidate review has run for this branch.
+
+Next action: independently verify the branch, then decide its review and publication.
+
 ## Resume
 
 1. Verify the branch, commit and local changes against this snapshot. Preserve

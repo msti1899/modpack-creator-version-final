@@ -280,12 +280,42 @@ authorization, the frozen electorate, the majority and the draft compare-and-swa
 
 ### GET /mods
 
-Query parameters: `query` (optional text), `gameVersion` (required), `loader`
-(required), and `offset` (optional integer, default 0, maximum 10000).
-Loaders: `fabric`, `forge`, `neoforge`, `quilt`.
+Query parameters:
 
-Returns `{ hits: [{ projectId, title, description, slug }], total, offset }`.
-At most 20 results are returned, filtered to mods matching the game and loader.
+- `query`: optional text, at most 100 characters.
+- `gameVersion` and `loader`: required. Loaders are `fabric`, `forge`, `neoforge`
+  and `quilt`.
+- `offset`: optional integer, digits only, `0`–`10000`, default `0`.
+- `sort`: optional, one of `relevance` (default), `downloads`, `follows`, `newest`
+  or `updated`. Forwarded as the upstream index, so a non-relevance sort replaces
+  relevance ordering.
+- `category`: optional and repeatable, or comma-separated. Each value is a category
+  slug of lowercase letters, digits or hyphens. Multiple values are a union, ANDed
+  with the loader and Minecraft version filters.
+- `environment`: optional, `client` or `server`. It matches mods that declare that
+  side as `required` or `optional`, so a mod that merely works on that side is
+  included; it does not mean "exclusive to that side". Precise per-side support is
+  reported per result.
+- `author`: optional Modrinth username of at most 64 characters.
+
+An unknown parameter returns 400 `Invalid query parameter.` instead of being
+ignored, so a misspelled filter cannot silently return unfiltered results. Invalid
+values return 400 before any upstream request.
+
+Returns `{ hits: [ModSummary], total, offset }` with at most 20 results per page.
+`ModSummary` is `{ projectId, slug, title, description, iconUrl, downloads,
+follows, author, categories, clientSide, serverSide, latestVersion }`. An enriched
+field the upstream omits is `null`, or `[]` for `categories`; a field that is
+present but malformed fails the request. `clientSide` and `serverSide` are
+`required`, `optional` or `unsupported`.
+
+### GET /mods/:idOrSlug
+
+Returns one `ModSummary` for a project ID or slug. An unknown project, or one that
+is not a mod, returns 404 `Mod not found.`; upstream failure returns 502 and a
+timeout returns 504, so a failed lookup is never reported as not-found.
+`author` is only populated by search, and `latestVersion` only by search and list
+responses.
 
 ### POST /packs/resolve
 
@@ -309,10 +339,11 @@ dependencies cause rejection rather than unapproved additions.
 
 ## Errors and limits
 
-Errors return `{ "error": "..." }`: 400 for invalid input, 409 for incompatible
-or unresolvable selections, 502 for upstream failures including rate limits,
-and 504 for timeouts. Unknown routes retain the default Hono 404 response.
-Check the status before treating an export response as a ZIP.
+Errors return `{ "error": "..." }`: 400 for invalid input, 404 for an unknown
+catalog project, 409 for incompatible or unresolvable selections, 502 for upstream
+failures including rate limits, and 504 for timeouts. Unknown routes retain the
+default Hono 404 response. Check the status before treating an export response as
+a ZIP.
 
 - At most 50 mods including dependencies and 100 upstream lookups per operation.
 - Pack request bodies: 16 KiB. Pack names and search queries: 100 characters.

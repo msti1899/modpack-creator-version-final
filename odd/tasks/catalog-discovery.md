@@ -58,11 +58,19 @@ Minecraft/loader options, an exact-version picker, and any UI.
 - T7 [S7] inline — complete. `GET /mods/:idOrSlug` added with a 404 for a missing or
   non-mod project and unchanged 502/504 behavior for upstream failure. Risk: item 3
   (new public route). Evidence: `bun test` passes 143 tests and 2571 assertions.
-- T8 [S8] inline — enriched hit payload, response-size measurement, reference and
-  guide updates, golden-hash recapture in the public regression test.
+- T8 [S8] inline — complete. One `ModSummary` projection shared by search and
+  lookup; absent enriched fields normalize to `null`/`[]` and malformed ones fail.
+  Risk: item 3 (public API payload contract).
+  Evidence: a 20-hit page with maximum-length values measured 14473 bytes; the public
+  regression golden was recaptured and only the `GET /mods` hash changed.
 
 ## Log
 
 - 2026-11-13: Owner authorized implementing M3. Scope and internal delivery order come
   from the recorded plan decision; no UI, no page-size parameter and no version picker
   are added.
+- 2026-11-13: T1–T8 implemented on `feat/catalog-discovery`. `bun run check` passes 147
+  tests and 2625 assertions with both typechecks. Pinning mutations were verified and
+  reverted. The enriched 20-hit page measured 14473 bytes. Delivery record:
+  [doc09](../../docs/delivery/doc09-catalog-discovery.md). Not published, not merged, no
+  native candidate review has run, and no hosted or real-upstream check was made.
