@@ -218,3 +218,11 @@ the request to assess and plan.
 - 2026-11-13: The owner authorized publishing and merging this planning document.
   Its unresolved product choices remain open; this is not authorization to implement
   every proposed extension or change external services.
+
+- 2026-11-13: M4 is implemented on `feat/pack-assembly` after the milestone was
+  selected for continuation. The resolver now names every proposed mod and dependency
+  by project title so a proposal can be inspected and approved without extra lookups;
+  accept, cancel, removal, compatible settings changes and atomic rejection reuse the
+  existing resolver, selection validation and replacement write. Independent
+  verification met S1–S7 with no blocker and its three advisories were corrected.
+  Not published, not merged. See [doc11](../delivery/doc11-pack-assembly.md).

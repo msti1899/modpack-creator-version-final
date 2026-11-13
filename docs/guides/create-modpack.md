@@ -23,14 +23,17 @@ curl -X POST http://127.0.0.1:3001/packs/resolve \
   -d '{"projectId":"MODRINTH_PROJECT_ID","gameVersion":"1.21.1","loader":"fabric","versionIds":[]}'
 ```
 
-Resolve returns `{ versions: [{ id, projectId, name, versionNumber }], addedDependencies }`.
-`name` is the Modrinth version's display name. `addedDependencies` contains new
+Resolve returns `{ versions: [{ id, projectId, projectTitle, name, versionNumber }], addedDependencies }`.
+`name` is the Modrinth version's display name and `projectTitle` its project title, so
+each proposed mod and dependency can be shown by name without another lookup.
+`addedDependencies` contains new
 required dependency version IDs, excluding the requested mod and previous selections.
 The candidate includes recursive dependencies; optional and embedded dependencies are
 not added. Existing exact versions remain pinned. A missing project's newest compatible
 version is chosen by publication date. Conflicts fail rather than replacing a pinned mod.
 
-**Confirm dependencies before accepting the candidate.** If the user cancels, keep the
+**Confirm dependencies before accepting the candidate.** Present every returned
+`projectTitle` with its `versionNumber` for approval. If the user cancels, keep the
 previous `versionIds` unchanged. No server rollback is necessary because resolution
 never saves a pack. If the Minecraft version or loader changes, start a new selection.
 

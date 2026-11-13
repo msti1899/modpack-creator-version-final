@@ -22,6 +22,7 @@ For the latest state and next action, use the [current handoff](../handoff.md).
 | [doc08: Account and session runtime proof](doc08-account-session-proof.md) | 2026-11-13 | Prove a real Clerk email/password session against `/me` and `/profile`, exercise the app's own sign-in and sign-out controls in a browser, pin the environment-driven configuration and session-lookup failure branches, and withdraw an earlier defect report that came from a blocked dev origin. |
 | [doc09: Catalog discovery contract](doc09-catalog-discovery.md) | 2026-11-13 | Reject unknown search parameters, add sort/category/environment/author filters, add exact project lookup, and enrich the result payload; record pinning evidence and a measured page size. |
 | [doc10: Group lifecycle and access proof](doc10-groups-lifecycle-proof.md) | 2026-11-13 | Pin request-page cursors, page clamping and invalidated tokens in pgTAP, and exercise the whole group lifecycle with signed tokens on the local PostgREST surface, including immediate role changes and both departure paths. |
+| [doc11: Pack assembly and dependency approval](doc11-pack-assembly.md) | 2026-11-13 | Name every proposed mod and dependency in pack resolution, and pin the approve, cancel, removal, settings-change and atomic-rejection journey without adding an endpoint or a migration. |
 
 ## Add the next record
 

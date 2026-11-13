@@ -136,6 +136,8 @@ test("malformed catalog data on the open path never creates a vote", async () =>
     [{ "/version/add-v": { id: "add-v", project_id: "add" } }, 502, "Modrinth returned invalid version metadata."],
     [{ "/version/add-v": meta("other", "add") }, 502, "Modrinth returned a different version."],
     [{ "/project/add": { id: "add", title: "bad\nname", project_type: "mod", client_side: "required", server_side: "optional" } }, 502, "Modrinth returned an invalid project title."],
+    [{ "/project/add": { id: "add", title: "bad\nname", project_type: "mod", client_side: "required", server_side: "optional" },
+      "/version/add-v": meta("add-v", "add", { version_number: "v".repeat(101) }) }, 502, "Modrinth returned an invalid project title."],
     [{ "/project/add": { id: "add", title: "Add", project_type: "shader", client_side: "required", server_side: "optional" } }, 409, "Only mods can be included in this pack."],
   ] as const) {
     const { request, calls } = setup({ overrides });

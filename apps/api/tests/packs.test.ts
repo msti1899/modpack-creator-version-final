@@ -42,7 +42,7 @@ test("resolve recursively returns candidate closure without persistence", async 
   const { api } = app();
   const response = await post(api, "/packs/resolve", { ...config, projectId: "main" });
   expect(response.status).toBe(200);
-  expect(await response.json()).toEqual({ versions: [{ id: "main-v", projectId: "main", name: "main-v", versionNumber: "1.0" }, { id: "dep-v", projectId: "dep", name: "dep-v", versionNumber: "1.0" }], addedDependencies: ["dep-v"] });
+  expect(await response.json()).toEqual({ versions: [{ id: "main-v", projectId: "main", projectTitle: "main", name: "main-v", versionNumber: "1.0" }, { id: "dep-v", projectId: "dep", projectTitle: "dep", name: "dep-v", versionNumber: "1.0" }], addedDependencies: ["dep-v"] });
 });
 
 test("all four loaders produce correct manifest dependency keys in a valid ZIP", async () => {
