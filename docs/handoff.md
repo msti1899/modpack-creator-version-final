@@ -1,10 +1,11 @@
 # Current handoff
 
-Checkpoint: 2026-11-12. `main` at `ea2c43f` contains milestone 3 ([PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45),
+Checkpoint: 2026-11-12. `main` at `5c83c5c` contains milestone 3 ([PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45),
 merge `b648c21`), milestone 4 ([PR #46](https://github.com/msti1899/modpack-creator-version-final/pull/46),
 merge `2ae50e7`), milestone 5 ([PR #49](https://github.com/msti1899/modpack-creator-version-final/pull/49),
-merge `e60a816`) and milestone 6 ([PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48),
-merge `ea2c43f`). Verify the branch and HEAD against this snapshot before resuming.
+merge `e60a816`), milestone 6 ([PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48),
+merge `ea2c43f`) and the milestone-6 documentation record ([PR #50](https://github.com/msti1899/modpack-creator-version-final/pull/50),
+merge `5c83c5c`). Verify the branch and HEAD against this snapshot before resuming.
 This is a resume point, not a session history.
 
 ## Merged milestones
@@ -51,13 +52,38 @@ migration is `20261112233000_group_votes.sql` and its delivery record is
 - Native review of the voting candidate approved it and burned its acknowledgement with
   no correction round; six advisories are recorded in doc06.
 
+## Local database proof (unmerged)
+
+Docker was installed with owner authorization on 2026-11-12, so a real local stack is
+now available and the database evidence listed as missing below was executed on
+`feat/backend-proof-completion`. Evidence and caveats are in
+[doc07](delivery/doc07-local-database-proof.md) and the
+[feature log](../odd/tasks/backend-proof-completion.md).
+
+What now runs and passes against the local stack: actual pgTAP (six suites, 193
+tests), the profile upgrade regression, real multi-session races for public admission,
+publication sequencing and concurrent ballots, and signed-token PostgREST checks that
+exercise the authorization branch instead of only the Hono fallback. `bun run check`
+still passes 125 tests / 2310 assertions. The slice is committed on its branch and is
+not published or merged.
+
 ## Missing proof
 
-Actual pgTAP (`bun run db:test` needs Docker and a local stack, both absent), the
-Docker-dependent upgrade runner, PostgREST and a signed Clerk→Hono→PostgREST request,
-real multi-connection races for admission, publication and voting, hosted application
-of the publication and votes migrations, and native candidate review for milestone 5.
-PGlite is single-connection, so lock ordering is argued structurally, not raced.
+Still unproven after the local database work:
+
+- The full Clerk→Hono→PostgREST chain with one token. Locally Hono accepts only an RSA
+  public key while the local PostgREST accepts only the stack's symmetric secret, so
+  the two validators cannot share one signing key without a configuration change.
+- Mutation testing of the lock discipline: the new race checks are designed so that
+  removing a lock or the one-group index changes the observed result, but no mutation
+  was run.
+- A real-session group flow, hosted application of the publication and votes
+  migrations, and the upgrade runner against hosted data. Hosted work needs explicit
+  authorization; the Docker upgrade runner itself now passes locally.
+- Native candidate review for milestone 5, and closure of the milestone 3 review that
+  stopped after three of four lenses with no receipt.
+- Full Google/Discord OAuth completion and real email delivery, which need provider
+  accounts rather than code.
 
 ## Delivery state
 
@@ -66,11 +92,13 @@ PGlite is single-connection, so lock ordering is argued structurally, not raced.
   [PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48) as `ea2c43f`.
   The pre-merge verification ran on the branch head with `main` already integrated, and
   the Backend checks run on the merge commit passed.
+- Local database proof: committed on `feat/backend-proof-completion`; not published,
+  not merged, not reviewed.
 - No hosted change and no deployment is recorded for milestones 5 or 6.
 
-Next action: decide separately whether to apply the publication and votes migrations to
-the selected test project, then continue with the next milestone scope the owner
-approves.
+Next action: review and publish the `feat/backend-proof-completion` slice, and decide
+separately whether to apply the publication and votes migrations to the selected test
+project.
 
 ## Resume
 
@@ -78,12 +106,17 @@ approves.
    unrelated untracked work: `.agents/`, `.atl/`, `apps/web/AGENTS.md`,
    `skills-lock.json`, and the separate worktrees for merged branches.
 2. For scope, read [roadmap milestone 6](plans/backend-roadmap.md#delivery-order) and
-   [voting tasks](../odd/tasks/voting.md); merged milestones link their own records.
-3. Hosted state is unchanged from the earlier checkpoints: the profile, group and draft
+   [voting tasks](../odd/tasks/voting.md); merged milestones link their own records. The
+   local database proof lives in [doc07](delivery/doc07-local-database-proof.md).
+3. The local stack is available now: `bun run db:start` brings it up, `bun run db:test`
+   runs pgTAP, `bun run db:test:upgrade` runs the disposable upgrade regression, and
+   `bun run db:test:concurrency` plus `bun run db:test:postgrest` need the `docker` group,
+   so run them through a shell that carries it. `bun run check` still needs no Docker.
+4. Hosted state is unchanged from the earlier checkpoints: the profile, group and draft
    migrations are applied to the selected test project, and the publication and votes
    migrations are not. Applying them needs explicit authorization. Do not access ambient
    CLI sessions or credentials beyond authorized test projects.
-4. Remaining unverified areas that need separate accounts or mailboxes are unchanged:
+5. Remaining unverified areas that need separate accounts or mailboxes are unchanged:
    full Google/Discord OAuth completion and real email delivery.
 
 ## Application checkpoint
