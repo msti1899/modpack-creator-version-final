@@ -37,9 +37,16 @@ not authorized.
   Evidence: RED observed on the two new conflict assertions before the
   implementation; `bun test apps/api/tests/profiles.test.ts` then passed 13 tests
   and 162 assertions.
-- T2 [S1–S5] verification — focused profile tests and full `bun run check` pass
-  (128 tests, 2327 assertions, both typechecks). Parent spot check and independent
-  verification: pending. Status: in progress.
+- T2 [S1–S5] verification — complete. `bun run check` passes 129 tests and 2376
+  assertions with both typechecks. Independent verification reproduced no blocker:
+  S1–S5 met, a 34-scenario differential kept every non-conflict response identical
+  to the baseline, and failure-path probes never leaked provider details. Its one
+  advisory (a malformed single-row lookup body was trusted as proof of ownership)
+  was fixed by validating the row shape and pinned by a durable regression test.
+  Owner-scope and fail-safe probes confirm one owner-scoped GET and the generic
+  conflict message when classification is impossible.
+  Native risk assessment: medium, `under_budget`, so no review was due for this
+  slice. Publication and merge remain unauthorized.
 
 ## Log
 

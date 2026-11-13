@@ -62,7 +62,11 @@ export function profileRoutes(options: IdentityOptions, fetcher: ProfileFetcher,
           });
           const body = await jsonBody(lookup.body, 4096);
           if (lookup.status !== 200 || !Array.isArray(body) || body.length > 1) return null;
-          return body.length === 1;
+          if (!body.length) return false;
+          const row = body[0] as { username?: unknown; username_changed_at?: unknown } | null;
+          if (!row || !validUsername(row.username) || (row.username_changed_at !== null &&
+            (typeof row.username_changed_at !== "string" || !Number.isFinite(Date.parse(row.username_changed_at))))) return null;
+          return true;
         } catch { return null; }
       };
       const response = await fetcher(ownerUrl().href, {
