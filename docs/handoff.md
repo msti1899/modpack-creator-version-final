@@ -1,6 +1,6 @@
 # Current handoff
 
-Checkpoint: 2026-11-13. `main` at `4e03da0` contains milestone 3 ([PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45),
+Checkpoint: 2026-11-13. `main` at `d970c39` contains milestone 3 ([PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45),
 merge `b648c21`), milestone 4 ([PR #46](https://github.com/msti1899/modpack-creator-version-final/pull/46),
 merge `2ae50e7`), milestone 5 ([PR #49](https://github.com/msti1899/modpack-creator-version-final/pull/49),
 merge `e60a816`), milestone 6 ([PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48),
@@ -10,9 +10,11 @@ merge `becd201`), the hosted schema application (PR #53), the account and sessio
 ([PR #55](https://github.com/msti1899/modpack-creator-version-final/pull/55), merge
 `21c91f8`), the profile conflict contract ([PR #56](https://github.com/msti1899/modpack-creator-version-final/pull/56),
 merge `9067562`), catalog discovery ([PR #58](https://github.com/msti1899/modpack-creator-version-final/pull/58),
-merge `b9167c0`) and the completion-plan M5 group lifecycle proof
+merge `b9167c0`) the completion-plan M5 group lifecycle proof
 ([PR #60](https://github.com/msti1899/modpack-creator-version-final/pull/60), merge
-`4e03da0`). Verify the branch and HEAD against this snapshot before resuming.
+`4e03da0`) and the completion-plan M4 pack assembly slice
+([PR #62](https://github.com/msti1899/modpack-creator-version-final/pull/62), merge
+`d970c39`). Verify the branch and HEAD against this snapshot before resuming.
 This is a resume point, not a session history.
 
 ## Merged milestones
@@ -122,8 +124,10 @@ Still unproven after the local database work:
   [PR #60](https://github.com/msti1899/modpack-creator-version-final/pull/60) as
   `4e03da0`, with the Backend checks passing in 44 seconds on the branch head. It adds
   tests, runners and documentation only; `main` still runs 153 tests.
-- Pack assembly (completion plan M4): implemented on `feat/pack-assembly` and not
-  merged; see the milestone section below.
+- Pack assembly (completion plan M4): merged to `main` through
+  [PR #62](https://github.com/msti1899/modpack-creator-version-final/pull/62) as
+  `d970c39`, with the Backend checks passing in 42 seconds on the branch head after
+  `main` was integrated. `main` runs 157 tests and 2699 assertions.
 
 ## Proposed next backend phase
 
@@ -244,9 +248,11 @@ and the exact-version picker still need a product decision.
 
 ## Backend completion M4: pack assembly (feat/pack-assembly)
 
-The fourth milestone of the [completion plan](plans/backend-completion.md) is implemented
-on `feat/pack-assembly`, cut from `origin/main` at `bce2fb7`, and is not merged. The
-branch deliberately excludes the unpushed local frontend-tooling commits.
+The fourth milestone of the [completion plan](plans/backend-completion.md) is merged to
+`main` through [PR #62](https://github.com/msti1899/modpack-creator-version-final/pull/62)
+as `d970c39`, with the Backend checks passing in 42 seconds on the branch head. The
+branch was cut from `origin/main` at `bce2fb7` and integrated `main` before merging; that
+merge renumbered this slice's record to doc11 because the M5 proof took doc10.
 
 `POST /packs/resolve` now returns `projectTitle` for every proposed version, validated
 and fail-closed, so required dependencies can be presented for approval without a
@@ -280,9 +286,10 @@ which is recorded as an observed limit. One profile row (`m4proof13`) remains be
 no deletion endpoint exists; removing it needs privileged database access. Details and
 limits are in [doc11](delivery/doc11-pack-assembly.md).
 
-Next action: request hosted or real-session proof if this slice needs it, or continue
-with the next completion-plan milestone; publication and merge remain separate
-decisions.
+State: merged. Publication and merge happened on 2026-11-13 under explicit owner
+authorization; the hosted session proof above ran before the merge. Next action:
+continue with the next completion-plan milestone, or take the recorded limits as later
+work; no deployment is recorded.
 ## Backend completion M5: group lifecycle proof (feat/group-lifecycle)
 
 The fifth milestone of the [completion plan](plans/backend-completion.md) was authorized

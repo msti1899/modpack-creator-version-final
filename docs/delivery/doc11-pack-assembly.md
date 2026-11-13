@@ -145,6 +145,11 @@ Recorded residue and gaps:
 - Hosted session proof: run on 2026-11-13 with a real browser session against the
   configured Clerk development instance and the hosted test project; the observed
   results and residue are recorded above.
+- Correction, 2026-11-13: merged to `main` through
+  [PR #62](https://github.com/msti1899/modpack-creator-version-final/pull/62) as
+  `d970c39`, with the Backend checks passing in 42 seconds on the branch head after
+  `main` was integrated. The entries above record the pre-merge state. The merge
+  renumbered this record from doc10 to doc11 because the M5 proof took doc10 first.
 
 ## Remaining work
 

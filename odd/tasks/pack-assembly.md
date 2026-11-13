@@ -113,3 +113,9 @@ implemented and documented; they are pinned here, not rewritten.
   is recorded as a limit rather than a defect. Residue: the test profile row cannot be
   deleted through the API and remains in the hosted project. No migration, provider
   setting or credential was changed; the Clerk users created for the proof remain.
+- 2026-11-13: `main` advanced with the completion-plan M5 proof before delivery, so the
+  branch integrated `origin/main` and this record was renumbered from doc10 to doc11.
+  Pushed, published as [PR #62](https://github.com/msti1899/modpack-creator-version-final/pull/62)
+  and merged to `main` as `d970c39` under explicit owner authorization, with the Backend
+  checks passing in 42 seconds on the branch head. `main` runs 157 tests and 2699
+  assertions. The hosted profile residue and the recorded limits are unchanged.
