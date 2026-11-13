@@ -19,8 +19,12 @@ This is a backend draft workflow, not a frontend. Publishing, activation and sha
    `groupId`, `role` and `draft`, initially null.
 2. Use the existing public `/packs/resolve` flow in the
    [creation guide](create-modpack.md) with the current draft's exact settings/IDs.
-   Ask the owner to approve newly required dependencies. If declined, do not save.
-3. As owner, send the entire approved selection:
+   Each proposed version carries `projectTitle`, `name` and `versionNumber`, so the new
+   `addedDependencies` can be presented for approval without extra lookups. Ask the
+   owner to approve them. A declined proposal stores nothing: resolution never writes,
+   so the stored draft and revision stay exactly as they were.
+3. As owner, send the entire approved selection, using the proposal's `versions[].id`
+   values as the complete `versionIds`:
 
    ```http
    PUT /groups/me/pack

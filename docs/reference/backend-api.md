@@ -149,7 +149,9 @@ owner, so a save racing an ownership transfer or group deletion cannot write.
 A write replaces the explicit selection atomically and validates every supplied mod
 and required-dependency version against Modrinth before the save RPC. Saving never
 chooses a newer version or adds a dependency: resolve and obtain approval first, and
-do not save a declined proposal. Changing Minecraft version or loader revalidates the
+do not save a declined proposal. The proposal's `versions[].id` values, including the
+`addedDependencies`, are the complete `versionIds` to submit. Changing Minecraft
+version or loader revalidates the
 whole supplied selection; an incompatible change returns 409 and leaves the stored
 draft untouched. Empty selections may be saved but cannot be exported. Explicit
 removals are accepted only while every required dependency of the remaining
@@ -325,10 +327,17 @@ search and list responses.
 Body: `{ projectId, gameVersion, loader, versionIds: string[] }`.
 `versionIds` contains previously approved exact Modrinth version IDs.
 
-Returns `{ versions: [{ id, projectId, name, versionNumber }], addedDependencies }`.
-`name` is the version display name. `addedDependencies` contains newly required
+Returns `{ versions: [{ id, projectId, projectTitle, name, versionNumber }], addedDependencies }`.
+`name` is the version display name and `projectTitle` the trimmed Modrinth project
+title, so a proposal can be inspected by mod name and version without further catalog
+calls. An upstream title that is absent, empty, longer than 300 characters or contains
+control characters returns 502 `Modrinth returned an invalid project title.`; a
+proposal is never returned partially enriched.
+`addedDependencies` contains newly required
 dependency version IDs, excluding the requested mod and previous selections.
-The caller must obtain approval before accepting the candidate.
+The caller must obtain approval before accepting the candidate: the returned
+`versions[].id` set is the complete `versionIds` a save submits, and a discarded
+proposal stores nothing because resolution never writes.
 
 ### POST /packs/export
 

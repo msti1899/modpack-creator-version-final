@@ -234,6 +234,21 @@ export async function modDetail(fetcher: Fetcher, value: string) {
   if (project.project_type !== "mod") throw new PackError("Mod not found.", 404);
   return modSummary(project, project.id);
 }
+function selectedProject(selection: Selection, projectId: string): Project {
+  const project = selection.projects.get(projectId);
+  if (!project) throw new PackError("Modrinth returned an unexpected version.", 502);
+  return project;
+}
+/**
+ * Project titles are the only human-readable identity in a proposal, so they are
+ * validated here instead of being passed through as arbitrary upstream text.
+ */
+function inspectableTitle(project: Project): string {
+  if (typeof project.title !== "string" || project.title.length > 300 || /[\x00-\x1f\x7f]/.test(project.title)) throw new PackError("Modrinth returned an invalid project title.", 502);
+  const title = project.title.trim();
+  if (!title) throw new PackError("Modrinth returned an invalid project title.", 502);
+  return title;
+}
 export async function resolve(fetcher: Fetcher, input: RecordValue) {
   const config = settings(input);
   const projectId = id(input.projectId);
@@ -245,7 +260,11 @@ export async function resolve(fetcher: Fetcher, input: RecordValue) {
   await selection.complete();
   const versions = [...selection.versions.values()];
   return {
-    versions: versions.map((version) => ({ id: version.id, projectId: version.project_id, name: version.name, versionNumber: version.version_number })),
+    versions: versions.map((version) => ({
+      id: version.id, projectId: version.project_id,
+      projectTitle: inspectableTitle(selectedProject(selection, version.project_id)),
+      name: version.name, versionNumber: version.version_number,
+    })),
     addedDependencies: versions.filter((version) => version.id !== requested.id && !config.versionIds.includes(version.id)).map((version) => version.id),
   };
 }
@@ -292,14 +311,12 @@ export async function validateVoteAddition(
   const pinned = new Map([...selection.versions.values()].map((version) => [version.id, version]));
   const proposal = config.versionIds.map((versionId) => {
     const version = pinned.get(versionId);
-    const project = version ? selection.projects.get(version.project_id) : undefined;
-    if (!version || !project) throw new PackError("Modrinth returned an unexpected version.", 502);
-    if (typeof project.title !== "string" || !project.title.trim() || project.title.length > 300 || /[\x00-\x1f\x7f]/.test(project.title)) throw new PackError("Modrinth returned an invalid project title.", 502);
+    if (!version) throw new PackError("Modrinth returned an unexpected version.", 502);
     if (typeof version.version_number !== "string" || !version.version_number.trim() || version.version_number.length > 100 || /[\x00-\x1f\x7f]/.test(version.version_number)) throw new PackError("Modrinth returned an invalid version name.", 502);
     return {
       versionId,
       projectId: version.project_id,
-      projectTitle: project.title.trim(),
+      projectTitle: inspectableTitle(selectedProject(selection, version.project_id)),
       versionNumber: version.version_number.trim(),
     };
   });
