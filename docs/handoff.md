@@ -1,192 +1,81 @@
 # Current handoff
 
-Checkpoint: 2026-11-12. This worktree has two application branches recorded
-separately. Milestone 3 lives on `feat/groups-permissions` (rebased onto `main` at
-`9219a87`), committed as `71dac1f` and published in
-[PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45) with
-Backend CI passing and its authorized test-project migrations applied. Milestone 4
-lives on `feat/pack-drafts`, based on that milestone-3 branch. Application baseline
-before documentation publication: `main` at
-`22318bced38c3011a656ce85bb47509265800d28`; `a7ae8fb` is an ancestor.
-Verify the branch and HEAD before resuming; later documentation commits do not
-change that application baseline. This is a resume point, not a session history.
+Checkpoint: 2026-11-12. `main` at `d5d3c40` already contains milestone 3 (PR #45,
+merged as `b648c21`) and milestone 4 (PR #46, merged as `2ae50e7`). Milestone 5 is
+implemented, tested and documented on `feat/published-versions`, cut from `d5d3c40`
+and committed as `51e7a03` plus the documentation commit containing this file. Verify
+the branch and HEAD before resuming; documentation commits do not change the
+application baseline. This is a resume point, not a session history.
 
 ## Current work
 
-Milestone 3 is implemented, committed and published; see
-[groups tasks](../odd/tasks/groups-permissions.md), [group guide](guides/groups.md)
-and [doc02 evidence](delivery/doc02-groups-permissions.md). The Hono API exposes
-thirteen authenticated group operations, including two paged reads. Immediate
-ownership transfer was confirmed. That branch adds no frontend or voting, and pack
-persistence exists only on the separate milestone-4 branch below.
+Milestone 5 (published versions and sharing) is complete locally: one publication per
+publish action, immutable snapshots, a per-group sequence, an owner-selected active
+version that publishing never changes, member-only reads and exports, and a frozen
+`.mrpack` export. An approved decision restricts reads and exports to current group
+members, so a share link carries no authority by itself. See the
+[publication guide](guides/pack-publications.md),
+[API reference](reference/backend-api.md#published-pack-versions),
+[doc05](delivery/doc05-published-versions.md) and
+[publication tasks](../odd/tasks/published-versions.md).
 
-The user explicitly broadened authorization to necessary implementation and
-hosted testing on the selected test project via its current Supabase MCP connection.
-The exact SQL was applied once; its generated hosted version was reflected by a
-local filename-only rename. All tagged hosted fixtures were removed; the parent
-read back zero rows in profiles and the four group tables, with the original
-profile hash. Existing account/Clerk configuration was not changed.
+Milestone 3 and 4 evidence stays in [doc02](delivery/doc02-groups-permissions.md) and
+[doc04](delivery/doc04-pack-drafts.md); it is not restated here.
 
-Native review found and the parent reproduced a PostgreSQL 17 authenticated-COMMIT
-failure in the deferred invoker trigger. Applied forward migration `20261112214259`
-fixes only that trigger's privilege context, retaining denied direct table/helper
-access. Real authenticated create/join/approval/transfer/departure commits then
-passed and their fixtures were removed; the original profile hash is unchanged.
-The initial migration bytes remain unchanged. Native targeted validation is pending.
+## Proof for this checkpoint
 
-Two manual-review 502 cases were fixed by forward migration `20261112222116`:
-name normalization now uses one explicit Unicode contract at SQL, constraint and
-HTTP boundaries, and embedded member/request collections are capped at 50 with
-keyset cursors plus paged endpoints. Hosted probes with 121 members and 60
-requests returned a 6324-byte overview, complete member/request pages, normalized
-`Café`, rejected NBSP-only/FEFF names, and zero fixture rows. A local API+SQL
-integration probe paginated all 2502 members without loss; 16 focused API tests
-(275 assertions) passed after the fix.
+- RED observed: 11 of 12 new publication HTTP tests failed with 404 before the routes
+  existed. GREEN: 17 focused tests / 365 assertions.
+- `bun run check`: 103 tests / 2075 assertions, both application typechecks exit 0.
+- All eight migrations applied in order on PGlite 0.5.16 in isolated external scratch,
+  with the checked-in publication suite passing and the draft suite re-passing on the
+  same run. This is supplemental evidence, not a pgTAP execution.
+- Differential against `main` at `d5d3c40`: 16 scenarios identical in status, headers
+  and body, including public `/mods`, `/packs/resolve` and `/packs/export` archive hash.
+- Independent read-only verification ran twice in external scratch. The first round
+  reproduced one input-parity blocker (C1 controls answered 502 instead of 400); the
+  narrow recheck confirmed that fix with 147,492 parity attempts and no 5xx, then
+  reported that publish accepted metadata the shared export contract rejects. The
+  second correction applied the export length contract to publish input and was
+  verified locally only, because the correction bound was already reached.
 
-Current proof: `bun run check` previously passed 71 tests / 1455 assertions;
-rerun it after the pagination/name change before treating this checkpoint as
-current. Parent differential passed 17 old/current comparisons. Independent API
-verification passed 332 probes and 33 differential comparisons without a
-reproduced blocker before this fix. Real PostgreSQL SQL checks and two overlapping
-admission races passed. Earlier 235-check PGlite harness results apply only to the
-earlier draft, not to the current SQL after removing public discovery and the
-ASCII restriction.
+## Missing proof
 
-Missing proof: actual pgTAP (`bun run db:test` cannot connect without a local
-stack), Docker-dependent upgrade runner, and a full real-session group flow
-through Clerk/Hono/PostgREST. Manually set database claims do not verify JWT
-admission. Hosted security/performance advisor findings and their design context
-are recorded in doc02; do not claim a clean report or complete end-to-end proof.
+Actual pgTAP (`bun run db:test` needs a local stack), the Docker-dependent upgrade
+runner, hosted project application, true multi-connection publication and activation
+races, a signed Clerk→Hono→PostgREST request, and native candidate review. PGlite is
+single-connection, so group-lock ordering is argued structurally, not raced. Inherited
+advisories from milestones 3 and 4 remain open and are not re-claimed as current proof.
 
-Delivery state: commit `71dac1f`, PR #45, Backend CI passed in 41 seconds. No merge
-or deployment is authorized. The PR explicitly records the native-review and proof
-gaps below.
+## Delivery state
 
-Next action: the native review is blocked. Its bound recovery produced a
-successor `reviewing` state without a negotiated continuation, and one retained
-predecessor STATUS reconciliation was rejected because a successor already exists.
-Do not resurrect the predecessor, synthesize a next transition, reuse the
-predecessor's captured decline, or disable reviews. Resume only through a
-published corrected Gentle AI build or a documented supported native recovery, then
-assess the corrected candidate afresh. The earlier assessment was unassessable
-because untracked paths were undeclared; it is not approval. Candidate review
-consent was granted only for the earlier candidate. Do not reset, delete unrelated
-data, change Clerk, publish or merge. Resolve delivery slicing before any commit;
-publication and deployment are not authorized. Keep the dashboard open while
-review/required proof is pending.
-
-## Milestone 4: persisted drafts
-
-Milestone 4 is implemented on `feat/pack-drafts`, based on `feat/groups-permissions`.
-The owner decided that changing a draft's Minecraft version or loader requires the
-whole selection to remain compatible; an incompatible change is rejected without
-clearing or substituting approved versions. One draft per group is created lazily on
-first save; members read and export their own group's draft and only the current owner
-writes it. See [draft tasks](../odd/tasks/pack-drafts.md),
-[doc04](delivery/doc04-pack-drafts.md) and the
-[draft guide](guides/pack-drafts.md).
-
-Proof: RED was observed for the draft HTTP and SQL slices before implementation.
-`bun run check` passes 86 tests / 1687 assertions with both app typechecks, and the
-focused draft suite passes 14 tests. Independent verification reproduced no blocker
-(12 HTTP probes, 73 native SQL assertions, 23 public differential cases unchanged).
-Under explicit bounded authorization the draft migration was applied once to the
-selected test project and verified at md5/sha256 parity; 100 native PostgreSQL
-assertions, a committed authenticated flow and two real two-connection races passed,
-and every fixture was removed with the baseline empty-set hash restored. Two native
-review candidates were approved and acknowledged; the second approval covers the
-current source bytes.
-
-Missing proof: actual pgTAP (local PostgreSQL is unavailable), a signed
-Clerk->Hono->PostgREST draft request, and HTTP-side Modrinth validation through a
-deployed API. Database checks prove authorization, format and atomicity, not remote
-catalog validation or JWT signature admission.
-
-Delivery state: merged to `main` through [PR #46](https://github.com/msti1899/modpack-creator-version-final/pull/46)
-(merge commit `2ae50e7`), stacked on the milestone-3 PR #45 (`b648c21`). Backend
-checks passed on both before merge. No deployment is recorded. Review advisories
-still open as later work: group error-map
-HTTP coverage, draft 404 and malformed-body precedence, empty/50/51/duplicate
-selection coverage through the routes, focused-test gating, the database suite using
-native assertions inside pgTAP framing, absent failure-path observability, no
-degraded mode when a pinned version disappears, and the approved irreversible
-sole-owner deletion.
-
-## Previous documentation delivery
-
-The documentation reorganization starts the numbered delivery record at
-[doc01](delivery/doc01-documentation-reorganization.md). Earlier work remains in
-its existing records; [the previous handoff](handoff-history-2026-11-12.md)
-preserves the original checkpoint and workstation reports in full.
-Doc01 is structurally verified; local application checks were not rerun.
-
-That previous delivery changed documentation only. Pre-existing local changes in
-`apps/web/next-env.d.ts` and `docs/guides/local-identity.md`, untracked `.atl/`,
-and generated `apps/web/AGENTS.md` are unrelated and must be preserved.
-Publication uses two sequential PRs to `main`: history preservation, then this
-reorganization. See doc01 and the GitHub PR records for CI and merge evidence;
-publication does not authorize deployment or external service changes.
-
-## Application checkpoint
-
-The following application results were recorded before this documentation
-delivery; they were not rerun during it:
-
-- Clerk owns accounts and sessions. Hono verifies Clerk tokens for `/me` and
-  protects profile endpoints; Supabase remains the profile database. Public
-  Modrinth search, resolution and `.mrpack` export remain implemented.
-- Local `bun run check` passed with 56 tests / 1200 assertions, and the production
-  build passed. See the [startup/configuration evidence](handoff-history-2026-11-12.md#local-startup-correction-and-api-configuration).
-- Two disposable users completed real Clerk Development password sign-in and
-  web/API session checks. Anonymous requests and altered signatures returned
-  401; sign-out cleared the web session. Both fixtures were removed. See the
-  [identity-test evidence](handoff-history-2026-11-12.md#real-identity-tests-and-remaining-prerequisites-2026-11-12).
-- Hosted profiles/RLS were blocked in that earlier checkpoint because tested JWTs
-  lacked a signed `role: "authenticated"` and hosted `public.profiles` was absent.
-  That block was later removed with explicit authorization: the three repository
-  migrations are applied to the selected test project, Clerk Development signs the
-  role claim, Supabase trusts the Clerk issuer, and real-session profile lifecycle
-  plus cross-user isolation passed. All fixtures were removed and
-  `public.profiles` is back to zero rows. Full OAuth and real email delivery remain
-  unverified. Offline JWT expiry still limits immediate revocation.
-
-Earlier application merge/review records are historical evidence in the archived
-handoff and [feature log](../odd/tasks/clerk-auth-replacement.md). Local ancestry
-was checked for this checkpoint; earlier application PR/CI state was not rechecked. No deployment
-has been recorded. Services were last recorded as running; liveness is not freshly
-verified and must not be inferred from this document.
+Branch `feat/published-versions` is committed locally with no push, pull request,
+merge, hosted change or deployment. Publication and merge are separate decisions; no
+hosted authorization exists for this milestone.
 
 ## Resume
 
 1. Verify the branch, commit and local changes against this snapshot. Preserve
-   ignored environment files and unrelated work.
-2. For startup, use the [recorded localhost-binding workaround](handoff-history-2026-11-12.md#local-startup-correction-and-api-configuration).
-   For current development scope, read [roadmap milestone 3](plans/backend-roadmap.md#delivery-order)
-   and [groups tasks](../odd/tasks/groups-permissions.md); milestone 2 proof below is historical.
-3. Hosted preparation is done under explicit user authorization: the three
-   repository migrations are applied to the selected test project, the Clerk
-   Development instance signs `role: "authenticated"`, and the user enabled the
-   Clerk provider in Supabase third-party auth. All three were verified by
-   readback and by real sessions; see
-   [the hosted verification record](../odd/tasks/hosted-profile-verification.md).
-4. Hosted Clerk → Supabase trust is now enabled by the user and verified with real
-   sessions: profile lifecycle, cross-user isolation, denied delete/column writes,
-   anonymous and malformed-token rejection all behaved as specified, and the
-   fixture rows/users were removed afterwards.
-5. Remaining unverified areas are only those needing separate accounts or mailboxes:
-   full Google/Discord OAuth completion and real email delivery. Do not claim them
-   from the `+clerk_test` OTP path. See
-   [the hosted verification record](../odd/tasks/hosted-profile-verification.md).
-
-Two fixture profile rows and both fixture users were created only for these checks
-and then deleted; `public.profiles` is back to zero rows. The earlier fixture-only
-authorization does not authorize resets, unrelated hosted settings or
-external-provider changes. Full OAuth/email verification additionally needs
-controlled provider accounts and a real test inbox. Do not access ambient CLI
-sessions or credentials beyond the explicitly authorized test projects.
+   unrelated untracked work: `.agents/`, `.atl/`, `apps/web/AGENTS.md`,
+   `skills-lock.json`, and the separate `feat/voting` worktree, which this checkpoint
+   did not inspect.
+2. For scope, read [roadmap milestone 5](plans/backend-roadmap.md#delivery-order) and
+   [publication tasks](../odd/tasks/published-versions.md); milestones 3 and 4 link
+   their own records.
+3. Next actions, each needing its own authorization: native candidate review when due,
+   a multi-connection race check on a real database stack, hosted proof on the selected
+   test project, then publication and merge.
+4. Hosted Clerk → Supabase trust and the applied profile, group and draft migrations
+   remain as recorded in [the hosted verification record](../odd/tasks/hosted-profile-verification.md).
+   The publication migration has never been applied to a hosted project. Do not access
+   ambient CLI sessions or credentials beyond explicitly authorized test projects.
+5. Remaining unverified areas that need separate accounts or mailboxes are unchanged:
+   full Google/Discord OAuth completion and real email delivery.
 
 ## Documentation maintenance
 
-Use [the documentation index](README.md) to choose the owning document. Complete
-work units get a [numbered delivery record](delivery/README.md); interruptions
-update this checkpoint. No retrospective doc numbers are assigned to earlier work.
+Use [the documentation index](README.md) to choose the owning document. Complete work
+units get a [numbered delivery record](delivery/README.md); interruptions update this
+checkpoint. No retrospective doc numbers are assigned to earlier work. Earlier
+application and documentation evidence remains in
+[the archived handoff](handoff-history-2026-11-12.md), doc01 and the feature logs.

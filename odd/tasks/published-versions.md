@@ -48,10 +48,10 @@ publication export uses the frozen metadata and accepts no overrides.
   full check; eight migrations plus both database suites pass on PGlite 0.5.16; 16
   differential scenarios identical to `main`). Risk: items 1, 2, 3 and 4 (new
   persisted format, permissions, shared export contract, activation ordering).
-  Commit: see [doc05](../../docs/delivery/doc05-published-versions.md).
+  Commit: `51e7a03`.
 - T2 [S1-S6] Update guide, reference, decision baseline, roadmap, delivery record,
   indexes and handoff; preserve milestone 3 and 4 evidence. Route: inline.
-  Status: complete. Commit: same delivery.
+  Status: complete. Commit: documentation commit on the same branch.
 - T3 [S1-S5] Independent read-only verification of this high-risk slice after its
   own checks, including differential public endpoint output and rejected-write
   state probes. Route: delegated verification for named items 1/2/3/4.

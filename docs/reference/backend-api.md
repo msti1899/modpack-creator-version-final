@@ -149,8 +149,9 @@ selection is still present.
 
 Bodies and database responses are capped at 16 KiB. Write bodies reject unknown
 fields. Export accepts only presentation fields and uses the stored IDs, so a caller
-cannot override the selection, game version, loader or target group; export
-publication and activation remain out of scope. Errors: 400 invalid input, 401
+cannot override the selection, game version, loader or target group; draft export
+never publishes or activates. Use the published-version routes below for that.
+Errors: 400 invalid input, 401
 authentication, 403 owner-only edit, 404 no current group or draft, 409 stale or
 incompatible selection, 502 upstream or protocol failure, 503 missing database
 configuration and 504 timeout. Draft calls reject redirects, use a five-second
@@ -161,6 +162,52 @@ resubmitting.
 The table and RPC boundary enforces authorization, format and atomic revision
 checks. Modrinth compatibility is checked by Hono, not by SQL, so an owner calling
 the RPC directly bypasses catalog validation.
+
+### Published pack versions
+
+Requires the same verified Clerk session and signed database role as group routes.
+Only current members of the group may list, read or export its published versions.
+A link carrying a publication ID grants nothing by itself, and another group's ID is
+indistinguishable from a missing one. Only the current owner may publish or activate.
+
+| Method and path | JSON body | Success |
+| --- | --- | --- |
+| GET `/groups/me/pack/publications?limit=&before=` | None | 200 `{ groupId, role, activePublicationId, publications, nextBeforeSequence }` |
+| GET `/groups/me/pack/publications/:publicationId` | None | 200 `{ groupId, role, publication }` |
+| GET `/groups/me/pack/publications/:publicationId/export` | None | 200 `.mrpack` attachment built from frozen metadata |
+| POST `/groups/me/pack/publications` | `{ name, version, loaderVersion, expectedRevision }` | 201 `{ groupId, role, publication }` |
+| PUT `/groups/me/pack/active-version` | `{ publicationId }` | 200 `{ groupId, activePublicationId }` |
+
+A `publication` is
+`{ id, sequence, name, version, loaderVersion, gameVersion, loader, versionIds, active, publishedAt }`.
+`sequence` increases per group and is never reused. Publishing snapshots the stored
+draft, so a later draft save never changes an existing publication. Publishing never
+activates: a new publication has `active: false`, and the active version remains
+whatever the owner last selected, initially none.
+
+Publishing requires an existing, non-empty draft and `expectedRevision` set to the
+revision last read. A stale revision returns 409 before any catalog work, and the
+stored selection is revalidated against Modrinth before the publishing RPC. Existing
+publications are not revalidated, so a later upstream removal surfaces as an export
+conflict rather than silently changing the published pack.
+
+`limit` is 1–50 (default 20); `before` is the previous page's `nextBeforeSequence`.
+Pages are ordered newest first and `nextBeforeSequence` is null on the last page.
+Publication metadata obeys the same limits as the public `.mrpack` export: `name` up
+to 100 and `version`/`loaderVersion` up to 50 characters, measured in UTF-16 units,
+so every accepted publication can be exported later. Reads accept any stored value
+the database permits, including a 100-code-point name written by a direct RPC call,
+but such a value cannot be exported because the shared export contract measures
+UTF-16 units.
+Export accepts no body and no query parameters and uses the frozen name, version,
+loader version, game version, loader and exact version IDs. Activation accepts only a
+publication of the caller's own group and leaves exactly one active version.
+
+Errors: 400 invalid input, 401 authentication, 403 owner-only publish or activation,
+404 no current group, no draft or unknown publication, 409 stale draft or sequence
+exhaustion, 502 upstream or protocol failure, 503 missing database configuration,
+504 timeout. Bodies are capped at 16 KiB and responses at 256 KiB; calls reject
+redirects, use a five-second timeout and never retry.
 
 ### GET /mods
 

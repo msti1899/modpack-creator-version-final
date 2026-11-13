@@ -84,6 +84,11 @@ the original context. Unresolved items are listed separately.
 - Preserve previous published versions.
 - The owner chooses the active version independently of the latest publication.
   Publishing a new version does not automatically activate it.
+- Only current members of the group may read or export a published version
+  (confirmed on 2026-11-12). Possession of a share link grants no access by itself;
+  joining a group still follows D4.
+- A published version is an immutable snapshot of the approved draft and of the
+  presentation metadata chosen at publication. Later draft edits do not change it.
 
 ### D7: Voting
 
