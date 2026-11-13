@@ -80,6 +80,10 @@ Environment: local Bun 1.4.4, no Docker, no hosted service or provider access.
   acknowledgement, so it is not part of the reviewed candidate.
 - Deployment: none. No database, migration, hosted setting or provider was touched,
   so no pgTAP, upgrade or concurrency runner applies to this slice.
+- Correction, 2026-11-13: merged to `main` through
+  [PR #58](https://github.com/msti1899/modpack-creator-version-final/pull/58) as
+  `b9167c0`, with the Backend checks passing on the merge commit in 45 seconds. The
+  entries above record the pre-merge state.
 
 ## Review advisories
 
