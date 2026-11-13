@@ -392,6 +392,77 @@ try {
     "The revoked token stops resolving", "Invitation is invalid.");
   expectRefused(await rpc("request_join", tokens.third, { p_token: rotatedToken }),
     "The revoked token cannot create a join request", "Invitation is invalid.");
+
+  // Published versions and sharing on the same signed surface.
+  const savedDraft = await rpc("save_pack_draft", tokens.owner2, {
+    p_group_id: privateGroup?.id, p_game_version: "1.21.1", p_loader: "fabric",
+    p_version_ids: ["main-v", "dep-v"], p_expected_revision: 0,
+  });
+  expect(readJson(savedDraft)?.draft?.revision === 1,
+    "The owner stores the approved draft selection",
+    `status=${savedDraft.status} body=${savedDraft.body.slice(0, 200)}`);
+
+  const published = await rpc("publish_pack_draft", tokens.owner2, {
+    p_name: "Postgrest Pack", p_pack_version: "1.0.0", p_loader_version: "0.16.0", p_expected_revision: 1,
+  });
+  const publishedBody = readJson(published);
+  const publicationId = (publishedBody?.publication as Record<string, unknown> | undefined)?.id as string | undefined;
+  expect(published.status === 200 &&
+    (publishedBody?.publication as Record<string, unknown> | undefined)?.sequence === 1 &&
+    (publishedBody?.publication as Record<string, unknown> | undefined)?.active === false,
+  "A real signed owner publishes an immutable version that is not active",
+  `status=${published.status} body=${published.body.slice(0, 300)}`);
+
+  const memberList = await rpc("my_pack_publications", tokens.requester, { p_limit: 20, p_before_sequence: null });
+  const memberListBody = readJson(memberList);
+  expect(memberList.status === 200 && (memberListBody?.publications as unknown[] | undefined)?.length === 1 &&
+    memberListBody?.activePublicationId === null,
+  "A member reads the publication history with nothing active",
+  `status=${memberList.status} body=${memberList.body.slice(0, 200)}`);
+
+  const memberDetail = await rpc("my_pack_publication", tokens.requester, { p_publication_id: publicationId });
+  const memberDetailBody = readJson(memberDetail);
+  expect(memberDetail.status === 200 && memberDetailBody?.role === "member" &&
+    (memberDetailBody?.publication as Record<string, unknown> | undefined)?.sequence === 1,
+  "A member reads one published version and is not reported as owner",
+  `status=${memberDetail.status} body=${memberDetail.body.slice(0, 300)}`);
+
+  expectRefused(await rpc("activate_pack_publication", tokens.requester, { p_publication_id: publicationId }),
+    "A member cannot activate a published version", "Only the group owner may manage published versions.");
+
+  expectRefused(await rpc("my_pack_publications", tokens.third, { p_limit: 20, p_before_sequence: null }),
+    "A caller outside the group cannot list publications", "Group required.");
+  expectRefused(await rpc("my_pack_publication", tokens.third, { p_publication_id: publicationId }),
+    "A caller outside the group cannot read a publication by id", "Group required.");
+  expectRefused(await rpc("activate_pack_publication", tokens.third, { p_publication_id: publicationId }),
+    "A caller outside the group cannot activate a publication", "Group required.");
+
+  const activated = await rpc("activate_pack_publication", tokens.owner2, { p_publication_id: publicationId });
+  expect(readJson(activated)?.activePublicationId === publicationId,
+    "The owner activates the published version separately",
+    `status=${activated.status} body=${activated.body.slice(0, 200)}`);
+
+  const beforeEdit = (await rpc("my_pack_publications", tokens.owner2, { p_limit: 20, p_before_sequence: null })).body;
+  const edited = await rpc("save_pack_draft", tokens.owner2, {
+    p_group_id: privateGroup?.id, p_game_version: "1.21.1", p_loader: "fabric",
+    p_version_ids: ["main-v"], p_expected_revision: 1,
+  });
+  const afterEdit = await rpc("my_pack_publications", tokens.owner2, { p_limit: 20, p_before_sequence: null });
+  expect(readJson(edited)?.draft?.revision === 2 && afterEdit.body === beforeEdit,
+    "A later draft edit rewrites neither the frozen selection nor the active version",
+    `status=${edited.status} before=${beforeEdit.slice(0, 200)} after=${afterEdit.body.slice(0, 200)}`);
+
+  const departed = await rpc("leave_group", tokens.requester);
+  expect(readJson(departed)?.groupDeleted === false,
+    "The member leaves a group that survives",
+    `status=${departed.status} body=${departed.body.slice(0, 200)}`);
+  expectRefused(await rpc("my_pack_publications", tokens.requester, { p_limit: 20, p_before_sequence: null }),
+    "A previous member cannot list publications", "Group required.");
+  expectRefused(await rpc("my_pack_publication", tokens.requester, { p_publication_id: publicationId }),
+    "A previous member cannot read a publication by id", "Group required.");
+  expect((await rpc("my_pack_publication", tokens.owner2, { p_publication_id: publicationId })).status === 200,
+    "The remaining owner still reads the publication",
+    "the owner lost access after the member left");
 } finally {
   const cleanup = await psql(`
     delete from public.groups where owner_id in (${subjectList});
@@ -406,7 +477,11 @@ try {
     select (select count(*) from public.profiles where user_id in (${subjectList}))
       + (select count(*) from public.groups where owner_id in (${subjectList}))
       + (select count(*) from public.group_members where user_id in (${subjectList}))
-      + (select count(*) from public.group_join_requests where user_id in (${subjectList}));
+      + (select count(*) from public.group_join_requests where user_id in (${subjectList}))
+      + (select count(*) from public.pack_publications p join public.groups g on g.id = p.group_id
+           where g.owner_id in (${subjectList}))
+      + (select count(*) from public.pack_drafts d join public.groups g on g.id = d.group_id
+           where g.owner_id in (${subjectList}));
   `);
   expect(leftovers === 0, "No probe fixture survives cleanup", `${leftovers} leftover row(s)`);
 } catch (error) {
