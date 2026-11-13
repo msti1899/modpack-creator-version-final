@@ -105,6 +105,10 @@ Still unproven after the local database work:
 - Profile conflict contract: merged to `main` through
   [PR #56](https://github.com/msti1899/modpack-creator-version-final/pull/56) as
   `9067562`, with the Backend checks passing on the merge commit. `main` runs 131 tests.
+- Catalog discovery (completion plan M3): merged to `main` through
+  [PR #58](https://github.com/msti1899/modpack-creator-version-final/pull/58) as
+  `b9167c0`, with the Backend checks passing on the merge commit in 45 seconds. `main`
+  runs 153 tests and 2655 assertions.
 
 ## Proposed next backend phase
 
@@ -189,8 +193,9 @@ service was touched.
 ## Backend completion M3: catalog discovery (feat/catalog-discovery)
 
 The third milestone of the [completion plan](plans/backend-completion.md) is implemented
-on `feat/catalog-discovery`, cut from `main` at `6a552bf`. It is not published and not
-merged.
+on `feat/catalog-discovery`, cut from `main` at `6a552bf`, and merged to `main` through
+[PR #58](https://github.com/msti1899/modpack-creator-version-final/pull/58) as `b9167c0`
+with the Backend checks passing on the merge commit.
 
 `GET /mods` now rejects unknown query parameters and accepts `sort`, `category`,
 `environment` and `author` alongside the existing query, version, loader and offset.
@@ -218,7 +223,9 @@ burned its acknowledgement; its eight informational advisories are recorded in
 [doc09](delivery/doc09-catalog-discovery.md) as later work, including the missing cap on
 distinct `category` values and the lack of per-hit degradation on upstream schema drift.
 
-Next action: independently verify the branch, then decide its review and publication.
+Next action: the slice is merged; the review advisories in
+[doc09](delivery/doc09-catalog-discovery.md) are the next optional work, and selector data
+and the exact-version picker still need a product decision.
 
 ## Resume
 
