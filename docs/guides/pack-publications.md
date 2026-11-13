@@ -92,6 +92,13 @@ listed and readable; repair is a new draft and a new publication. A value stored
 outside this workflow by a direct database call may exceed the export length limit:
 it stays readable but cannot be exported.
 
+The documented failure mapping is: `409 A selected mod or dependency is unavailable.`
+when upstream no longer serves a pinned version or project, `409` with the compatibility
+message when a version dropped the frozen Minecraft version or loader, `502` for an
+upstream server error or malformed metadata, and `504` when the catalog does not answer
+in time. A failed export returns no archive bytes and no attachment headers, and its
+publication stays read-only available.
+
 ## Ownership and storage
 
 Ownership transfer moves publish and activation rights immediately. A former owner

@@ -211,7 +211,12 @@ but such a value cannot be exported because the shared export contract measures
 UTF-16 units.
 Export accepts no body and no query parameters and uses the frozen name, version,
 loader version, game version, loader and exact version IDs. Activation accepts only a
-publication of the caller's own group and leaves exactly one active version.
+publication of the caller's own group and leaves exactly one active version. A failed
+export is a documented failure, never a different pack: `409 A selected mod or
+dependency is unavailable.` when a pinned version or project is gone, `409` with the
+compatibility message when a version dropped the frozen Minecraft version or loader,
+`502` for an upstream server error or malformed metadata, and `504` on timeout. The
+frozen publication stays listed and readable in every case.
 
 Errors: 400 invalid input, 401 authentication, 403 owner-only publish or activation,
 404 no current group, no draft or unknown publication, 409 stale draft or sequence

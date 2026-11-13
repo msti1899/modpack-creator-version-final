@@ -31,7 +31,8 @@ select pg_temp.assert(not has_function_privilege('authenticated', 'public.pack_p
 select pg_temp.assert(not has_function_privilege('authenticated', 'public.current_clerk_sub()', 'EXECUTE'), 'the subject helper is not a client RPC');
 
 insert into public.profiles(user_id, username) values
-  ('user_pubowner', 'PubOwner'), ('user_pubmember', 'PubMember'), ('user_puboutsider', 'PubOutsider');
+  ('user_pubowner', 'PubOwner'), ('user_pubmember', 'PubMember'), ('user_puboutsider', 'PubOutsider'),
+  ('user_pubdeparted', 'PubDeparted');
 
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"user_pubowner","role":"authenticated"}', true);
@@ -71,6 +72,21 @@ select pg_temp.assert((select count(*) from jsonb_array_elements(public.my_pack_
   where e->>'active' = 'true') = 1, 'exactly one version stays active');
 select pg_temp.expect_error($q$select public.activate_pack_publication('00000000-0000-4000-8000-000000000000')$q$, 'Publication not found.');
 
+-- A later draft edit and a later publication never rewrite history or activation.
+select set_config('test.pub_active_snapshot', (public.my_pack_publications(20, null))::text, true);
+select public.save_pack_draft(current_setting('test.pub_group')::uuid, '1.21.1', 'fabric', array['main-v'], 1);
+select pg_temp.assert(public.my_pack_draft()->'draft'->>'revision' = '2', 'the draft changed after publishing');
+select pg_temp.assert((public.my_pack_publications(20, null))::text = current_setting('test.pub_active_snapshot'), 'a draft edit preserves every frozen publication and the active version');
+select pg_temp.assert(public.my_pack_publication(current_setting('test.pub_first_id')::uuid)->'publication'->'versionIds' = '["main-v","dep-v"]'::jsonb, 'an earlier publication keeps its frozen selection after a draft edit');
+select set_config('test.pub_revised', (public.publish_pack_draft('Friends','1.1.0','0.16.0',2))::text, true);
+select pg_temp.assert((current_setting('test.pub_revised')::jsonb->'publication'->>'sequence') = '3', 'a later publication gets the next sequence');
+select pg_temp.assert(public.my_pack_publications(20, null)->>'activePublicationId' = current_setting('test.pub_second_id'), 'publishing again leaves the active version untouched');
+select pg_temp.assert(public.my_pack_publication(current_setting('test.pub_first_id')::uuid)->'publication'->'versionIds' = '["main-v","dep-v"]'::jsonb, 'the first publication is still unchanged');
+select pg_temp.assert(public.my_pack_publication(current_setting('test.pub_first_id')::uuid)->'publication'->>'name' = 'Friends', 'a later publication preserves the first name');
+select pg_temp.assert(public.my_pack_publication(current_setting('test.pub_first_id')::uuid)->'publication'->>'version' = '1.0.0', 'a later publication preserves the first version');
+select pg_temp.assert(public.my_pack_publication(current_setting('test.pub_first_id')::uuid)->'publication'->>'loaderVersion' = '0.16.0', 'a later publication preserves the first loader version');
+select pg_temp.assert((current_setting('test.pub_revised')::jsonb->'publication'->>'active') = 'false', 'a later publication is never active');
+
 select set_config('test.pub_snapshot', (public.my_pack_publications(20, null))::text, true);
 select pg_temp.expect_error($q$select public.publish_pack_draft('','1.0.0','0.16.0',1)$q$, 'Invalid publication details.');
 select pg_temp.expect_error($q$select public.publish_pack_draft(' Friends','1.0.0','0.16.0',1)$q$, 'Invalid publication details.');
@@ -90,6 +106,14 @@ select pg_temp.assert(public.my_pack_publication(current_setting('test.pub_first
 select pg_temp.expect_error($q$select public.publish_pack_draft('Friends','2.0.0','0.16.0',1)$q$, 'Only the group owner may manage published versions.');
 select pg_temp.expect_error($q$select public.activate_pack_publication(current_setting('test.pub_first_id')::uuid)$q$, 'Only the group owner may manage published versions.');
 
+-- A member who leaves a surviving group loses publication access on the next request.
+select set_config('request.jwt.claims', '{"sub":"user_pubdeparted","role":"authenticated"}', true);
+select public.join_public_group(current_setting('test.pub_group')::uuid);
+select pg_temp.assert(public.my_pack_publication(current_setting('test.pub_first_id')::uuid)->'publication'->>'sequence' = '1', 'a joining member reads the history');
+select public.leave_group();
+select pg_temp.expect_error($q$select public.my_pack_publications(20, null)$q$, 'Group required.');
+select pg_temp.expect_error($q$select public.my_pack_publication(current_setting('test.pub_first_id')::uuid)$q$, 'Group required.');
+
 select set_config('request.jwt.claims', '{"sub":"user_puboutsider","role":"authenticated"}', true);
 select pg_temp.expect_error('select public.my_pack_publications(20, null)', 'Group required.');
 select public.create_group('Other publish group', 'private');
@@ -105,8 +129,8 @@ select pg_temp.assert(public.my_pack_publication(current_setting('test.pub_first
 select public.leave_group();
 
 select set_config('request.jwt.claims', '{"sub":"user_pubmember","role":"authenticated"}', true);
-select set_config('test.pub_third', (public.publish_pack_draft('Friends','3.0.0','0.16.0',1))::text, true);
-select pg_temp.assert((current_setting('test.pub_third')::jsonb->'publication'->>'sequence') = '3', 'the new owner publishes the next sequence');
+select set_config('test.pub_third', (public.publish_pack_draft('Friends','3.0.0','0.16.0',2))::text, true);
+select pg_temp.assert((current_setting('test.pub_third')::jsonb->'publication'->>'sequence') = '4', 'the new owner publishes the next sequence');
 select public.leave_group();
 reset role;
 
