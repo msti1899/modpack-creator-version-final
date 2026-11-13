@@ -5,6 +5,7 @@ import { profileRoutes, type ProfileFetcher } from "./profiles";
 import { groupRoutes } from "./groups";
 import { packDraftRoutes } from "./pack-drafts";
 import { packPublicationRoutes } from "./pack-publications";
+import { voteRoutes } from "./votes";
 import type { DatabaseOptions } from "./database";
 import { requireIdentity, type IdentityEnv, type IdentityOptions } from "./identity";
 
@@ -25,6 +26,7 @@ export function createApp(fetcher: Fetcher = fetch, identity: IdentityOptions = 
   // database role guard both the draft and the published-version routes.
   packRoutes.route("/", packPublicationRoutes(fetcher, profileFetcher, database));
   app.route("/groups/me/pack", packRoutes);
+  app.route("/groups/me/votes", voteRoutes(identity, fetcher, profileFetcher, database));
   app.use("/packs/*", bodyLimit({ maxSize: 16_384, onError: (c) => c.json({ error: "Request body is too large." }, 400) }));
   app.get("/mods", async (c) => c.json(await search(fetcher, new URL(c.req.url).searchParams)));
   async function body(request: Request): Promise<Record<string, unknown>> {

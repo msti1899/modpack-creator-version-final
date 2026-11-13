@@ -1,82 +1,110 @@
 # Current handoff
 
-Checkpoint: 2026-11-12. `main` at `d5d3c40` already contains milestone 3 (PR #45,
-merged as `b648c21`) and milestone 4 (PR #46, merged as `2ae50e7`). Milestone 5 is
-implemented, tested and documented on `feat/published-versions`, cut from `d5d3c40`
-and committed as `51e7a03` plus the documentation commit containing this file. Verify
-the branch and HEAD before resuming; documentation commits do not change the
-application baseline. This is a resume point, not a session history.
+Checkpoint: 2026-11-12. `main` at `e60a816` contains milestone 3 ([PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45),
+merge `b648c21`), milestone 4 ([PR #46](https://github.com/msti1899/modpack-creator-version-final/pull/46),
+merge `2ae50e7`) and milestone 5 ([PR #49](https://github.com/msti1899/modpack-creator-version-final/pull/49)).
+Milestone 6 is implemented on `feat/voting`, which now merges that `main` and is
+published as [PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48).
+Verify the branch and HEAD before resuming. This is a resume point, not a session
+history.
 
-## Current work
+## Merged milestones
 
-Milestone 5 (published versions and sharing) is complete locally: one publication per
-publish action, immutable snapshots, a per-group sequence, an owner-selected active
-version that publishing never changes, member-only reads and exports, and a frozen
-`.mrpack` export. An approved decision restricts reads and exports to current group
-members, so a share link carries no authority by itself. See the
-[publication guide](guides/pack-publications.md),
-[API reference](reference/backend-api.md#published-pack-versions),
-[doc05](delivery/doc05-published-versions.md) and
-[publication tasks](../odd/tasks/published-versions.md).
+- Milestone 3, groups and permissions: thirteen authenticated operations, owner and
+  member rules, direct public admission, owner-approved private joining. Evidence in
+  [doc02](delivery/doc02-groups-permissions.md) and [groups tasks](../odd/tasks/groups-permissions.md).
+- Milestone 4, persisted draft: one exact approved draft per group, owner-only saves,
+  compatible Minecraft and loader changes, member read and export. Evidence in
+  [doc04](delivery/doc04-pack-drafts.md) and [draft tasks](../odd/tasks/pack-drafts.md).
+- Milestone 5, published versions: immutable publications, an owner-selected active
+  version that publishing never changes, and reads or exports limited to current group
+  members. Evidence in [doc05](delivery/doc05-published-versions.md) and
+  [publication tasks](../odd/tasks/published-versions.md).
 
-Milestone 3 and 4 evidence stays in [doc02](delivery/doc02-groups-permissions.md) and
-[doc04](delivery/doc04-pack-drafts.md); it is not restated here.
+Those records own their own proof and gaps; this checkpoint does not restate them.
+
+## Current work: milestone 6, voting
+
+Milestone 6 is implemented on `feat/voting`, created from `d5d3c40` and now carrying a
+merge of `main` at `e60a816`. The four lifecycle rules the roadmap required were
+decided and recorded in D7. Votes are owner-created concrete proposals with a chosen
+1–720 hour duration, a frozen electorate that includes the owner, absolute majority
+with early approval, owner cancellation, deadline rejection, and a separate owner
+incorporation action. Approval never edits, publishes or activates a pack version. See
+[voting tasks](../odd/tasks/voting.md), [doc06](delivery/doc06-voting.md) and the
+[voting guide](guides/voting.md).
+
+Because milestone 5 merged first, this branch renumbers two identifiers: the votes
+migration is `20261112233000_group_votes.sql` and its delivery record is
+`doc06-voting.md`. The publication delivery keeps `20261112230000` and `doc05`.
 
 ## Proof for this checkpoint
 
-- RED observed: 11 of 12 new publication HTTP tests failed with 404 before the routes
-  existed. GREEN: 17 focused tests / 365 assertions.
-- `bun run check`: 103 tests / 2075 assertions, both application typechecks exit 0.
-- All eight migrations applied in order on PGlite 0.5.16 in isolated external scratch,
-  with the checked-in publication suite passing and the draft suite re-passing on the
-  same run. This is supplemental evidence, not a pgTAP execution.
-- Differential against `main` at `d5d3c40`: 16 scenarios identical in status, headers
-  and body, including public `/mods`, `/packs/resolve` and `/packs/export` archive hash.
-- Independent read-only verification ran twice in external scratch. The first round
-  reproduced one input-parity blocker (C1 controls answered 502 instead of 400); the
-  narrow recheck confirmed that fix with 147,492 parity attempts and no 5xx, then
-  reported that publish accepted metadata the shared export contract rejects. The
-  second correction applied the export length contract to publish input and was
-  verified locally only, because the correction bound was already reached.
+- Merged `main` re-checked on this branch: `bun run check` passes 125 tests / 2310
+  assertions with both application typechecks. Before the merge the branch alone
+  passed 108 tests / 1945 assertions.
+- All nine migrations apply in order in one isolated PGlite 0.5.16 session, and the
+  publication, votes and draft SQL suites all pass in the same session. The votes suite
+  fails when its migration is skipped. This is supplemental evidence, not pgTAP.
+- Independent verification of the voting slice reproduced no blocker: S1–S5 met,
+  179 SQL checks, 11 HTTP probe tests and 55 byte-identical comparisons of existing
+  routes against the base revision.
+- Native review of the voting candidate approved it and burned its acknowledgement with
+  no correction round; six advisories are recorded in doc06.
 
 ## Missing proof
 
-Actual pgTAP (`bun run db:test` needs a local stack), the Docker-dependent upgrade
-runner, hosted project application, true multi-connection publication and activation
-races, a signed Clerk→Hono→PostgREST request, and native candidate review. PGlite is
-single-connection, so group-lock ordering is argued structurally, not raced. Inherited
-advisories from milestones 3 and 4 remain open and are not re-claimed as current proof.
+Actual pgTAP (`bun run db:test` needs Docker and a local stack, both absent), the
+Docker-dependent upgrade runner, PostgREST and a signed Clerk→Hono→PostgREST request,
+real multi-connection races for admission, publication and voting, hosted application
+of the publication and votes migrations, and native candidate review for milestone 5.
+PGlite is single-connection, so lock ordering is argued structurally, not raced.
 
 ## Delivery state
 
-Branch `feat/published-versions` is pushed and published in [PR #49](https://github.com/msti1899/modpack-creator-version-final/pull/49) with the
-Backend checks job passing in 39 seconds. No merge, hosted change or deployment is
-recorded. Applying the publication migration to the selected test project and merging
-the pull request remain separate decisions.
+- Milestone 5: merged to `main` as `e60a816`; the Backend CI run on that commit passed.
+- Milestone 6: [PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48)
+  is open on the merged head; its previous run passed on the pre-merge commit, so the
+  post-merge run is the current evidence.
+- No hosted change and no deployment is recorded for milestones 5 or 6.
+
+Next action: review and merge PR #48 once its post-merge checks pass, then decide
+separately whether to apply the publication and votes migrations to the selected test
+project.
 
 ## Resume
 
 1. Verify the branch, commit and local changes against this snapshot. Preserve
    unrelated untracked work: `.agents/`, `.atl/`, `apps/web/AGENTS.md`,
-   `skills-lock.json`, and the separate `feat/voting` worktree, which this checkpoint
-   did not inspect.
-2. For scope, read [roadmap milestone 5](plans/backend-roadmap.md#delivery-order) and
-   [publication tasks](../odd/tasks/published-versions.md); milestones 3 and 4 link
-   their own records.
-3. Next actions, each needing its own authorization: native candidate review when due,
-   a multi-connection race check on a real database stack, hosted proof on the selected
-   test project, then merge.
-4. Hosted Clerk → Supabase trust and the applied profile, group and draft migrations
-   remain as recorded in [the hosted verification record](../odd/tasks/hosted-profile-verification.md).
-   The publication migration has never been applied to a hosted project. Do not access
-   ambient CLI sessions or credentials beyond explicitly authorized test projects.
-5. Remaining unverified areas that need separate accounts or mailboxes are unchanged:
+   `skills-lock.json`, and the separate worktrees for merged branches.
+2. For scope, read [roadmap milestone 6](plans/backend-roadmap.md#delivery-order) and
+   [voting tasks](../odd/tasks/voting.md); merged milestones link their own records.
+3. Hosted state is unchanged from the earlier checkpoints: the profile, group and draft
+   migrations are applied to the selected test project, and the publication and votes
+   migrations are not. Applying them needs explicit authorization. Do not access ambient
+   CLI sessions or credentials beyond authorized test projects.
+4. Remaining unverified areas that need separate accounts or mailboxes are unchanged:
    full Google/Discord OAuth completion and real email delivery.
+
+## Application checkpoint
+
+Recorded before the numbered documentation deliveries; not rerun for this checkpoint.
+
+- Clerk owns accounts and sessions. Hono verifies Clerk tokens for `/me` and protects
+  profile endpoints; Supabase remains the profile database. Public Modrinth search,
+  resolution and `.mrpack` export remain implemented.
+- Hosted profile and group work was verified with explicit authorization: the profile,
+  group and draft migrations are applied to the selected test project, Clerk Development
+  signs `role: "authenticated"`, Supabase trusts the Clerk issuer, and real-session
+  lifecycle plus cross-user isolation passed. Fixtures were removed and `public.profiles`
+  is back to zero rows.
+- Offline JWT expiry still limits immediate revocation. Earlier merge and review records
+  remain historical evidence in [the archived handoff](handoff-history-2026-11-12.md) and
+  the feature logs. No deployment has been recorded, and service liveness is not
+  verified here.
 
 ## Documentation maintenance
 
 Use [the documentation index](README.md) to choose the owning document. Complete work
 units get a [numbered delivery record](delivery/README.md); interruptions update this
-checkpoint. No retrospective doc numbers are assigned to earlier work. Earlier
-application and documentation evidence remains in
-[the archived handoff](handoff-history-2026-11-12.md), doc01 and the feature logs.
+checkpoint. No retrospective doc numbers are assigned to earlier work.

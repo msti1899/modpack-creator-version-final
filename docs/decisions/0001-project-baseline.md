@@ -102,6 +102,18 @@ the original context. Unresolved items are listed separately.
   deadline.
 - An approved result is binding: the owner must incorporate the addition.
   Approval does not itself edit, publish, or activate a pack version.
+- A member may change their own ballot while the vote stays open, and only the
+  latest ballot counts. Reaching the majority closes the vote immediately, and no
+  ballot changes are accepted afterwards (decided on 2026-11-12).
+- The owner may cancel an open vote. A cancelled vote is terminal, gives the
+  group nothing and adds no mod (decided on 2026-11-12).
+- The fixed electorate does not change when a member leaves the group. Ballots
+  already cast stay counted, a missing ballot stays an absence, and the majority
+  threshold keeps the original electorate size (decided on 2026-11-12).
+- A group may have several independent open votes at the same time, one per
+  concrete mod addition (decided on 2026-11-12).
+- A vote that reaches its deadline without the required majority ends rejected.
+  Expiry and rejection are terminal and never add the mod.
 
 ## Technical and operational decisions
 
@@ -194,8 +206,8 @@ set. See the [backend architecture](../architecture/modrinth-backend.md) and
 - Open-source license and project naming/branding.
 - Exact Minecraft version support and handling unavailable or incompatible mod
   versions/dependencies. No guarantee of detecting every runtime mod conflict.
-- Vote changes, cancellation, expiry/rejection behavior, and how departures or
-  expulsions affect previously eligible voters and their submitted votes.
+- Group expulsion does not exist in the current scope, so only voluntary
+  departure affects an open vote and D7 now covers it.
 - Deletion confirmation/recovery semantics.
 - Anonymous browsing and the visibility of pack contents to nonmembers.
 - Actual free-provider account eligibility and end-to-end email delivery.
