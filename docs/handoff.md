@@ -1,12 +1,18 @@
 # Current handoff
 
-Checkpoint: 2026-11-12. `main` at `becd201` contains milestone 3 ([PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45),
+Checkpoint: 2026-11-13. `main` at `4e03da0` contains milestone 3 ([PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45),
 merge `b648c21`), milestone 4 ([PR #46](https://github.com/msti1899/modpack-creator-version-final/pull/46),
 merge `2ae50e7`), milestone 5 ([PR #49](https://github.com/msti1899/modpack-creator-version-final/pull/49),
 merge `e60a816`), milestone 6 ([PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48),
 merge `ea2c43f`), the milestone-6 documentation record ([PR #50](https://github.com/msti1899/modpack-creator-version-final/pull/50),
-merge `5c83c5c`) and the local database proof ([PR #51](https://github.com/msti1899/modpack-creator-version-final/pull/51),
-merge `becd201`). Verify the branch and HEAD against this snapshot before resuming.
+merge `5c83c5c`), the local database proof ([PR #51](https://github.com/msti1899/modpack-creator-version-final/pull/51),
+merge `becd201`), the hosted schema application (PR #53), the account and session proof
+([PR #55](https://github.com/msti1899/modpack-creator-version-final/pull/55), merge
+`21c91f8`), the profile conflict contract ([PR #56](https://github.com/msti1899/modpack-creator-version-final/pull/56),
+merge `9067562`), catalog discovery ([PR #58](https://github.com/msti1899/modpack-creator-version-final/pull/58),
+merge `b9167c0`) and the completion-plan M5 group lifecycle proof
+([PR #60](https://github.com/msti1899/modpack-creator-version-final/pull/60), merge
+`4e03da0`). Verify the branch and HEAD against this snapshot before resuming.
 This is a resume point, not a session history.
 
 ## Merged milestones
@@ -77,10 +83,13 @@ Still unproven after the local database work:
 - Mutation testing of the lock discipline: the new race checks are designed so that
   removing a lock or the one-group index changes the observed result, but no mutation
   was run.
-- A real-session group/publication/voting flow. The publication and votes migrations
-  were applied with authorization on 2026-11-13; schema readback is not functional proof.
-  The upgrade runner passes in its disposable local container; it is not a hosted-data
-  upgrade exercise. Additional hosted operations need bounded authorization.
+- A real-session publication and voting flow. The group lifecycle is now proven both with
+  locally signed tokens and with real hosted Clerk sessions
+  ([doc10](delivery/doc10-groups-lifecycle-proof.md)). The publication and votes migrations
+  were applied with authorization on
+  2026-11-13; schema readback is not functional proof. The upgrade runner passes in its
+  disposable local container; it is not a hosted-data upgrade exercise. Additional
+  hosted operations need bounded authorization.
 - Native candidate review for milestone 5, and closure of the milestone 3 review that
   stopped after three of four lenses with no receipt.
 - Full Google/Discord OAuth completion and real email delivery, which need provider
@@ -109,6 +118,10 @@ Still unproven after the local database work:
   [PR #58](https://github.com/msti1899/modpack-creator-version-final/pull/58) as
   `b9167c0`, with the Backend checks passing on the merge commit in 45 seconds. `main`
   runs 153 tests and 2655 assertions.
+- Group lifecycle proof (completion plan M5): merged to `main` through
+  [PR #60](https://github.com/msti1899/modpack-creator-version-final/pull/60) as
+  `4e03da0`, with the Backend checks passing in 44 seconds on the branch head. It adds
+  tests, runners and documentation only; `main` still runs 153 tests.
 - Pack assembly (completion plan M4): implemented on `feat/pack-assembly` and not
   merged; see the milestone section below.
 
@@ -241,7 +254,7 @@ lookup per candidate. The rest of the milestone reuses existing interfaces: acce
 `PUT /groups/me/pack` carrying the proposal's version IDs, cancel stores nothing,
 removal is a shorter replacement, a compatible Minecraft or loader change revalidates
 the whole selection, and every rejection leaves the stored row untouched. See
-[doc10](delivery/doc10-pack-assembly.md) and
+[doc11](delivery/doc11-pack-assembly.md) and
 [assembly tasks](../odd/tasks/pack-assembly.md).
 
 Proof: `bun run check` passes 157 tests and 2699 assertions with both typechecks, up
@@ -265,11 +278,47 @@ three atomic rejections, export and the group-delete cascade all behaved as docu
 The first draft read timed out at the 5-second route limit before a retry succeeded,
 which is recorded as an observed limit. One profile row (`m4proof13`) remains because
 no deletion endpoint exists; removing it needs privileged database access. Details and
-limits are in [doc10](delivery/doc10-pack-assembly.md).
+limits are in [doc11](delivery/doc11-pack-assembly.md).
 
 Next action: request hosted or real-session proof if this slice needs it, or continue
 with the next completion-plan milestone; publication and merge remain separate
 decisions.
+## Backend completion M5: group lifecycle proof (feat/group-lifecycle)
+
+The fifth milestone of the [completion plan](plans/backend-completion.md) was authorized
+as isolated work on `feat/group-lifecycle`, cut from `origin/main` at `bce2fb7` in its own
+worktree. It adds evidence, not behavior: no endpoint, migration, validation rule or
+response shape changed. pgTAP gained 24 assertions for pending-request cursors, page
+clamping, empty pages past the end and rotated or revoked tokens, and the signed-token
+PostgREST script became a 58-check multi-subject lifecycle suite covering admission,
+invitation, request, approval, rejection, rotation, revocation, member pages, immediate
+ownership transfer and both departure paths. The runner now also fails when a probe
+fixture survives cleanup.
+
+Observed on 2026-11-13 with the local disposable stack: `bun run db:test` PASS with 217
+tests, `bun run db:test:postgrest` 58 of 58 checks, `bun run check` 153 tests and 2655
+assertions with both typechecks. Two local-only database mutations (removing the
+transfer-before-leaving refusal and ignoring `revoked_at`) produced nine pgTAP and six
+PostgREST failures; `bun run db:reset` restored the migrations and both suites returned
+to PASS. See [doc10](delivery/doc10-groups-lifecycle-proof.md) and the
+[feature log](../odd/tasks/completion-m5-group-lifecycle.md).
+
+The hosted proof that the local stack cannot assemble was then authorized and run:
+`bun scripts/test-group-session.ts --live` passed 30 checks with three real Clerk
+sessions through a locally running API against the selected test project, including
+immediate role changes and both departure paths. Every group was closed through the API,
+the three profiles were removed with one exact-id delete, and hosted readback showed zero
+rows in all five group/profile tables; the Clerk instance again holds only the owner
+account. Two behaviours are recorded in doc10: a development browser token serves one
+sign-in flow, and a failed account creation now still registers its id for cleanup.
+
+State: merged to `main` through
+[PR #60](https://github.com/msti1899/modpack-creator-version-final/pull/60) as `4e03da0`,
+with the Backend checks passing in 44 seconds on the branch head. It was published as four
+commits, one per artifact, after the native assessment returned medium with
+`under_budget`, so no candidate review was due. Next action: re-run the live check after
+any change to the group routes, RLS grants or Clerk token template; no deployment is
+recorded.
 
 ## Resume
 

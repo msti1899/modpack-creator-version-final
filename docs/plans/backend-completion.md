@@ -149,6 +149,34 @@ the request to assess and plan.
 
 ## Change log
 
+- 2026-11-13: M5 merged to `main` through
+  [PR #60](https://github.com/msti1899/modpack-creator-version-final/pull/60) as
+  `4e03da0`, with the Backend checks passing in 44 seconds. Published as four commits, one
+  per artifact, after a medium/`under_budget` assessment. This slice changed no product
+  behavior, so the remaining M5 work is a re-run of the live proof when group routes, RLS
+  grants or the token template change.
+
+- 2026-11-13: M5 gained its hosted real-session proof after separate authorization. A new
+  live script created three disposable development accounts, signed them in for real
+  session tokens, and ran the full lifecycle through a local API against the selected test
+  project: 30 checks passed, including immediate role changes and both departure paths.
+  Groups were closed through the API, profiles were removed by exact id, and hosted
+  readback showed zero rows. The instance holds only the owner account. Re-running needs
+  the same bounded authorization; the script is not part of CI. See
+  [doc10](../delivery/doc10-groups-lifecycle-proof.md).
+
+- 2026-11-13: M5, group lifecycle and access, was authorized on an isolated branch and
+  implemented as evidence on `feat/group-lifecycle` from `origin/main` at `bce2fb7`. No
+  endpoint, migration or product rule changed. pgTAP gained 24 assertions for
+  pending-request cursors, page clamping, empty final pages and rotated or revoked
+  tokens, and the signed-token PostgREST script became a multi-subject lifecycle suite
+  (58 checks) covering admission, invitation, approval, rejection, pages, immediate
+  ownership transfer and both departure paths. Local results: `bun run db:test` PASS with
+  217 tests, `bun run db:test:postgrest` 58/58, `bun run check` 153 tests. Two local-only
+  mutations produced nine pgTAP and six PostgREST failures and were reverted with
+  `bun run db:reset`. Hosted real-session lifecycle proof remains open. The slice is not
+  published, reviewed or merged. See [doc10](../delivery/doc10-groups-lifecycle-proof.md).
+
 - 2026-11-13: M3 was implemented on `feat/catalog-discovery` after separate owner
   authorization, using the scope and delivery order recorded above. The slice rejects
   unknown and repeated query parameters, adds sort/category/environment/author filters,
@@ -197,4 +225,4 @@ the request to assess and plan.
   accept, cancel, removal, compatible settings changes and atomic rejection reuse the
   existing resolver, selection validation and replacement write. Independent
   verification met S1–S7 with no blocker and its three advisories were corrected.
-  Not published, not merged. See [doc10](../delivery/doc10-pack-assembly.md).
+  Not published, not merged. See [doc11](../delivery/doc11-pack-assembly.md).

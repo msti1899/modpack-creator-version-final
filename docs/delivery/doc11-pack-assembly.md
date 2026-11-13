@@ -1,4 +1,4 @@
-# doc10: Pack assembly and dependency approval
+# doc11: Pack assembly and dependency approval
 
 Date: 2026-11-13
 Scope: completion plan M4 — proposal inspection, accept and cancel, explicit removal,
