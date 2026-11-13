@@ -46,12 +46,15 @@ Minecraft/loader options, an exact-version picker, and any UI.
 
 ## Tasks
 
-- T1 [S1] inline — pin the existing contract with tests only, no behavior change.
-- T2 [S2] inline — reject unknown query parameters.
-- T3 [S3] inline — `sort`.
-- T4 [S4] inline — `category`.
-- T5 [S5] inline — `environment`.
-- T6 [S6] inline — `author`.
+- T1 [S1] inline — complete. Pinning tests live in
+  `apps/api/tests/catalog-discovery.test.ts`; the page-size and offset-bound pins were
+  both shown to fail when the behavior they guard was mutated.
+- T2–T6 [S2–S6] inline — complete in one work unit, because the unknown-parameter
+  guard and all four filters modify the same validation path in
+  `apps/api/src/modrinth.ts`; a per-filter split would have been cosmetic. RED was
+  observed for each filter's assertions before the implementation.
+  Risk: item 3 (public API query contract).
+  Evidence: `bun test` passes 142 tests and 2549 assertions with both typechecks.
 - T7 [S7] inline — exact project lookup route.
 - T8 [S8] inline — enriched hit payload, response-size measurement, reference and
   guide updates, golden-hash recapture in the public regression test.

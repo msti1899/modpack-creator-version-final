@@ -7,6 +7,7 @@ export class PackError extends Error {
 type RecordValue = Record<string, unknown>;
 const object = (value: unknown): value is RecordValue => value !== null && typeof value === "object" && !Array.isArray(value);
 const identifier = /^[A-Za-z0-9_-]{1,100}$/;
+const searchParameters = new Set(["query", "gameVersion", "loader", "offset", "sort", "category", "environment", "author"]);
 const loaders = { fabric: "fabric-loader", forge: "forge", neoforge: "neoforge", quilt: "quilt-loader" } as const;
 type Loader = keyof typeof loaders;
 type Settings = { gameVersion: string; loader: Loader; versionIds: string[] };
@@ -142,13 +143,27 @@ class Selection {
 }
 
 export async function search(fetcher: Fetcher, input: URLSearchParams) {
+  for (const key of input.keys()) if (!searchParameters.has(key)) throw new PackError("Invalid query parameter.", 400);
   const config = settings({ gameVersion: input.get("gameVersion"), loader: input.get("loader"), versionIds: [] });
   const query = input.get("query") ?? "";
   if (query.length > 100 || /[\x00-\x1f\x7f]/.test(query)) throw new PackError("Invalid search query.", 400);
   const offsetText = input.get("offset") ?? "0";
   const offset = Number(offsetText);
   if (!/^\d+$/.test(offsetText) || !Number.isSafeInteger(offset) || offset > 10000) throw new PackError("Invalid search offset.", 400);
-  const params = new URLSearchParams({ query, offset: String(offset), limit: "20", facets: JSON.stringify([["project_type:mod"], [`categories:${config.loader}`], [`versions:${config.gameVersion}`]]) });
+  const sort = input.get("sort") ?? "relevance";
+  if (!["relevance", "downloads", "follows", "newest", "updated"].includes(sort)) throw new PackError("Invalid search sort.", 400);
+  const categories = [...new Set(input.getAll("category").flatMap((value) => value.split(",")))];
+  for (const category of categories) if (!/^[a-z0-9-]{1,64}$/.test(category)) throw new PackError("Invalid search category.", 400);
+  const environment = input.get("environment");
+  if (environment !== null && !["client", "server"].includes(environment)) throw new PackError("Invalid search environment.", 400);
+  const author = input.get("author");
+  if (author !== null && !/^[A-Za-z0-9_-]{1,64}$/.test(author)) throw new PackError("Invalid search author.", 400);
+  const facets = [["project_type:mod"], [`categories:${config.loader}`], [`versions:${config.gameVersion}`]];
+  if (categories.length) facets.push(categories.map((category) => `categories:${category}`));
+  // "Runs on this side": a mod that declares the side as optional still works there.
+  if (environment) facets.push(environment === "client" ? ["client_side:required", "client_side:optional"] : ["server_side:required", "server_side:optional"]);
+  if (author) facets.push([`author:${author}`]);
+  const params = new URLSearchParams({ query, offset: String(offset), limit: "20", index: sort, facets: JSON.stringify(facets) });
   const result = await new Catalog(fetcher).get(`/search?${params}`, false);
   if (!object(result) || !Array.isArray(result.hits) || !Number.isSafeInteger(result.total_hits) || Number(result.total_hits) < 0) throw new PackError("Modrinth returned invalid search results.", 502);
   const hits = result.hits.map((hit) => {
