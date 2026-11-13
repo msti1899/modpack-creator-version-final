@@ -28,7 +28,8 @@ because nothing consumes them yet.
   results look missing; precise support per side travels in the payload instead.
 - `GET /mods/:idOrSlug` returns one summary. A missing or non-mod project is a 404,
   while upstream failure keeps 502 and timeout 504, so a failed lookup cannot be
-  mistaken for a missing mod.
+  mistaken for a missing mod. The route accepts no query parameters; any parameter
+  returns 400 instead of being ignored.
 - Each hit now carries `iconUrl`, `downloads`, `follows`, `author`, `categories`,
   `clientSide`, `serverSide` and `latestVersion` through one projection shared with
   the lookup route. Absent upstream fields normalize to `null`/`[]`; present but
@@ -54,13 +55,25 @@ Environment: local Bun 1.4.4, no Docker, no hosted service or provider access.
 - The public regression test recomputed every golden hash. Only the `GET /mods`
   response hash changed, as the approved additive payload requires; the remaining
   nine request hashes are unchanged.
+- Independent verification met S1–S8 with no blocker. It reproduced the suite, showed
+  the branch's catalog tests fail 9 of 16 against the baseline source, and confirmed
+  that for baseline-valid requests only the enriched payload keys and an upstream
+  `index=relevance` parameter differ, with `/packs/*` responses byte-identical. Its
+  probes are committed as `catalog-discovery-verification.test.ts`.
+- Advisories taken: the lookup route now rejects query parameters, and the reference and
+  feature documentation name the repeated-parameter rule and the `author` character set.
+- Advisories kept as documented limits: query validation still accepts C1 controls and
+  line separators, which the baseline already did; the 32 KiB page bound is measured,
+  not enforced; and the lookup path is capped at 64 characters.
 
 ## Delivery state
 
-- Implementation and documentation: complete on `feat/catalog-discovery`, in four
+- Implementation and documentation: complete on `feat/catalog-discovery`, in five
   commits: the plan record (`96a3bd1`), parameter validation and filters
-  (`9e99e1e`), the exact lookup route (`ddc08f9`), and the enriched payload with its
-  documentation. Not published, not merged.
+  (`9e99e1e`), the exact lookup route (`ddc08f9`), the enriched payload with its
+  documentation (`98d439b`), and the verification correction (`ced57f8`). Not
+  published, not merged.
+- Verification: independent verification passed S1–S8 with no blocker on 2026-11-13.
 - Review: no native candidate review has run for this branch.
 - Deployment: none. No database, migration, hosted setting or provider was touched,
   so no pgTAP, upgrade or concurrency runner applies to this slice.

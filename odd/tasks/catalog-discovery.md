@@ -19,7 +19,8 @@ separate decisions and are not authorized.
   returns 504, and both carry a JSON `error` string. Empty results return
   `{"hits": [], "total": 0, "offset": <offset>}` with status 200.
 - S2: An unknown query parameter returns 400 `Invalid query parameter.` instead of
-  being silently ignored.
+  being silently ignored. A single-value parameter repeated in the same request is
+  rejected the same way rather than narrowed to its first value.
 - S3: `sort` accepts `relevance` (default), `downloads`, `follows`, `newest` and
   `updated`, forwarded as the upstream `index` parameter. Any other value returns 400.
 - S4: `category` is repeatable or comma-separated, each value matching
@@ -33,8 +34,9 @@ separate decisions and are not authorized.
 - S6: `author` matches `^[A-Za-z0-9_-]{1,64}$` and is forwarded as the facet
   `author:<value>`. An invalid value returns 400.
 - S7: `GET /mods/:idOrSlug` returns the same summary projection as one search hit for
-  a single project. An unknown project returns 404 `Mod not found.`; an upstream
-  failure returns 502 and is never reported as not-found.
+  a single project and accepts no query parameters; any parameter returns 400. An
+  unknown project returns 404 `Mod not found.`; an upstream failure returns 502 and is
+  never reported as not-found.
 - S8: Each hit also carries `iconUrl`, `downloads`, `follows`, `author`, `categories`,
   `clientSide`, `serverSide` and `latestVersion`. An absent upstream field normalizes
   to `null` (or `[]` for `categories`) rather than failing the request; a present but
@@ -63,6 +65,12 @@ Minecraft/loader options, an exact-version picker, and any UI.
   Risk: item 3 (public API payload contract).
   Evidence: a 20-hit page with maximum-length values measured 14473 bytes; the public
   regression golden was recaptured and only the `GET /mods` hash changed.
+- T9 [S2, S7] verification correction — complete. The independent verifier met S1–S8
+  with no blocker and raised nine advisories. Three were taken in one batch: the lookup
+  route now rejects query parameters instead of ignoring them, and the reference and
+  feature documentation name the repeated-parameter rule and the `author` character set.
+  The verifier's five probes were committed as
+  `apps/api/tests/catalog-discovery-verification.test.ts`.
 
 ## Log
 
@@ -74,3 +82,9 @@ Minecraft/loader options, an exact-version picker, and any UI.
   reverted. The enriched 20-hit page measured 14473 bytes. Delivery record:
   [doc09](../../docs/delivery/doc09-catalog-discovery.md). Not published, not merged, no
   native candidate review has run, and no hosted or real-upstream check was made.
+- 2026-11-13: Independent verification met S1–S8 with no blocker. It reproduced the
+  full suite (147 tests at that point), showed the branch tests fail 9 of 16 against the
+  baseline source, and found the only baseline-valid status change to be repeated
+  single-value parameters. Nine advisories were recorded; the three described in T9 were
+  corrected and the rest stay as documented limits. `bun run check` then passed 153 tests
+  and 2655 assertions.

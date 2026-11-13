@@ -149,6 +149,14 @@ the request to assess and plan.
 
 ## Change log
 
+- 2026-11-13: M3 was implemented on `feat/catalog-discovery` after separate owner
+  authorization, using the scope and delivery order recorded above. The slice rejects
+  unknown and repeated query parameters, adds sort/category/environment/author filters,
+  adds an exact project lookup route and enriches the result payload. Independent
+  verification met S1–S8 with no blocker. It is not published, merged or reviewed, and
+  selector data and the exact-version picker remain open. See
+  [doc09](../delivery/doc09-catalog-discovery.md).
+
 - 2026-11-13: M3 delivery order recorded. The slice pins existing search behavior
   first (empty results, offset bounds, fixed page size, unknown-parameter behavior and
   upstream failure mapping) before adding behavior; then adds one filter per delivery

@@ -299,8 +299,10 @@ Query parameters:
 - `author`: optional Modrinth username of at most 64 characters.
 
 An unknown parameter returns 400 `Invalid query parameter.` instead of being
-ignored, so a misspelled filter cannot silently return unfiltered results. Invalid
-values return 400 before any upstream request.
+ignored, so a misspelled filter cannot silently return unfiltered results. A
+single-value parameter repeated in the same request returns the same error rather
+than being narrowed to its first value. Invalid values return 400 before any
+upstream request. `author` is 1–64 characters from letters, digits, `_` and `-`.
 
 Returns `{ hits: [ModSummary], total, offset }` with at most 20 results per page.
 `ModSummary` is `{ projectId, slug, title, description, iconUrl, downloads,
@@ -311,11 +313,12 @@ present but malformed fails the request. `clientSide` and `serverSide` are
 
 ### GET /mods/:idOrSlug
 
-Returns one `ModSummary` for a project ID or slug. An unknown project, or one that
-is not a mod, returns 404 `Mod not found.`; upstream failure returns 502 and a
-timeout returns 504, so a failed lookup is never reported as not-found.
-`author` is only populated by search, and `latestVersion` only by search and list
-responses.
+Returns one `ModSummary` for a project ID or slug. The route accepts no query
+parameters; any parameter returns 400 `Invalid query parameter.` An unknown
+project, or one that is not a mod, returns 404 `Mod not found.`; upstream failure
+returns 502 and a timeout returns 504, so a failed lookup is never reported as
+not-found. `author` is only populated by search, and `latestVersion` only by
+search and list responses.
 
 ### POST /packs/resolve
 
