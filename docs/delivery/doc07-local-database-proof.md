@@ -79,8 +79,12 @@ Deployment: none.
 
 - Native review of this slice, and the still-open native review gap for milestone 3
   (three of four lenses, no receipt) and milestone 5.
-- Hosted application of the publication and votes migrations, which needs separate
-  explicit authorization.
+- Correction, 2026-11-13: the owner authorized applying the publication and votes
+  migrations to the selected test project. All nine migrations are now applied there and
+  the schema was read back: the four new tables exist with row level security enabled,
+  no client grants and only service-role table access, and the publication and voting
+  RPCs are granted to `authenticated`. Hosted functional proof of those flows still
+  needs a real signed session.
 - Full Google/Discord OAuth completion and real email delivery, which need provider
   accounts rather than code.
 - Next action is tracked in the [current handoff](../handoff.md).
