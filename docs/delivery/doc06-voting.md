@@ -1,4 +1,4 @@
-# doc05: Group voting on mod additions
+# doc06: Group voting on mod additions
 
 Date: 2026-11-12
 Scope: Backend-only mod-addition votes for a group: owner-created concrete
@@ -21,7 +21,7 @@ concurrent votes. Expiry without the majority records rejection. See the
 
 ## Changes and rationale
 
-- New migration `20261112230000_group_votes.sql` adds `group_votes`,
+- New migration `20261112233000_group_votes.sql` adds `group_votes`,
   `group_vote_electorate` and `group_vote_ballots`, with RLS enabled, all direct
   privileges revoked, and access only through `security definer` RPCs that resolve
   the caller from the signed Clerk subject. The electorate is a snapshot table, and a
@@ -60,7 +60,7 @@ owns published versions and remains untouched here.
   authorization, electorate freezing, ballot replacement, majority, early approval,
   cancellation, expiry, incorporation, isolation, pagination and cascade deletion.
   It was executed unchanged in the isolated supplemental PGlite harness: the suite
-  passes with all eight migrations applied, fails when the votes migration is
+  passes with all nine migrations applied, fails when the votes migration is
   skipped, and the existing draft SQL suite still passes with the new migration.
 - Not verified: this environment has no Docker and no local PostgreSQL stack, so
   `bun run db:test` (real pgTAP under `supabase test db`) could not run and the

@@ -2,7 +2,7 @@
 
 Owners can persist one draft per group with exact approved Modrinth version IDs.
 Members can read/export their group's draft, but only its current owner can edit.
-This is a backend draft workflow, not publishing, activation or a frontend.
+This is a backend draft workflow, not a frontend. Publishing, activation and sharing are documented in the [publication guide](pack-publications.md).
 
 ## Prerequisites
 
@@ -51,7 +51,8 @@ Call `POST /groups/me/pack/export` with only
 The group member's token selects the draft; callers cannot override its mods,
 game version or loader. The existing exporter validates exact metadata and
 returns the `.mrpack` attachment. Empty drafts cannot be exported. No export
-publishes, activates, or creates a shared-version link.
+publishes, activates, or creates a shared-version link; use the
+[publication workflow](pack-publications.md) for that.
 
 ## Ownership and storage
 

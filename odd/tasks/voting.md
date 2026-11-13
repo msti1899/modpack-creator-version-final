@@ -57,7 +57,8 @@ no scheduler exists.
   established `revoke all` plus `security definer` RPC pattern, ownership and membership
   enforcement, ballot upsert with early approval, cancellation, deadline rejection,
   incorporation compare-and-swap, and paged reads. Route: inline. Status: complete
-  locally (`20261112230000_group_votes.sql`); real pgTAP unavailable.
+  locally (`20261112233000_group_votes.sql`, renumbered after milestone 5 kept
+  `20261112230000`); real pgTAP unavailable.
   Risk: items 1, 2, 3, 4 and 6.
 - T2 [S1-S5] API: exported addition-validation helper reusing the existing catalog and
   selection rules, vote routes with body caps and error mapping, HTTP tests against the
@@ -71,13 +72,14 @@ no scheduler exists.
   with all migrations and failed without the votes migration; real pgTAP, PostgREST
   and real concurrency unproven.
 - T4 [S1-S5] Documentation: guide, backend API reference, delivery record, roadmap,
-  handoff and index links. Route: inline. Status: complete; doc05 added.
+  handoff and index links. Route: inline. Status: complete; doc06 added.
 - T5 [S1-S5] Independent verification of the named high-risk items and native candidate
   review under its own consent. Route: delegated verification for named items.
   Status: verification returned no blocker and met S1-S5 across 179 independent SQL
   checks, 11 HTTP probe tests and 55 byte-identical comparisons against the base
   revision; five advisories were recorded and one documentation inconsistency was
-  corrected. Native candidate review is pending. Commit: none.
+  corrected. Native review approved the candidate and burned its acknowledgement;
+  no correction round opened. Commit: none.
 - T6 [S1-S5] Verification-derived regression coverage: boundary caps, the full error
   mapping, malformed catalog data on the open path. Route: inline. Status: complete;
   `apps/api/tests/votes-edge.test.ts` passes 6 tests / 50 assertions. Production bytes

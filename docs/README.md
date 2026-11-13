@@ -12,7 +12,7 @@ delivery changed, use the [numbered delivery records](delivery/README.md).
 
 | Type | Purpose | Current documents |
 | --- | --- | --- |
-| Guides | Complete a task step by step | [Create and download a modpack](guides/create-modpack.md); [Local database](guides/local-database.md); [Local identity](guides/local-identity.md); [Local account access](guides/local-account-access.md); [Account profiles](guides/account-profiles.md); [Groups and permissions](guides/groups.md); [Persisted pack drafts](guides/pack-drafts.md); [Voting on a mod addition](guides/voting.md); [GitHub contribution workflow](guides/github-workflow.md) |
+| Guides | Complete a task step by step | [Create and download a modpack](guides/create-modpack.md); [Local database](guides/local-database.md); [Local identity](guides/local-identity.md); [Local account access](guides/local-account-access.md); [Account profiles](guides/account-profiles.md); [Groups and permissions](guides/groups.md); [Persisted pack drafts](guides/pack-drafts.md); [Published versions and sharing](guides/pack-publications.md); [Voting on a mod addition](guides/voting.md); [GitHub contribution workflow](guides/github-workflow.md) |
 | Reference | Look up contracts, parameters, errors, and limits | [Backend API](reference/backend-api.md) |
 | Architecture | Understand components, boundaries, and data flow | [Stateless Modrinth backend](architecture/modrinth-backend.md) |
 | Decisions | Understand accepted choices and their trade-offs | [Initial scope and stack](decisions/0001-project-baseline.md); [Clerk identity](decisions/0002-clerk-identity.md); [Clerk profile ownership](decisions/0003-clerk-profile-ownership.md) |

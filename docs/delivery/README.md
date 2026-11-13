@@ -16,7 +16,8 @@ For the latest state and next action, use the [current handoff](../handoff.md).
 | [doc02: Groups and permissions](doc02-groups-permissions.md) | 2026-11-12 | Implement group admission and permissions, record real database race checks and HTTP verification, and distinguish pending pgTAP, session and review proof. |
 | [doc03: Remove owner quotations](doc03-owner-quote-removal.md) | 2026-11-12 | Replace quotations of the owner's messages with neutral decision summaries and forbid them in future documentation. |
 | [doc04: Persisted pack drafts](doc04-pack-drafts.md) | 2026-11-12 | Persist one exact approved draft per group with owner-only saves, compatible Minecraft/loader changes, and verified hosted PostgreSQL proof. |
-| [doc05: Group voting](doc05-voting.md) | 2026-11-12 | Add owner-created mod-addition votes with a frozen electorate, absolute majority, early approval, cancellation and binding owner incorporation without publication. |
+| [doc05: Published versions and sharing](doc05-published-versions.md) | 2026-11-12 | Publish immutable pack versions with owner-selected activation and member-only sharing, reusing the existing `.mrpack` export. |
+| [doc06: Group voting](doc06-voting.md) | 2026-11-12 | Add owner-created mod-addition votes with a frozen electorate, absolute majority, early approval, cancellation and binding owner incorporation without publication. |
 
 ## Add the next record
 

@@ -21,7 +21,7 @@ votes. Start with working vertical slices rather than modeling every table upfro
 | 2. Identity and authentication | Clerk owns accounts, sessions and account-management flows. Hono verifies signed Clerk sessions; Supabase remains the profile database with subject-scoped RLS. Preserve username rules and existing rows without automatic linking. | Verified on the selected test project: the Clerk replacement is integrated locally; the three repository migrations are applied; Clerk Development signs `role: "authenticated"`; Supabase third-party Clerk trust is enabled; and real-session profile/RLS isolation passed. Remaining: full Google/Discord OAuth completion and real email delivery. See the [current handoff](../handoff.md#application-checkpoint) and the [hosted verification record](../../odd/tasks/hosted-profile-verification.md). |
 | 3. Groups and permissions | One group per person, owner/member permissions, public direct admission, private invitations requiring approval, and immediate ownership transfer before an owner leaves others behind. Test cross-group isolation and concurrent admission. | Implemented and published in PR #45 with Backend CI passing; authorized test-project migrations and real SQL isolation/concurrent-admission checks passed. Native review is incomplete, and actual pgTAP and real-session group-flow proof remain pending; no merge. See [doc02](../delivery/doc02-groups-permissions.md) and [groups tasks](../../odd/tasks/groups-permissions.md). |
 | 4. Persisted modpack draft | One draft pack per group, owner-only edits, exact approved mod/dependency versions, reuse of existing Modrinth resolution/export. Failed writes leave no partial selection. | Merged to `main` through PR #46 after local checks, authorized hosted PostgreSQL proof and native review approval. Actual pgTAP and a real-session HTTP flow remain unproven. See [draft tasks](../../odd/tasks/pack-drafts.md) and [doc04](../delivery/doc04-pack-drafts.md). |
-| 5. Published versions and sharing | Preserve earlier publications, explicit active-version selection by the owner, and links respecting access rules. Publishing does not automatically activate a version. | Planned. |
+| 5. Published versions and sharing | Preserve earlier publications, explicit active-version selection by the owner, and links respecting access rules. Publishing does not automatically activate a version. | Merged to `main` through [PR #49](https://github.com/msti1899/modpack-creator-version-final/pull/49) as merge commit `e60a816` with Backend checks passing, and backed by local HTTP/SQL checks plus a differential comparison against `main`; hosted proof and native review pending. See [doc05](../delivery/doc05-published-versions.md) and [publication tasks](../../odd/tasks/published-versions.md). |
 | 6. Voting | Owner-created concrete proposals and chosen duration, fixed electorate, absolute majority, early approval, and binding owner incorporation without automatic publication. Resolve pending lifecycle rules first. | In progress on `feat/voting`, based on `main`. The lifecycle rules were decided on 2026-11-12 and recorded in D7. See [voting tasks](../../odd/tasks/voting.md). |
 
 The detailed product rules remain in the
@@ -58,8 +58,9 @@ for another person after a rename. Username database rules and HTTP profile endp
 reviewed and integrated into main through PR12. Provider-linking rules above are
 accepted requirements, not implemented provider workflows.
 
-Before sharing, settle any access details not already covered by group admission.
-Before production configuration, verify provider eligibility, budget, and delivery.
+Sharing access is settled on 2026-11-12 and recorded in D6: only current group members
+may read or export a published version. Before production configuration, verify
+provider eligibility, budget, and delivery.
 
 Voting lifecycle rules were resolved on 2026-11-12 and are recorded in D7:
 ballot changes until the majority, owner cancellation while a vote is open, a frozen
@@ -74,9 +75,10 @@ completed work. Record meaningful changes below and keep the
 
 ### Change log
 
-- 2026-11-12: Milestone 6 started on its own branch and worktree (`feat/voting`) so the
-  milestone-5 work in progress stays isolated. The four pending vote lifecycle rules
-  were decided and recorded in D7; scope and acceptance are otherwise unchanged.
+- 2026-11-12: Milestone 5 was merged to `main` through [PR #49](https://github.com/msti1899/modpack-creator-version-final/pull/49) as merge commit `e60a816`, after being implemented on its own branch cut from the merged milestone 3 and 4 baseline. Only current group members may read or export a published version; a share link grants no access by itself. Hosted application and native review remain pending.
+
+- 2026-11-12: Milestone 6 started on its own branch and worktree (`feat/voting`) alongside the milestone-5 work. The four pending vote lifecycle rules were decided and recorded in D7; scope and acceptance are otherwise unchanged.
+
 
 - 2026-11-12: Milestone 4 was resumed. The owner decided that changing a draft's Minecraft version or loader requires the entire selection to remain compatible: an incompatible change is rejected without clearing or substituting approved versions. Work landed on `feat/pack-drafts` and was merged to `main` through PR #46 (merge commit `2ae50e7`), stacked on the milestone-3 PR #45.
 
