@@ -1,12 +1,18 @@
 # Current handoff
 
-Checkpoint: 2026-11-12. `main` at `becd201` contains milestone 3 ([PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45),
+Checkpoint: 2026-11-13. `main` at `4e03da0` contains milestone 3 ([PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45),
 merge `b648c21`), milestone 4 ([PR #46](https://github.com/msti1899/modpack-creator-version-final/pull/46),
 merge `2ae50e7`), milestone 5 ([PR #49](https://github.com/msti1899/modpack-creator-version-final/pull/49),
 merge `e60a816`), milestone 6 ([PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48),
 merge `ea2c43f`), the milestone-6 documentation record ([PR #50](https://github.com/msti1899/modpack-creator-version-final/pull/50),
-merge `5c83c5c`) and the local database proof ([PR #51](https://github.com/msti1899/modpack-creator-version-final/pull/51),
-merge `becd201`). Verify the branch and HEAD against this snapshot before resuming.
+merge `5c83c5c`), the local database proof ([PR #51](https://github.com/msti1899/modpack-creator-version-final/pull/51),
+merge `becd201`), the hosted schema application (PR #53), the account and session proof
+([PR #55](https://github.com/msti1899/modpack-creator-version-final/pull/55), merge
+`21c91f8`), the profile conflict contract ([PR #56](https://github.com/msti1899/modpack-creator-version-final/pull/56),
+merge `9067562`), catalog discovery ([PR #58](https://github.com/msti1899/modpack-creator-version-final/pull/58),
+merge `b9167c0`) and the completion-plan M5 group lifecycle proof
+([PR #60](https://github.com/msti1899/modpack-creator-version-final/pull/60), merge
+`4e03da0`). Verify the branch and HEAD against this snapshot before resuming.
 This is a resume point, not a session history.
 
 ## Merged milestones
@@ -112,6 +118,10 @@ Still unproven after the local database work:
   [PR #58](https://github.com/msti1899/modpack-creator-version-final/pull/58) as
   `b9167c0`, with the Backend checks passing on the merge commit in 45 seconds. `main`
   runs 153 tests and 2655 assertions.
+- Group lifecycle proof (completion plan M5): merged to `main` through
+  [PR #60](https://github.com/msti1899/modpack-creator-version-final/pull/60) as
+  `4e03da0`, with the Backend checks passing in 44 seconds on the branch head. It adds
+  tests, runners and documentation only; `main` still runs 153 tests.
 
 ## Proposed next backend phase
 
@@ -259,9 +269,13 @@ rows in all five group/profile tables; the Clerk instance again holds only the o
 account. Two behaviours are recorded in doc10: a development browser token serves one
 sign-in flow, and a failed account creation now still registers its id for cleanup.
 
-State: committed on the branch, not published, reviewed or merged. Next action: review
-and publication as separate decisions, then a re-run if the group routes, RLS grants or
-token template change.
+State: merged to `main` through
+[PR #60](https://github.com/msti1899/modpack-creator-version-final/pull/60) as `4e03da0`,
+with the Backend checks passing in 44 seconds on the branch head. It was published as four
+commits, one per artifact, after the native assessment returned medium with
+`under_budget`, so no candidate review was due. Next action: re-run the live check after
+any change to the group routes, RLS grants or Clerk token template; no deployment is
+recorded.
 
 ## Resume
 

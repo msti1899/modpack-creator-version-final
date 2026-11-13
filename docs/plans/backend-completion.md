@@ -149,6 +149,13 @@ the request to assess and plan.
 
 ## Change log
 
+- 2026-11-13: M5 merged to `main` through
+  [PR #60](https://github.com/msti1899/modpack-creator-version-final/pull/60) as
+  `4e03da0`, with the Backend checks passing in 44 seconds. Published as four commits, one
+  per artifact, after a medium/`under_budget` assessment. This slice changed no product
+  behavior, so the remaining M5 work is a re-run of the live proof when group routes, RLS
+  grants or the token template change.
+
 - 2026-11-13: M5 gained its hosted real-session proof after separate authorization. A new
   live script created three disposable development accounts, signed them in for real
   session tokens, and ran the full lifecycle through a local API against the selected test
