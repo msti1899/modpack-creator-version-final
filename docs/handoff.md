@@ -109,6 +109,8 @@ Still unproven after the local database work:
   [PR #58](https://github.com/msti1899/modpack-creator-version-final/pull/58) as
   `b9167c0`, with the Backend checks passing on the merge commit in 45 seconds. `main`
   runs 153 tests and 2655 assertions.
+- Pack assembly (completion plan M4): implemented on `feat/pack-assembly` and not
+  merged; see the milestone section below.
 
 ## Proposed next backend phase
 
@@ -226,6 +228,39 @@ distinct `category` values and the lack of per-hit degradation on upstream schem
 Next action: the slice is merged; the review advisories in
 [doc09](delivery/doc09-catalog-discovery.md) are the next optional work, and selector data
 and the exact-version picker still need a product decision.
+
+## Backend completion M4: pack assembly (feat/pack-assembly)
+
+The fourth milestone of the [completion plan](plans/backend-completion.md) is implemented
+on `feat/pack-assembly`, cut from `origin/main` at `bce2fb7`, and is not merged. The
+branch deliberately excludes the unpushed local frontend-tooling commits.
+
+`POST /packs/resolve` now returns `projectTitle` for every proposed version, validated
+and fail-closed, so required dependencies can be presented for approval without a
+lookup per candidate. The rest of the milestone reuses existing interfaces: accept is
+`PUT /groups/me/pack` carrying the proposal's version IDs, cancel stores nothing,
+removal is a shorter replacement, a compatible Minecraft or loader change revalidates
+the whole selection, and every rejection leaves the stored row untouched. See
+[doc10](delivery/doc10-pack-assembly.md) and
+[assembly tasks](../odd/tasks/pack-assembly.md).
+
+Proof: `bun run check` passes 157 tests and 2699 assertions with both typechecks, up
+from 153 tests. RED preceded the change, and the public regression golden changed only
+for `POST /packs/resolve`. The journey pins exercise accept, cancel, removal, settings
+changes and every rejection through HTTP over one in-memory draft row. A 50-version
+closure measures 8895 bytes with realistic values and 24095 bytes at the
+300-character title ceiling. Independent verification met S1–S7 with no blocker and its
+three advisories were corrected; that correction batch was not independently
+re-verified. Native assessment returned medium risk with `under_budget`, so no
+candidate review was due.
+
+Remaining: no client consumes `projectTitle` yet, selector data and the exact-version
+picker are still undecided, and the real database compare-and-swap and the live
+Modrinth API were not re-exercised for this journey.
+
+Next action: request hosted or real-session proof if this slice needs it, or continue
+with the next completion-plan milestone; publication and merge remain separate
+decisions.
 
 ## Resume
 

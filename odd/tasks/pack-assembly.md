@@ -61,8 +61,9 @@ implemented and documented; they are pinned here, not rewritten.
   catalog work for oversized and stale writes, and the absence of a save call for a
   rejected proposal. Those assertions passed at the baseline, so they pin existing
   behavior rather than a change.
-- T3 [S1–S7] inline — in progress. The route reference and both guides are updated in
-  the first work unit; the delivery record and handoff follow independent verification.
+- T3 [S1–S7] inline — complete. The route reference and both guides changed with the
+  behavior; the delivery record, the plan change log, the index entry and the handoff
+  checkpoint follow independent verification and the correction batch.
 - T4 [S1–S7] delegated verifier — complete. Independent verification met S1–S7 with no
   blocker and three advisories, all taken in the correction batch: the vote path's
   title-before-version-name error precedence was restored and pinned, the journey test
@@ -95,3 +96,8 @@ implemented and documented; they are pinned here, not rewritten.
   8895 bytes with 30-character titles and names and 24095 bytes with every title at
   the 300-character ceiling; the independent measurement of 7093 and 22739 bytes used
   shorter identifiers. `bun run check` then passed 157 tests and 2699 assertions.
+- 2026-11-13: Slice complete on `feat/pack-assembly` in three commits: code, tests and
+  contract documentation (`928cf97`), the verification correction (`95bb452`), and the
+  delivery record with the handoff checkpoint (`ceac4e0`). Native assessment of the
+  committed range returned medium risk with `under_budget`, so no candidate review was
+  due. Not published, not merged, and no hosted or real-upstream check ran.
