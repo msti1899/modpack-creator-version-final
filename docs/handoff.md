@@ -64,15 +64,16 @@ What now runs and passes against the local stack: actual pgTAP (six suites, 193
 tests), the profile upgrade regression, real multi-session races for public admission,
 publication sequencing and concurrent ballots, and signed-token PostgREST checks that
 exercise the authorization branch instead of only the Hono fallback. `bun run check`
-still passes 125 tests / 2310 assertions.
+still passes 127 tests / 2339 assertions.
 
 ## Missing proof
 
 Still unproven after the local database work:
 
-- The full Clerk→Hono→PostgREST chain with one token. Locally Hono accepts only an RSA
-  public key while the local PostgREST accepts only the stack's symmetric secret, so
-  the two validators cannot share one signing key without a configuration change.
+- The full Clerk→Hono→PostgREST chain with one token is now proven on the selected test
+  project for the read path ([doc08](delivery/doc08-account-session-proof.md)). A local
+  stack still cannot share one signing key between Hono's RSA verification and
+  PostgREST's symmetric secret, so that limitation only applies locally.
 - Mutation testing of the lock discipline: the new race checks are designed so that
   removing a lock or the one-group index changes the observed result, but no mutation
   was run.
@@ -110,8 +111,43 @@ remain open, but review closure alone does not complete the product.
 Publication and merge of the planning document were authorized on 2026-11-13;
 implementation and unresolved product choices remain separate decisions.
 
-Next action: review the capability inventory with the owner and agree the first
-account/session or catalog-filter slice. Preserve the separate approvals needed for
+### Account and session assurance slice
+
+On 2026-11-13 the owner authorized starting the first backend-plan item on an isolated
+branch, and a live check against the configured development instance. `feat/backend-account-session`
+is cut from `origin/main` at `576ddfd` and carries two work units; it is not merged.
+
+The first commit adds two tests and no application behavior: one pins the
+environment-driven API configuration (escaped-newline PEM, comma-separated authorized
+parties with trimming, unlisted origin rejected), the other pins a failed web session
+lookup as a 502 rather than a sign-out and checks that no identity stays cached between
+the signed-in, failed and signed-out results. Both were shown to fail when the behavior
+they pin is mutated. The second commit adds the live check and [doc08](delivery/doc08-account-session-proof.md).
+
+Recorded runtime results, with a real Clerk session token against the local API and the
+test Supabase project: email/password sign-in completes including the new-device trust
+challenge; `GET /me` accepts the token with the same subject, `no-store` and
+`Vary: Authorization`; missing credentials return 401; `GET /profile` reaches the
+database with that same token; revoking the session stops new tokens; a token copied
+before revocation still verifies until it expires. `bun run check` passes 127 tests.
+
+Observed limitations, not asserted defects: the session token template omits the email
+claim, so `/me` returns null, and automated registration returns the provider's
+`action_blocked` abuse response. The app's own account controls were then exercised in a
+real browser against unmodified application code: "Sign in" opens the modal with the
+configured Discord, Google and email/password methods, email/password sign-in completes
+including the new-device trust code, `/api/me` returns the signed-in subject with
+`no-store`, and signing out from the account menu returns the page to the signed-out state
+with `/api/me` answering 401.
+
+An earlier entry in this checkpoint reported two web defects from that attempt. Both are
+withdrawn: the app had been opened at `127.0.0.1`, which Next 16 blocks from its
+development resources, so the client never hydrated and the controls were inert. The same
+steps on `localhost` work, and no application change was shipped. See
+[doc08](delivery/doc08-account-session-proof.md).
+
+Next action: fix nothing on the account surface; start the catalog-discovery milestone, or
+decide the remaining open product questions. Preserve the separate approvals needed for
 implementation, external settings, deployment and publication.
 
 ## Backend completion M2: profile contract (active branch)
@@ -152,7 +188,12 @@ slice changes no SQL. No deployment, hosted settings or external service was tou
    runs pgTAP, `bun run db:test:upgrade` runs the disposable upgrade regression, and
    `bun run db:test:concurrency` plus `bun run db:test:postgrest` need the `docker` group,
    so run them through a shell that carries it. `bun run check` still needs no Docker.
-4. Hosted state moved on 2026-11-13: all nine repository migrations are now applied to
+4. A browser check of the web app must use `http://localhost:3000`. Next 16 blocks its
+   development resources for `127.0.0.1`, which leaves the page unhydrated with inert
+   controls and a Clerk instance that never loads. That artifact produced and later
+   withdrew a false defect report in [doc08](delivery/doc08-account-session-proof.md); an
+   unhydrated page is evidence about the harness first, not about the app.
+5. Hosted state moved on 2026-11-13: all nine repository migrations are now applied to
    the selected test project, including the publication and votes migrations. The owner
    authorized that application, the project was linked with the owner's CLI session, and
    the schema was read back afterwards. Hosted functional proof of the publication and
