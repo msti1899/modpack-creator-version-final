@@ -22,7 +22,9 @@
     "db:status": "bash scripts/db-local.sh status",
     "db:reset": "bash scripts/db-local.sh reset",
     "db:test": "bash scripts/db-local.sh test",
-    "db:test:upgrade": "bun scripts/test-profile-upgrade.ts"
+    "db:test:upgrade": "bun scripts/test-profile-upgrade.ts",
+    "db:test:concurrency": "bun scripts/test-concurrency.ts",
+    "db:test:postgrest": "bun scripts/test-postgrest.ts"
   },
   "devDependencies": {
     "supabase": "3.0.0"
