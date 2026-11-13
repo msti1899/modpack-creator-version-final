@@ -80,6 +80,61 @@ test("missing profiles are distinct from failed writes and database conflicts ar
   }
 });
 
+test("a new account reads an empty profile, creates one, and then reads it back", async () => {
+  let assigned = false;
+  const app = setup(async (_url, init) => {
+    if (init.method === "POST") {
+      assigned = true;
+      return Response.json([{ username: "Matias", username_changed_at: null }], { status: 201 });
+    }
+    return Response.json(assigned ? [profile] : []);
+  });
+  expect(await (await request(app)).json()).toEqual({ profile: null });
+  const created = await request(app, "POST", { username: "Matias" });
+  expect(created.status).toBe(201);
+  expect(await (await request(app)).json()).toEqual({ profile: { username: "Matias", usernameChangedAt: null } });
+});
+
+test("profile onboarding tells an assigned account apart from a taken username", async () => {
+  const conflict = () => Response.json({ code: "23505", message: "duplicate key value violates unique constraint \"profiles_username_unique\"", details: "private" }, { status: 409 });
+  const assigned = setup(async (_url, init) => init.method === "GET" ? Response.json([{ username: "Other", username_changed_at: null }]) : conflict());
+  let response = await request(assigned, "POST", { username: "Matias" });
+  expect(response.status).toBe(409);
+  expect(await response.json()).toEqual({ error: "Profile already exists." });
+
+  const taken = setup(async (_url, init) => init.method === "GET" ? Response.json([]) : conflict());
+  response = await request(taken, "POST", { username: "Matias" });
+  expect(response.status).toBe(409);
+  expect(await response.json()).toEqual({ error: "Username is already taken." });
+
+  const unknown = setup(async (_url, init) => init.method === "GET" ? new Response("private", { status: 500 }) : conflict());
+  response = await request(unknown, "POST", { username: "Matias" });
+  expect(response.status).toBe(409);
+  expect(await response.json()).toEqual({ error: "Profile or username already exists." });
+
+  const rename = setup(async () => conflict());
+  response = await request(rename, "PATCH", { username: "Matias" });
+  expect(response.status).toBe(409);
+  expect(await response.json()).toEqual({ error: "Username is already taken." });
+});
+
+test("profile collision classification reads only the verified owner's profile", async () => {
+  const calls: { method: string; target: URL }[] = [];
+  const app = setup(async (url, init) => {
+    calls.push({ method: init.method ?? "GET", target: new URL(url) });
+    if (init.method === "POST") return Response.json({ code: "23505", message: "private", details: "secret" }, { status: 409 });
+    return Response.json([profile]);
+  });
+  const response = await request(app, "POST", { username: "Matias" });
+  expect(response.status).toBe(409);
+  const body = await response.text();
+  expect(JSON.parse(body)).toEqual({ error: "Profile already exists." });
+  expect(calls.map((call) => call.method)).toEqual(["POST", "GET"]);
+  expect(calls[1]!.target.searchParams.get("user_id")).toBe("eq." + user.id);
+  expect(calls[1]!.target.searchParams.get("select")).toBe("username,username_changed_at");
+  expect(body).not.toMatch(/private|secret|profiles_username_unique/);
+});
+
 test("Data API auth expiry, outages, malformed responses, and body timeouts are bounded", async () => {
   const expired = await request(setup(async () => new Response("private token", { status: 401 })));
   expect(expired.status).toBe(401);
@@ -168,4 +223,59 @@ test("profile data access can use a separate safe project without changing ident
   }, database);
   expect((await request(app)).status).toBe(200);
   expect(calls).toBe(1);
+});
+
+test("conflict classification fails safe and ignores submitted scope", async () => {
+  const conflict = () => Response.json({ code: "23505", message: "private", details: "secret" }, { status: 409 });
+  const unsafe: (() => Response)[] = [
+    () => new Response("private", { status: 500 }),
+    () => new Response("private token", { status: 401 }),
+    () => new Response("not json", { status: 200 }),
+    () => Response.json({ user_id: user.id }),
+    () => Response.json([profile, profile]),
+    () => Response.json([null]),
+    () => Response.json([{}]),
+    () => Response.json([{ username: "bad-name", username_changed_at: null }]),
+    () => Response.json([{ ...profile, username_changed_at: "not a timestamp" }]),
+    () => new Response("x".repeat(4097), { status: 200 }),
+    () => { throw new Error("private-network"); },
+    () => { throw new DOMException("private", "TimeoutError"); },
+  ];
+  for (const lookup of unsafe) {
+    const app = setup(async (_url, init) => init.method === "POST" ? conflict() : lookup());
+    const response = await request(app, "POST", { username: "Matias" });
+    expect(response.status).toBe(409);
+    const body = await response.text();
+    expect(JSON.parse(body)).toEqual({ error: "Profile or username already exists." });
+    expect(body).not.toMatch(/private|secret|profiles_username_unique/);
+  }
+
+  const calls: { method: string; url: string; authorization: string | null; body: unknown }[] = [];
+  const app = setup(async (url, init) => {
+    calls.push({ method: init.method!, url, authorization: new Headers(init.headers).get("authorization"), body: init.body });
+    return init.method === "POST" ? conflict() : Response.json([profile]);
+  });
+  const response = await app.request("/profile?user_id=attacker&select=private", {
+    method: "POST", headers: { authorization: `bearer ${accessToken}`, "content-type": "application/json" },
+    body: JSON.stringify({ username: "Matias" }),
+  });
+  expect(response.status).toBe(409);
+  expect(await response.json()).toEqual({ error: "Profile already exists." });
+  expect(calls.map((call) => call.method)).toEqual(["POST", "GET"]);
+  const followUp = calls[1]!;
+  const target = new URL(followUp.url);
+  expect(target.pathname).toBe("/rest/v1/profiles");
+  expect(target.searchParams.get("user_id")).toBe("eq." + user.id);
+  expect(target.searchParams.get("select")).toBe("username,username_changed_at");
+  expect([...target.searchParams.keys()].sort()).toEqual(["select", "user_id"]);
+  expect(followUp.authorization).toBe(`Bearer ${accessToken}`);
+  expect(followUp.body).toBeUndefined();
+  expect(calls[0]!.body).toBe(JSON.stringify({ user_id: user.id, username: "Matias" }));
+
+  const renameCalls: string[] = [];
+  const rename = setup(async (_url, init) => { renameCalls.push(init.method!); return conflict(); });
+  const renamed = await request(rename, "PATCH", { username: "NextName" });
+  expect(renamed.status).toBe(409);
+  expect(await renamed.json()).toEqual({ error: "Username is already taken." });
+  expect(renameCalls).toEqual(["PATCH"]);
 });

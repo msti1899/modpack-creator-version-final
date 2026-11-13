@@ -150,6 +150,33 @@ Next action: fix nothing on the account surface; start the catalog-discovery mil
 decide the remaining open product questions. Preserve the separate approvals needed for
 implementation, external settings, deployment and publication.
 
+## Backend completion M2: profile contract (PR #56)
+
+The second milestone of the [completion plan](plans/backend-completion.md) is
+implemented on `feat/backend-profile-completion` and published as
+[PR #56](https://github.com/msti1899/modpack-creator-version-final/pull/56). The
+branch was cut from `576ddfd` and has `main` merged in, so it carries the
+account/session slice that landed as `21c91f8`.
+
+The slice completes the profile-onboarding contract without changing `/me`.
+`GET /profile` returning `{"profile": null}` is documented as the completion
+signal. A creation conflict now distinguishes `Profile already exists.` from
+`Username is already taken.` using one owner-scoped follow-up read; a failed
+classification keeps the generic message, and rename conflicts are reported as a
+taken username without an extra call. Group creation without a profile remains the
+pinned `409 Profile required.` rejection. See
+[profile tasks](../odd/tasks/backend-profile-completion.md).
+
+Proof: `bun run check` passes 131 tests with both typechecks on the branch with
+`main` integrated. RED was observed before the implementation. Independent
+verification met S1–S5 with no blocker, kept all non-conflict responses
+byte-identical to the baseline in a 34-scenario differential, and its one advisory
+was fixed and pinned. Native risk assessment returned medium / under budget, so no
+candidate review was due.
+
+State: published and awaiting merge; database pgTAP was not rerun because the slice
+changes no SQL, and no deployment, hosted setting or external service was touched.
+
 ## Resume
 
 1. Verify the branch, commit and local changes against this snapshot. Preserve
