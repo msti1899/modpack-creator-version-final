@@ -240,6 +240,16 @@ test("repeated single-value parameters are rejected instead of narrowed", async 
   expect(calls).toHaveLength(0);
 });
 
+test("the exact lookup route accepts no query parameters", async () => {
+  const { api, calls } = app((url) => Response.json({ id: "AbCdEf12", slug: "sodium", title: "Sodium", description: "Rendering", project_type: "mod" }));
+  for (const path of ["/mods/sodium?sort=downloads", "/mods/sodium?foo=bar"]) {
+    const response = await api.request(path);
+    expect([path, response.status]).toEqual([path, 400]);
+    expect(await response.json()).toEqual({ error: "Invalid query parameter." });
+  }
+  expect(calls).toHaveLength(0);
+});
+
 test("malformed hits are rejected instead of being forwarded", async () => {
   for (const malformed of [
     hit("main", { project_type: "resourcepack" }),
