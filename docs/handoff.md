@@ -76,9 +76,10 @@ Still unproven after the local database work:
 - Mutation testing of the lock discipline: the new race checks are designed so that
   removing a lock or the one-group index changes the observed result, but no mutation
   was run.
-- A real-session group flow, hosted application of the publication and votes
-  migrations, and the upgrade runner against hosted data. Hosted work needs explicit
-  authorization; the Docker upgrade runner itself now passes locally.
+- A real-session group/publication/voting flow. The publication and votes migrations
+  were applied with authorization on 2026-11-13; schema readback is not functional proof.
+  The upgrade runner passes in its disposable local container; it is not a hosted-data
+  upgrade exercise. Additional hosted operations need bounded authorization.
 - Native candidate review for milestone 5, and closure of the milestone 3 review that
   stopped after three of four lenses with no receipt.
 - Full Google/Discord OAuth completion and real email delivery, which need provider
@@ -95,11 +96,23 @@ Still unproven after the local database work:
   [PR #51](https://github.com/msti1899/modpack-creator-version-final/pull/51) as
   `becd201`; the Backend checks passed in 50 seconds on the branch head. Native review
   of that slice is still open.
-- No hosted change and no deployment is recorded for milestones 5 or 6.
+- Hosted schema application for milestones 5 and 6 was recorded on 2026-11-13 through
+  PR #53; no hosted functional journey or application deployment is claimed.
 
-Next action: start the native review of the merged database-proof slice, close the
-milestone 3 and milestone 5 review gaps, and verify the publication and voting flows
-against the hosted project now that its migrations are applied.
+## Proposed next backend phase
+
+On 2026-11-13 the owner requested a whole-backend assessment and broader plan, including
+session/logout and mod filtering. The [completion proposal](plans/backend-completion.md)
+now inventories user journeys, existing API behavior, missing web integration, assurance
+gaps and optional product scope. It is proposed, not implementation authorization.
+The audit was static; no new runtime or hosted checks ran for it. Prior review gaps
+remain open, but review closure alone does not complete the product.
+Publication and merge of the planning document were authorized on 2026-11-13;
+implementation and unresolved product choices remain separate decisions.
+
+Next action: review the capability inventory with the owner and agree the first
+account/session or catalog-filter slice. Preserve the separate approvals needed for
+implementation, external settings, deployment and publication.
 
 ## Resume
 
