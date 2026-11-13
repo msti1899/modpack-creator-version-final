@@ -86,3 +86,33 @@ test("existing health and unknown routes remain public without identity configur
   expect((await app.request("/not-found")).status).toBe(404);
   expect((await me(app, `Bearer ${token()}`)).status).toBe(503);
 });
+
+test("environment configuration accepts escaped PEM and only the listed browser origins", async () => {
+  const names = ["CLERK_JWT_KEY", "CLERK_ISSUER", "CLERK_AUTHORIZED_PARTIES"] as const;
+  const previous = names.map((name) => process.env[name]);
+  try {
+    process.env.CLERK_JWT_KEY = config.jwtKey.replace(/\n/g, "\\n");
+    process.env.CLERK_ISSUER = config.issuer;
+    process.env.CLERK_AUTHORIZED_PARTIES = `https://first.example.test, ${config.authorizedParties[0]} `;
+    const app = createApp(catalog);
+    for (const azp of ["https://first.example.test", config.authorizedParties[0]]) {
+      const response = await me(app, `Bearer ${token({ azp })}`);
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({ user: { id: "user_player", email: null } });
+      expect(response.headers.get("cache-control")).toBe("no-store");
+      expect(response.headers.get("vary")).toContain("Authorization");
+    }
+    for (const claims of [{ azp: "https://unlisted.example.test" }, { exp: 1 }]) {
+      const response = await me(app, `Bearer ${token(claims)}`);
+      expect(response.status).toBe(401);
+      expect(await response.json()).toEqual({ error: "Authentication required." });
+      expect(response.headers.get("www-authenticate")).toBe("Bearer");
+      expect(response.headers.get("cache-control")).toBe("no-store");
+    }
+  } finally {
+    names.forEach((name, index) => {
+      if (previous[index] === undefined) delete process.env[name];
+      else process.env[name] = previous[index];
+    });
+  }
+});

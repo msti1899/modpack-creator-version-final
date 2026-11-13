@@ -110,9 +110,22 @@ remain open, but review closure alone does not complete the product.
 Publication and merge of the planning document were authorized on 2026-11-13;
 implementation and unresolved product choices remain separate decisions.
 
-Next action: review the capability inventory with the owner and agree the first
-account/session or catalog-filter slice. Preserve the separate approvals needed for
-implementation, external settings, deployment and publication.
+### Account and session assurance slice
+
+On 2026-11-13 the owner authorized starting the first backend-plan item on an isolated
+branch. `feat/backend-account-session`, cut from `origin/main` at `576ddfd`, adds two
+tests and no application behavior: one pins the environment-driven API configuration
+(escaped-newline PEM, comma-separated authorized parties with trimming, unlisted origin
+rejected), the other pins a failed web session lookup as a 502 rather than a sign-out
+and checks that no identity stays cached between the signed-in, failed and signed-out
+results. `bun run check` passes 127 tests. Both tests were shown to fail when the
+behavior they pin is mutated. Not merged; no provider, browser or hosted access ran.
+
+Next action: review this local slice and decide whether the remaining account/session
+work starts next. Real email/password, Google and Discord journeys, browser sign-out and
+any immediate copied-token revocation still need provider configuration, test accounts
+or a product decision. Preserve the separate approvals needed for implementation,
+external settings, deployment and publication.
 
 ## Resume
 
