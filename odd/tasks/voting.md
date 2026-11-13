@@ -142,7 +142,17 @@ no scheduler exists.
   duplicated.
 - L13: Native assessment over `d5d3c40..fbdb9b8` (committed only, untracked tooling
   excluded) returned medium risk with reason `executable_change` and
-  `review_due: false`, `review_due_reason: under_budget`. No review transaction
-  started and no consent was requested. The named high-risk items are still recorded
-  in the task risk lines; escalation remains available if the owner asks for the
-  four-lens pass.
+  `review_due: false`, `review_due_reason: under_budget`.
+- L14: The owner asked for the full lens pass. The assessment was raised with the named
+  security item, consent was granted for this candidate, the native plan selected one
+  lens (`review-reliability`), and that lens approved the candidate with six
+  non-blocking advisories. The acknowledgement burned the authority
+  (`gentle-ai.review-acknowledged/v1`, action `acknowledged`); no correction round
+  opened and no later re-review of these bytes is warranted.
+- L15: Advisory analysis: the electorate snapshot advisory holds by lock discipline,
+  not by test. `open_group_vote` counts members and inserts electorate rows while
+  holding the group row lock, and every membership mutation takes that same lock
+  first, so no membership change can interleave; real multi-session concurrency is
+  still unproven. The other advisories are test-coverage gaps (upstream 401, no-draft
+  route, timeout value, single-plan TAP output) and one impossible upstream shape
+  (`draft: null` on incorporation). All are recorded as later work.

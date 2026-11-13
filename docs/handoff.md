@@ -140,13 +140,14 @@ stack, both absent here), PostgREST, a signed Clerk→Hono→PostgREST vote requ
 two-session concurrency and hosted migration application. No pull request, merge or
 hosted change is recorded.
 
-Native assessment over the committed range returned medium risk with
-`review_due_reason: under_budget`, so no review transaction started and no consent was
-requested; a later commit may reach the budget, and the owner can request the
-four-lens pass explicitly.
+Native review ran after the owner asked for the full lens pass: consent was granted for
+the candidate, the reliability lens approved it, and the acknowledgement burned its
+authority. No correction round opened. Six advisories are recorded in
+[doc05](delivery/doc05-voting.md#remaining-work); the electorate snapshot one was
+analyzed and holds by group-row lock discipline rather than by test.
 
-Next action on this branch: nothing is required to keep the work; publication, merge,
-slicing and any review escalation are separate decisions and are not authorized yet.
+Next action on this branch: nothing is required to keep the work; publication, merge
+and slicing remain separate decisions and are not authorized.
 
 ## Previous documentation delivery
 

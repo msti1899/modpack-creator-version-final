@@ -94,10 +94,24 @@ requested for this candidate. No hosted database change was made.
 
 ## Remaining work
 
-- Native candidate review is pending, under its own consent. The native assessment
-  over the committed range returned medium risk (`executable_change`) and
-  `review_due_reason: under_budget`, so no transaction started; a later commit may
-  reach the budget, and the owner can still request the four-lens pass.
+- Native review ran after the owner asked for the full lens pass. The assessment was
+  raised with the named security item (authenticated RPC surface); consent was granted
+  for this candidate, the reliability lens approved it, and the acknowledgement burned
+  its authority (`gentle-ai review-acknowledged/v1`, action `acknowledged`). No
+  correction round opened. Advisories kept as later work:
+  - the upstream PostgREST 401 branch is not exercised by a test, so a regression that
+    fell through to the generic 502 would stay green;
+  - opening a vote with no draft is documented but only proven at the SQL RPC level,
+    not through the route;
+  - the electorate count and the electorate insert are two statements. Both run while
+    holding the group row lock, and every membership mutation (`join_public_group`,
+    `approve_join_request`, `leave_group`, `transfer_ownership`) takes that same lock
+    first, so the snapshot is atomic by lock discipline; this is an argument from
+    code, not a multi-session test;
+  - the five-second timeout is asserted only as the presence of an `AbortSignal`;
+  - the incorporation sanitizer accepts a `draft: null` that SQL cannot produce;
+  - the tracked SQL suite plans a single pgTAP test and has only run in the scratch
+    harness, so a failure yields one TAP result without per-assertion diagnostics.
 - Real pgTAP and a multi-session concurrency check need a local Supabase stack;
   hosted proof would need its own explicit authorization.
 - Milestone 5 remains a separate branch; the two deliveries will need to be sequenced
