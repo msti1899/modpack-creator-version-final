@@ -47,8 +47,9 @@ group draft was saved by someone else in between (`revision` compare-and-swap, r
 the draft convention); incorporation merges the pinned addition into the current draft
 under the same revision compare-and-swap and the same compatibility rules as a draft
 save, and a conflict rejects the incorporation without changing the draft or the vote;
-durations are bounded to 1-720 hours; reads derive a closed-but-unresolved vote as
-rejected without mutating the row, while write paths persist that terminal state.
+durations are bounded to 1-720 hours; a vote past its deadline without the majority
+reads as rejected and every write path refuses it instead of mutating the row, because
+no scheduler exists.
 
 ## Tasks
 
@@ -73,7 +74,14 @@ rejected without mutating the row, while write paths persist that terminal state
   handoff and index links. Route: inline. Status: complete; doc05 added.
 - T5 [S1-S5] Independent verification of the named high-risk items and native candidate
   review under its own consent. Route: delegated verification for named items.
-  Status: pending. Commit: none.
+  Status: verification returned no blocker and met S1-S5 across 179 independent SQL
+  checks, 11 HTTP probe tests and 55 byte-identical comparisons against the base
+  revision; five advisories were recorded and one documentation inconsistency was
+  corrected. Native candidate review is pending. Commit: none.
+- T6 [S1-S5] Verification-derived regression coverage: boundary caps, the full error
+  mapping, malformed catalog data on the open path. Route: inline. Status: complete;
+  `apps/api/tests/votes-edge.test.ts` passes 6 tests / 50 assertions. Production bytes
+  are unchanged by this task. Commit: follow-up commit.
 
 ## Log
 
@@ -115,3 +123,20 @@ rejected without mutating the row, while write paths persist that terminal state
   `bun run db:test` could not run. The tracked suite is written for pgTAP framing but
   has only executed in the scratch harness. PostgREST, signed-session transport, real
   concurrency and hosted application remain unproven.
+- L10: Independent verification ran in fresh external scratch on the committed
+  candidate and reproduced no blocker: S1-S5 met, 179 independent SQL checks, 11 HTTP
+  probe tests with 296 assertions, 55 byte-identical comparisons of the existing
+  routes against the base revision, and both the tracked vote and draft SQL suites
+  passing under an independently built PGlite harness. Real pgTAP, PostgREST,
+  multi-session concurrency and hosted application stayed unverified there too.
+- L11: Advisories from verification: duplicate `addVersionIds` are deduplicated before
+  the RPC while SQL rejects duplicates; the incorporation response sanitizer accepts
+  an impossible `draft: null`; a direct RPC caller can send proposal and addition in a
+  different order or add unused proposal keys; SQL clamps page limits instead of
+  rejecting them; and the task document wrongly described write paths as persisting
+  rejection. Only the documentation wording was corrected; the rest are direct-RPC
+  hardening notes, not behavior the HTTP contract exposes.
+- L12: The verification report supplied runnable probes. The HTTP boundary, error-map
+  and malformed-catalog cases were adopted as `votes-edge.test.ts` in a follow-up
+  commit that does not change production bytes; the overlapping SQL probes were not
+  duplicated.

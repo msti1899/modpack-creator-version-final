@@ -126,22 +126,23 @@ never edits, publishes or activates a pack version. See
 [voting tasks](../odd/tasks/voting.md), [doc05](delivery/doc05-voting.md) and the
 [voting guide](guides/voting.md).
 
-Proof on this branch: both typechecks pass; `bun test` passes 102 tests with 1895
-assertions, and the focused vote suite passes 16 tests with 185 assertions. RED for
+Proof on this branch: both typechecks pass; `bun test` passes 108 tests with 1945
+assertions. The tracked `votes.test.sql` holds 68 assertions and passed unchanged in
+the isolated supplemental PGlite harness with all eight migrations, while the existing
+draft SQL suite still passes; without the votes migration the new suite fails. RED for
 the HTTP slice was confirmed against a copy of the base revision in external scratch.
-The tracked `votes.test.sql` holds 68 assertions and passed unchanged in the isolated
-supplemental PGlite harness with all eight migrations, while the existing draft SQL
-suite still passes; without the votes migration the new suite fails.
+Independent verification reproduced no blocker: S1–S5 met, 179 independent SQL checks,
+11 HTTP probe tests, and 55 byte-identical comparisons of the existing routes against
+the base revision. Its boundary and error-mapping probes are now tracked.
 
-Missing proof for this branch: no commit, pull request, merge or hosted change is
-recorded. Real pgTAP (`bun run db:test` needs Docker and a local stack, both absent
-here), PostgREST, a signed Clerk→Hono→PostgREST vote request, real two-session
-concurrency and hosted migration application are unverified. Independent
-verification and native candidate review have not run.
+Missing proof for this branch: real pgTAP (`bun run db:test` needs Docker and a local
+stack, both absent here), PostgREST, a signed Clerk→Hono→PostgREST vote request, real
+two-session concurrency and hosted migration application. No pull request, merge or
+hosted change is recorded. Native candidate review has not run.
 
-Next action on this branch: run independent verification of the named high-risk
-items, then assess the candidate for native review under its own consent. Committing
-and slicing the delivery are separate decisions and are not authorized yet.
+Next action on this branch: assess the committed candidate for native review under its
+own consent. Publication, merge and slicing are separate decisions and are not
+authorized yet.
 
 ## Previous documentation delivery
 

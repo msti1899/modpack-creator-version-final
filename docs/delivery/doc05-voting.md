@@ -69,18 +69,32 @@ owns published versions and remains untouched here.
   the migration and HTTP-side Modrinth behaviour through a deployed API are also
   unproven. The PGlite harness proves SQL behaviour in one session, not concurrency
   or transport.
+- Independent verification ran later on the same day in fresh external scratch and
+  found no blocker: S1–S5 met, 179 independent SQL checks, 11 HTTP probe tests with
+  296 assertions, 55 byte-identical comparisons of the existing routes against the
+  base revision, and both tracked SQL suites passing under an independently built
+  PGlite harness. Its HTTP boundary, error-map and malformed-catalog probes were
+  adopted as `apps/api/tests/votes-edge.test.ts` (6 tests, 50 assertions) in a
+  follow-up commit that leaves production bytes unchanged. Its advisories: duplicate
+  `addVersionIds` are deduplicated before the RPC while SQL rejects duplicates; the
+  incorporation sanitizer accepts an impossible `draft: null`; a direct RPC caller may
+  reorder proposal rows against the addition or add unused proposal keys; SQL clamps
+  page limits rather than rejecting them. Each is reachable only by calling the RPC
+  directly or by an impossible upstream response, so none changes the HTTP contract.
+  A documentation error about persisting rejection was corrected.
 
 ## Delivery state
 
-Implementation and documentation are complete locally on `feat/voting`. No commit,
-pull request, merge, hosted migration or deployment is recorded at this point.
-Native candidate review has not started, and no review consent was requested for this
-candidate. No hosted database change was made.
+Implementation and documentation are complete locally on `feat/voting`, committed as
+`327867a` with production bytes unchanged afterwards; a follow-up commit adds the
+verification-derived HTTP regression coverage and documentation updates. No pull
+request, merge, hosted migration or deployment is recorded. Independent verification
+returned no blocker. Native candidate review has not started and no review consent was
+requested for this candidate. No hosted database change was made.
 
 ## Remaining work
 
-- Independent verification is still pending, as is native candidate review under its
-  own consent.
+- Native candidate review is pending, under its own consent.
 - Real pgTAP and a multi-session concurrency check need a local Supabase stack;
   hosted proof would need its own explicit authorization.
 - Milestone 5 remains a separate branch; the two deliveries will need to be sequenced
