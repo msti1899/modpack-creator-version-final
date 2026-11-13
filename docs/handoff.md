@@ -99,6 +99,12 @@ Still unproven after the local database work:
   of that slice is still open.
 - Hosted schema application for milestones 5 and 6 was recorded on 2026-11-13 through
   PR #53; no hosted functional journey or application deployment is claimed.
+- Account and session proof: merged to `main` through
+  [PR #55](https://github.com/msti1899/modpack-creator-version-final/pull/55) as
+  `21c91f8`, with the Backend checks passing on the merge commit.
+- Profile conflict contract: merged to `main` through
+  [PR #56](https://github.com/msti1899/modpack-creator-version-final/pull/56) as
+  `9067562`, with the Backend checks passing on the merge commit. `main` runs 131 tests.
 
 ## Proposed next backend phase
 
@@ -174,8 +180,11 @@ byte-identical to the baseline in a 34-scenario differential, and its one adviso
 was fixed and pinned. Native risk assessment returned medium / under budget, so no
 candidate review was due.
 
-State: published and awaiting merge; database pgTAP was not rerun because the slice
-changes no SQL, and no deployment, hosted setting or external service was touched.
+State: merged to `main` through
+[PR #56](https://github.com/msti1899/modpack-creator-version-final/pull/56) as
+`9067562`, with the Backend checks passing on the merge commit. Database pgTAP was not
+rerun because the slice changes no SQL, and no deployment, hosted setting or external
+service was touched.
 
 ## Resume
 
