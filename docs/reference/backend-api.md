@@ -47,9 +47,17 @@ return 401 before database access. Privileged API keys are never accepted. Query
 - Both write bodies contain **only** `{ username }`: 3–20 ASCII letters, digits,
   or underscores. Casing is preserved; uniqueness ignores casing. Invalid JSON,
   unknown fields, invalid names, or bodies exceeding 1 KiB return 400.
-- Already-assigned profiles or taken usernames return 409. The first rename is
-  immediate; later actual changes require 30 days or return 409. An identical
-  write leaves the timestamp unchanged. Previous names become available again.
+- `GET` returning `{"profile": null}` is the only signal a client needs to know
+  that an account still has to choose a username; `/me` intentionally keeps its
+  identity-only shape and is not the profile-completion signal.
+- Already-assigned profiles return 409 `Profile already exists.` on POST; a name
+  owned by another account returns 409 `Username is already taken.`, on POST and
+  on PATCH. POST resolves the cause with one additional owner-scoped read; if that
+  read fails, the generic `Profile or username already exists.` message is kept.
+  No constraint name or row data is exposed.
+- The first rename is immediate; later actual changes require 30 days or return
+  409. An identical write leaves the timestamp unchanged. Previous names become
+  available again.
 
 Data API failures return safe errors: 401 for expired/rejected credentials,
 502 for protocol/network/permission failures and rate limits, 504 for timeout.

@@ -22,6 +22,30 @@ If a write times out, read the profile before retrying: the database may have
 committed before the response was lost. Identical PATCH retries do not restart
 the cooldown; the server does not automatically retry writes.
 
+## Onboarding contract
+
+Signing in never creates a profile. Treat `GET /profile` as the completion check:
+
+| `GET /profile` | Meaning | Next step |
+| --- | --- | --- |
+| `200 {"profile": null}` | The account still needs a username | `POST /profile` |
+| `200 {"profile": {...}}` | The account is complete | Show the username or `PATCH` to rename |
+
+A `POST` conflict is resolvable because the API names its cause:
+
+- `409 Profile already exists.` The account already has a profile. Read it and
+  continue with `PATCH` (or show the stored username); do not retry another name.
+- `409 Username is already taken.` Another account owns that name, ignoring
+  casing. Ask for a different username and retry `POST` or `PATCH`.
+- `409 Profile or username already exists.` The API could not classify the
+  conflict safely because the follow-up read failed. Read the profile before
+  deciding; retry once the profile service is reachable.
+
+Group creation and joining require a profile: `POST /groups` without one returns
+`409 {"error": "Profile required."}` and writes no group row. This is deliberate,
+not a transient failure. `GET /me` stays identity-only, so clients must call
+`GET /profile` to detect a missing profile.
+
 ## Database contract
 
 `public.profiles` contains `user_id`, `username`, and nullable

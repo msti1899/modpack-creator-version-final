@@ -148,6 +148,11 @@ the request to assess and plan.
 
 ## Change log
 
+- 2026-11-13: The owner authorized starting M2, the profile-completion contract, as
+  an isolated branch from the documentation baseline because M1 account/session work
+  is in progress elsewhere. No other milestone is authorized. The slice records the
+  existing profile-completion signal, splits the ambiguous creation conflict into
+  distinguishable causes, and pins the group-without-profile rejection.
 - 2026-11-13: Initial proposal focused on verification, hosted proof, identity and
   production. It did not inventory the actual user journeys and is superseded here.
 - 2026-11-13: Expanded after owner feedback to cover sessions/logout, onboarding,

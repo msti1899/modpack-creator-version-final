@@ -44,12 +44,30 @@ export function profileRoutes(options: IdentityOptions, fetcher: ProfileFetcher,
       let config: ReturnType<typeof databaseConfiguration>;
       try { config = databaseConfiguration(database); }
       catch { throw new ProfileFailure(503, "Profile service is not configured."); }
-      const url = new URL("/rest/v1/profiles", config.url);
-      url.searchParams.set("select", "username,username_changed_at");
-      url.searchParams.set("user_id", "eq." + c.get("identity").id);
-      const response = await fetcher(url.href, {
+      const authorization = c.req.header("Authorization")!.replace(/^Bearer +/i, "Bearer ");
+      const ownerUrl = () => {
+        const target = new URL("/rest/v1/profiles", config.url);
+        target.searchParams.set("select", "username,username_changed_at");
+        target.searchParams.set("user_id", "eq." + c.get("identity").id);
+        return target;
+      };
+      // A creation conflict can mean this account already has a profile or that
+      // another account owns the name. Reuse the owner-scoped read instead of
+      // parsing provider constraint text so the client can pick its recovery path.
+      const ownsProfile = async (): Promise<boolean | null> => {
+        try {
+          const lookup = await fetcher(ownerUrl().href, {
+            method: "GET", redirect: "error", cache: "no-store", signal: AbortSignal.timeout(5000),
+            headers: { apikey: config.key, Authorization: authorization, Accept: "application/json" },
+          });
+          const body = await jsonBody(lookup.body, 4096);
+          if (lookup.status !== 200 || !Array.isArray(body) || body.length > 1) return null;
+          return body.length === 1;
+        } catch { return null; }
+      };
+      const response = await fetcher(ownerUrl().href, {
         method, redirect: "error", cache: "no-store", signal: AbortSignal.timeout(5000),
-        headers: { apikey: config.key, Authorization: c.req.header("Authorization")!.replace(/^Bearer +/i, "Bearer "),
+        headers: { apikey: config.key, Authorization: authorization,
           Accept: "application/json", "Content-Type": "application/json", Prefer: "return=representation" },
         body: method === "GET" ? undefined : JSON.stringify(method === "POST" ? { user_id: c.get("identity").id, username } : { username }),
       });
@@ -60,7 +78,13 @@ export function profileRoutes(options: IdentityOptions, fetcher: ProfileFetcher,
       const value = await jsonBody(response.body, 4096);
       if (value && typeof value === "object" && !Array.isArray(value)) {
         const fault = value as { code?: unknown; message?: unknown };
-        if (response.status === 409 && fault.code === "23505") throw new ProfileFailure(409, "Profile or username already exists.");
+        if (response.status === 409 && fault.code === "23505") {
+          if (method === "PATCH") throw new ProfileFailure(409, "Username is already taken.");
+          const owns = await ownsProfile();
+          if (owns === true) throw new ProfileFailure(409, "Profile already exists.");
+          if (owns === false) throw new ProfileFailure(409, "Username is already taken.");
+          throw new ProfileFailure(409, "Profile or username already exists.");
+        }
         if (response.status === 400 && fault.code === "P0001" && fault.message === "Username can only be changed every 30 days.") {
           throw new ProfileFailure(409, "Username can only be changed every 30 days.");
         }
