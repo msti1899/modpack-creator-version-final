@@ -117,6 +117,29 @@ Two defects were observed in the app surface, both independent of the API:
 Neither defect was fixed here: both need a change to the web application, which is a
 separate slice from recording evidence.
 
+### Investigation note for the UI defect
+
+A follow-up attempt on 2026-11-13 was reverted without shipping, because no variant could
+be verified end to end in the automation browser. What it established:
+
+- The page requests `@clerk/ui` and the CDN answers `200` with `application/javascript`
+  after a `307` to the versioned path, but `window.__internal_ClerkUICtor` stays
+  `undefined` and the account controls have no component layer.
+- Injecting the same bundle manually defines that global as a function, so the bundle
+  itself is sound and the failure is in how the runtime picks it up.
+- With the global present, `Clerk.load({ ui: { ClerkUI: window.__internal_ClerkUICtor } })`
+  applies the component layer immediately: `openSignIn()` succeeds, the modal renders the
+  configured Discord, Google and email/password methods, and the reported `uiVersion` is
+  `1.42.5`. That is the working mechanism to build on.
+- Bundling `@clerk/ui` and passing `ui` to `ClerkProvider`, preloading the UI bundle with
+  `next/script` before Clerk, and a client bridge that called `load({ ui })` after mount
+  were each tried. None produced a verified working sign-in button in the automation
+  browser, and the instance repeatedly stayed at `status: "loading"`, so none was kept.
+
+Next attempt should start from the working `load({ ui })` behaviour above and confirm it
+in a browser whose Clerk instance reaches `ready` without the automation cookie workaround,
+then run the sign-in and sign-out journey through the real buttons.
+
 ## Delivery state
 
 - Implementation and documentation: complete on `feat/backend-account-session` as two
