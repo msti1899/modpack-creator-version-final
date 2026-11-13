@@ -92,9 +92,9 @@ so the group-lock ordering argument is structural, not raced.
 
 Implementation, tests and documentation are complete on `feat/published-versions`.
 The implementation, migration and both test suites are commit `51e7a03`; this record
-and the documentation updates are the branch tip commit that contains it. No pull
-request, merge, hosted application or deployment is recorded; those remain separate
-decisions.
+and the documentation updates follow it on the same branch. The branch is published in
+[PR #49](https://github.com/msti1899/modpack-creator-version-final/pull/49) with the Backend checks job passing in 39 seconds. No merge, hosted
+application or deployment is recorded; those remain separate decisions.
 
 ## Remaining work
 

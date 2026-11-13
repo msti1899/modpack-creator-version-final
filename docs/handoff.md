@@ -49,9 +49,10 @@ advisories from milestones 3 and 4 remain open and are not re-claimed as current
 
 ## Delivery state
 
-Branch `feat/published-versions` is committed locally with no push, pull request,
-merge, hosted change or deployment. Publication and merge are separate decisions; no
-hosted authorization exists for this milestone.
+Branch `feat/published-versions` is pushed and published in [PR #49](https://github.com/msti1899/modpack-creator-version-final/pull/49) with the
+Backend checks job passing in 39 seconds. No merge, hosted change or deployment is
+recorded. Applying the publication migration to the selected test project and merging
+the pull request remain separate decisions.
 
 ## Resume
 
@@ -64,7 +65,7 @@ hosted authorization exists for this milestone.
    their own records.
 3. Next actions, each needing its own authorization: native candidate review when due,
    a multi-connection race check on a real database stack, hosted proof on the selected
-   test project, then publication and merge.
+   test project, then merge.
 4. Hosted Clerk → Supabase trust and the applied profile, group and draft migrations
    remain as recorded in [the hosted verification record](../odd/tasks/hosted-profile-verification.md).
    The publication migration has never been applied to a hosted project. Do not access
