@@ -132,14 +132,23 @@ database with that same token; revoking the session stops new tokens; a token co
 before revocation still verifies until it expires. `bun run check` passes 127 tests.
 
 Observed limitations, not asserted defects: the session token template omits the email
-claim, so `/me` returns null; automated registration returns the provider's `action_blocked`
-abuse response; and the browser SDK stayed in `status: "loading"` in the automation
-browser, so browser-level sign-out and the real sign-up UI remain unproven. Immediate
-revocation of a copied token is still an open product decision.
+claim, so `/me` returns null, and automated registration returns the provider's
+`action_blocked` abuse response. The account portal was then exercised in a real browser:
+the configured Discord, Google and email/password methods render, email/password sign-in
+completes including the new-device trust code, and `GET /api/me` through the web proxy
+returns the signed-in subject with `no-store`.
 
-Next action: review this local slice, then choose between wiring the remaining account
-journeys in a browser session and starting the catalog-discovery milestone. Preserve the
-separate approvals needed for implementation, external settings, deployment and publication.
+Two defects were reproduced on the web surface and are not fixed: the in-app Clerk UI
+never registers its components, so the "Sign in" and "Create account" buttons are inert
+and `Clerk.openSignIn()` throws `Clerk was not loaded with Ui components`; and after
+`Clerk.signOut()` resolved the `__session` cookie remained, so `/api/me` kept returning
+the identity until the cookie was removed. The second is observation only, because the
+SDK was already in a broken state on that page. Immediate revocation of a copied token
+is still an open product decision.
+
+Next action: fix the web account surface in its own slice, or start the catalog-discovery
+milestone. Preserve the separate approvals needed for implementation, external settings,
+deployment and publication.
 
 ## Resume
 

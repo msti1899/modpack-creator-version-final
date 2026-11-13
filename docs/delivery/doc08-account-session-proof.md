@@ -85,6 +85,38 @@ Environment: CachyOS Linux, Bun 1.4.4, local API at `127.0.0.1:3001` with the re
   relies on. Immediate invalidation of an already-copied token remains an explicit
   product decision, and the completion plan lists it as open.
 
+## Browser journey
+
+The account portal that Clerk serves for this instance was exercised in a real browser
+against the local web app on 2026-11-13, with the same disposable fixture.
+
+- The portal renders the configured methods: Discord, Google, email address and password.
+- Email/password sign-in completed, including the new-device trust code, and redirected
+  back to `http://127.0.0.1:3000` with a live session.
+- `GET /api/me` through the Next.js proxy returned `200` with that session's subject and
+  `Cache-Control: no-store`.
+- Deleting the `__session` cookie made the same request return `401`, so the proxy and API
+  behave correctly when no credential is present.
+
+Two defects were observed in the app surface, both independent of the API:
+
+- **The in-app Clerk UI does not initialize.** The "Sign in" and "Create account" buttons
+  render but do nothing. `Clerk.openSignIn()` throws `Clerk was not loaded with Ui
+  components`, and `window.__internal_ClerkUICtor` stays `undefined` even though the page
+  requested `@clerk/ui` and the CDN answered `200` with `application/javascript` after a
+  `307` to the versioned path. `Clerk.load()` also had to be invoked manually for the
+  instance to leave `status: "loading"`. The account journey is therefore unusable in the
+  web app today even though the portal and the API both work.
+- **Sign-out left a working session cookie.** After `Clerk.signOut()` resolved,
+  `Clerk.session` was `null` and `status` was back to `loading`, but `__session` remained
+  and `/api/me` kept returning the identity. Removing the cookie manually produced `401`.
+  Because the SDK was already in a broken state on this page, the cause cannot be
+  attributed to the app with confidence; it is recorded as observed behavior, not as a
+  diagnosed defect.
+
+Neither defect was fixed here: both need a change to the web application, which is a
+separate slice from recording evidence.
+
 ## Delivery state
 
 - Implementation and documentation: complete on `feat/backend-account-session` as two
@@ -96,8 +128,12 @@ Environment: CachyOS Linux, Bun 1.4.4, local API at `127.0.0.1:3001` with the re
 
 ## Remaining work
 
-- Browser-level sign-out and the real sign-up UI, which need a browser that permits the
-  development-instance cookies, or the owner's own session.
+- Fix the web account surface: the in-app Clerk UI never registers its components, so the
+  sign-in and sign-up buttons are inert, and sign-out does not clear the session cookie in
+  the observed environment. Both were reproduced on 2026-11-13 and belong to their own
+  web slice.
+- Automated registration through the frontend API stays blocked by provider abuse
+  protection; the account portal is the working path for creating an account.
 - A profile write path was deliberately not exercised: no endpoint deletes a profile, so
   a write would leave a row for a deleted account.
 - Email/OAuth provider journeys beyond the owner's own verification, and the production
