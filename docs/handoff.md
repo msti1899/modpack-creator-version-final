@@ -255,8 +255,17 @@ re-verified. Native assessment returned medium risk with `under_budget`, so no
 candidate review was due.
 
 Remaining: no client consumes `projectTitle` yet, selector data and the exact-version
-picker are still undecided, and the real database compare-and-swap and the live
-Modrinth API were not re-exercised for this journey.
+picker are still undecided, and the hosted compare-and-swap, cross-user isolation and
+token revocation were not re-exercised for this journey.
+
+Hosted session proof ran on 2026-11-13 with a real browser session against the
+configured Clerk development instance and the hosted test project: `/me`, profile
+creation, group creation, a live Modrinth proposal with real titles, save, removal,
+three atomic rejections, export and the group-delete cascade all behaved as documented.
+The first draft read timed out at the 5-second route limit before a retry succeeded,
+which is recorded as an observed limit. One profile row (`m4proof13`) remains because
+no deletion endpoint exists; removing it needs privileged database access. Details and
+limits are in [doc10](delivery/doc10-pack-assembly.md).
 
 Next action: request hosted or real-session proof if this slice needs it, or continue
 with the next completion-plan milestone; publication and merge remain separate

@@ -100,4 +100,16 @@ implemented and documented; they are pinned here, not rewritten.
   contract documentation (`928cf97`), the verification correction (`95bb452`), and the
   delivery record with the handoff checkpoint (`ceac4e0`). Native assessment of the
   committed range returned medium risk with `under_budget`, so no candidate review was
-  due. Not published, not merged, and no hosted or real-upstream check ran.
+  due. Not published and not merged.
+- 2026-11-13: Hosted session proof requested by the owner and run against the
+  configured Clerk development instance and the hosted test project. A dedicated test
+  account was created through the Backend API; a real browser session on
+  `http://localhost:3000` supplied each 60-second token with the signed `azp` claim the
+  API requires. Observed: profile and group creation, a live Modrinth proposal with
+  real project titles, save at revision 1, a valid removal at revision 2, three
+  rejected writes that left revision and `updatedAt` unchanged, a 883-byte export, and
+  the group-delete cascade. One 504 was observed on the first draft read before a retry
+  succeeded; the 5-second route timeout is shorter than a cold hosted round trip, which
+  is recorded as a limit rather than a defect. Residue: the test profile row cannot be
+  deleted through the API and remains in the hosted project. No migration, provider
+  setting or credential was changed; the Clerk users created for the proof remain.

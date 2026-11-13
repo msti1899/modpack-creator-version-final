@@ -76,18 +76,75 @@ no provider credentials were used.
 - Not exercised: the live Modrinth API, the real PostgreSQL compare-and-swap and row
   lock for this journey, Docker or a hosted database, and the 504 timeout path.
 
+### Hosted session proof, 2026-11-13
+
+Run after the local checks, against the configured Clerk development instance
+(`ultimate-wren-486`) and the hosted Supabase test project, with a dedicated test
+account created through the Backend API. The token used for every request came from a
+real browser session on `http://localhost:3000` (sign-in ticket), so it carried the
+signed `azp` claim the API requires; it expires after 60 seconds and was re-minted per
+request.
+
+Observed results:
+
+- `GET /me` returned the signed subject with `Cache-Control: no-store` and
+  `Vary: Authorization`; the same request without a bearer returned 401.
+- `GET /profile` returned `{"profile": null}`, `POST /profile` returned 201, and a
+  second read returned the stored username. `POST /groups` returned 201 for a private
+  group owned by the token subject.
+- `GET /groups/me/pack` returned 504 `Draft service timed out.` on the first call and
+  200 `{ groupId, role: "owner", draft: null }` on the next one, with no code change in
+  between. The 5-second route timeout is shorter than a cold hosted PostgREST round
+  trip; recorded as an observed limit, not a reproduced defect, because one retry
+  succeeded and the cold case was not repeated.
+- Live Modrinth: `GET /mods?query=sodium&gameVersion=1.21.1&loader=fabric` returned 49
+  hits. `POST /packs/resolve` for `Bh37bMuy` returned two versions with real project
+  titles, `Reese's Sodium Options` and `Sodium`, and `addedDependencies`
+  `["SMxNOGZ6"]` for the required Sodium version.
+- `PUT /groups/me/pack` with the proposal's IDs and `expectedRevision: 0` returned the
+  stored draft at revision 1 with exactly those IDs. A removal that kept the remaining
+  selection complete returned revision 2.
+- Three rejections were exercised against revision 2 and all left the stored row
+  unchanged, with the same revision and `updatedAt`: dropping a required dependency
+  returned 409 `A required dependency is missing or conflicts with the approved
+  selection. Resolve and approve dependencies first.`, an incompatible Minecraft
+  version returned 409 `A mod version does not support the selected Minecraft version
+  and loader.`, and a stale revision returned 409 `Draft revision conflict.`
+- `POST /groups/me/pack/export` returned a 883-byte `.mrpack` whose
+  `modrinth.index.json` carried the stored Sodium file with `client: required`,
+  `server: unsupported`; adding a `versionIds` field to the export body returned 400
+  `Expected only name, version, loaderVersion.`
+- Cleanup: the sole-owner leave deleted the group and cascaded the draft, after which
+  the draft route returned 404 `Group required.`
+
+Recorded residue and gaps:
+
+- The test account's profile row remains in the hosted project because no profile
+  deletion endpoint exists. Username `m4proof13`, Clerk subject
+  `user_3M450zxiBApPwIvqQsVKR2TpDKp`. Removing it needs privileged database access,
+  which this proof did not use.
+- Cross-user isolation, immediate token revocation and the expired-session path were
+  not re-exercised here; the first two belong to the account/session record
+  ([doc08](doc08-account-session-proof.md)) and the unit suite.
+- The hosted compare-and-swap that rejects two concurrent writers is not exercised by
+  these sequential requests; it is the recorded database proof in
+  [doc04](doc04-pack-drafts.md) and [doc07](doc07-local-database-proof.md).
+
 ## Delivery state
 
-- Implementation and documentation: complete on `feat/pack-assembly` in three
-  commits: code, tests and contract documentation (`928cf97`), the verification
-  correction (`95bb452`), and this record with the handoff checkpoint. Not published,
-  not merged.
+- Implementation and documentation: complete on `feat/pack-assembly` in four commits:
+  code, tests and contract documentation (`928cf97`), the verification correction
+  (`95bb452`), the delivery record with the handoff checkpoint (`6f9c57a`), and this
+  hosted-proof record (`402da74`). Not published, not merged.
 - Verification: independent, S1–S7 met with no blocker on the first work unit; the
   three advisories were corrected afterwards.
 - Review: the native candidate assessment of the committed range returned medium risk
   with `under_budget`, so no candidate review was due for this slice.
 - Deployment: none. No migration, hosted setting or provider was touched, so the
   pgTAP, upgrade and concurrency runners do not apply.
+- Hosted session proof: run on 2026-11-13 with a real browser session against the
+  configured Clerk development instance and the hosted test project; the observed
+  results and residue are recorded above.
 
 ## Remaining work
 
@@ -95,10 +152,13 @@ no provider credentials were used.
   UI presents it.
 - Minecraft and loader selector data and an exact-version picker remain undecided, as
   recorded in the completion plan.
-- The journey is proven against HTTP fixtures and an in-memory draft row. The database
-  compare-and-swap and row lock are proven separately in
+- The journey is proven against HTTP fixtures and an in-memory draft row, and
+  separately once against a real browser session, live Modrinth and the hosted
+  project. The database compare-and-swap and row lock are proven separately in
   [doc04](doc04-pack-drafts.md) and [doc07](doc07-local-database-proof.md) but were not
   re-exercised for this slice.
+- The hosted proof left one profile row behind because no deletion endpoint exists
+  (details above). No account or provider setting was changed.
 - Publication and merge remain separate decisions.
 
 ## References
