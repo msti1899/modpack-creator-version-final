@@ -77,10 +77,13 @@ Still unproven after the local database work:
 - Mutation testing of the lock discipline: the new race checks are designed so that
   removing a lock or the one-group index changes the observed result, but no mutation
   was run.
-- A real-session group/publication/voting flow. The publication and votes migrations
-  were applied with authorization on 2026-11-13; schema readback is not functional proof.
-  The upgrade runner passes in its disposable local container; it is not a hosted-data
-  upgrade exercise. Additional hosted operations need bounded authorization.
+- A real-session publication and voting flow. The group lifecycle is now proven both with
+  locally signed tokens and with real hosted Clerk sessions
+  ([doc10](delivery/doc10-groups-lifecycle-proof.md)). The publication and votes migrations
+  were applied with authorization on
+  2026-11-13; schema readback is not functional proof. The upgrade runner passes in its
+  disposable local container; it is not a hosted-data upgrade exercise. Additional
+  hosted operations need bounded authorization.
 - Native candidate review for milestone 5, and closure of the milestone 3 review that
   stopped after three of four lenses with no receipt.
 - Full Google/Discord OAuth completion and real email delivery, which need provider
@@ -226,6 +229,39 @@ distinct `category` values and the lack of per-hit degradation on upstream schem
 Next action: the slice is merged; the review advisories in
 [doc09](delivery/doc09-catalog-discovery.md) are the next optional work, and selector data
 and the exact-version picker still need a product decision.
+
+## Backend completion M5: group lifecycle proof (feat/group-lifecycle)
+
+The fifth milestone of the [completion plan](plans/backend-completion.md) was authorized
+as isolated work on `feat/group-lifecycle`, cut from `origin/main` at `bce2fb7` in its own
+worktree. It adds evidence, not behavior: no endpoint, migration, validation rule or
+response shape changed. pgTAP gained 24 assertions for pending-request cursors, page
+clamping, empty pages past the end and rotated or revoked tokens, and the signed-token
+PostgREST script became a 58-check multi-subject lifecycle suite covering admission,
+invitation, request, approval, rejection, rotation, revocation, member pages, immediate
+ownership transfer and both departure paths. The runner now also fails when a probe
+fixture survives cleanup.
+
+Observed on 2026-11-13 with the local disposable stack: `bun run db:test` PASS with 217
+tests, `bun run db:test:postgrest` 58 of 58 checks, `bun run check` 153 tests and 2655
+assertions with both typechecks. Two local-only database mutations (removing the
+transfer-before-leaving refusal and ignoring `revoked_at`) produced nine pgTAP and six
+PostgREST failures; `bun run db:reset` restored the migrations and both suites returned
+to PASS. See [doc10](delivery/doc10-groups-lifecycle-proof.md) and the
+[feature log](../odd/tasks/completion-m5-group-lifecycle.md).
+
+The hosted proof that the local stack cannot assemble was then authorized and run:
+`bun scripts/test-group-session.ts --live` passed 30 checks with three real Clerk
+sessions through a locally running API against the selected test project, including
+immediate role changes and both departure paths. Every group was closed through the API,
+the three profiles were removed with one exact-id delete, and hosted readback showed zero
+rows in all five group/profile tables; the Clerk instance again holds only the owner
+account. Two behaviours are recorded in doc10: a development browser token serves one
+sign-in flow, and a failed account creation now still registers its id for cleanup.
+
+State: committed on the branch, not published, reviewed or merged. Next action: review
+and publication as separate decisions, then a re-run if the group routes, RLS grants or
+token template change.
 
 ## Resume
 
