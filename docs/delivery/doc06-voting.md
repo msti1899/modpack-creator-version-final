@@ -91,8 +91,10 @@ commits record the review and publication state without touching production byte
 Independent verification returned no blocker. Native review approved the candidate and
 its acknowledgement burned the authority. Published as
 [PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48) with Backend
-checks passing in 46 seconds. No merge, hosted migration or deployment is recorded, and
-no hosted database change was made.
+checks passing in 46 seconds, then merged to `main` as `ea2c43f` after the branch
+integrated milestone 5 and moved its migration to `20261112233000_group_votes.sql` and
+its record to doc06. The Backend checks run on the merge commit passed. No hosted
+migration or deployment is recorded, and no hosted database change was made.
 
 ## Remaining work
 

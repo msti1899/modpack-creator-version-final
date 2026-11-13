@@ -1,12 +1,11 @@
 # Current handoff
 
-Checkpoint: 2026-11-12. `main` at `e60a816` contains milestone 3 ([PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45),
+Checkpoint: 2026-11-12. `main` at `ea2c43f` contains milestone 3 ([PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45),
 merge `b648c21`), milestone 4 ([PR #46](https://github.com/msti1899/modpack-creator-version-final/pull/46),
-merge `2ae50e7`) and milestone 5 ([PR #49](https://github.com/msti1899/modpack-creator-version-final/pull/49)).
-Milestone 6 is implemented on `feat/voting`, which now merges that `main` and is
-published as [PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48).
-Verify the branch and HEAD before resuming. This is a resume point, not a session
-history.
+merge `2ae50e7`), milestone 5 ([PR #49](https://github.com/msti1899/modpack-creator-version-final/pull/49),
+merge `e60a816`) and milestone 6 ([PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48),
+merge `ea2c43f`). Verify the branch and HEAD against this snapshot before resuming.
+This is a resume point, not a session history.
 
 ## Merged milestones
 
@@ -23,10 +22,10 @@ history.
 
 Those records own their own proof and gaps; this checkpoint does not restate them.
 
-## Current work: milestone 6, voting
+## Milestone 6, voting
 
-Milestone 6 is implemented on `feat/voting`, created from `d5d3c40` and now carrying a
-merge of `main` at `e60a816`. The four lifecycle rules the roadmap required were
+Milestone 6 was implemented on `feat/voting`, created from `d5d3c40` and carrying a
+merge of `main` at `e60a816` before it landed. The four lifecycle rules the roadmap required were
 decided and recorded in D7. Votes are owner-created concrete proposals with a chosen
 1–720 hour duration, a frozen electorate that includes the owner, absolute majority
 with early approval, owner cancellation, deadline rejection, and a separate owner
@@ -63,14 +62,15 @@ PGlite is single-connection, so lock ordering is argued structurally, not raced.
 ## Delivery state
 
 - Milestone 5: merged to `main` as `e60a816`; the Backend CI run on that commit passed.
-- Milestone 6: [PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48)
-  is open on the merged head; its previous run passed on the pre-merge commit, so the
-  post-merge run is the current evidence.
+- Milestone 6: merged to `main` through
+  [PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48) as `ea2c43f`.
+  The pre-merge verification ran on the branch head with `main` already integrated, and
+  the Backend checks run on the merge commit passed.
 - No hosted change and no deployment is recorded for milestones 5 or 6.
 
-Next action: review and merge PR #48 once its post-merge checks pass, then decide
-separately whether to apply the publication and votes migrations to the selected test
-project.
+Next action: decide separately whether to apply the publication and votes migrations to
+the selected test project, then continue with the next milestone scope the owner
+approves.
 
 ## Resume
 

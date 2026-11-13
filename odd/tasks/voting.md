@@ -171,3 +171,7 @@ no scheduler exists.
   / 2310 assertions, and all nine migrations plus the publication, votes and draft SQL
   suites pass in one isolated PGlite session. Backend checks passed in 45 seconds on
   the merged head.
+- L18: Merged to `main` through PR #48 as `ea2c43f` after the branch-integrated head
+  passed Backend checks. The pre-merge verification ran with `main` already merged in,
+  so the merged tree is the tree that was tested. Hosted migration application and
+  deployment remain separate authorization.
