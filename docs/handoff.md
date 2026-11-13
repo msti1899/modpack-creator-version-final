@@ -64,15 +64,16 @@ What now runs and passes against the local stack: actual pgTAP (six suites, 193
 tests), the profile upgrade regression, real multi-session races for public admission,
 publication sequencing and concurrent ballots, and signed-token PostgREST checks that
 exercise the authorization branch instead of only the Hono fallback. `bun run check`
-still passes 125 tests / 2310 assertions.
+still passes 127 tests / 2339 assertions.
 
 ## Missing proof
 
 Still unproven after the local database work:
 
-- The full Clerk→Hono→PostgREST chain with one token. Locally Hono accepts only an RSA
-  public key while the local PostgREST accepts only the stack's symmetric secret, so
-  the two validators cannot share one signing key without a configuration change.
+- The full Clerk→Hono→PostgREST chain with one token is now proven on the selected test
+  project for the read path ([doc08](delivery/doc08-account-session-proof.md)). A local
+  stack still cannot share one signing key between Hono's RSA verification and
+  PostgREST's symmetric secret, so that limitation only applies locally.
 - Mutation testing of the lock discipline: the new race checks are designed so that
   removing a lock or the one-group index changes the observed result, but no mutation
   was run.
@@ -113,19 +114,32 @@ implementation and unresolved product choices remain separate decisions.
 ### Account and session assurance slice
 
 On 2026-11-13 the owner authorized starting the first backend-plan item on an isolated
-branch. `feat/backend-account-session`, cut from `origin/main` at `576ddfd`, adds two
-tests and no application behavior: one pins the environment-driven API configuration
-(escaped-newline PEM, comma-separated authorized parties with trimming, unlisted origin
-rejected), the other pins a failed web session lookup as a 502 rather than a sign-out
-and checks that no identity stays cached between the signed-in, failed and signed-out
-results. `bun run check` passes 127 tests. Both tests were shown to fail when the
-behavior they pin is mutated. Not merged; no provider, browser or hosted access ran.
+branch, and a live check against the configured development instance. `feat/backend-account-session`
+is cut from `origin/main` at `576ddfd` and carries two work units; it is not merged.
 
-Next action: review this local slice and decide whether the remaining account/session
-work starts next. Real email/password, Google and Discord journeys, browser sign-out and
-any immediate copied-token revocation still need provider configuration, test accounts
-or a product decision. Preserve the separate approvals needed for implementation,
-external settings, deployment and publication.
+The first commit adds two tests and no application behavior: one pins the
+environment-driven API configuration (escaped-newline PEM, comma-separated authorized
+parties with trimming, unlisted origin rejected), the other pins a failed web session
+lookup as a 502 rather than a sign-out and checks that no identity stays cached between
+the signed-in, failed and signed-out results. Both were shown to fail when the behavior
+they pin is mutated. The second commit adds the live check and [doc08](delivery/doc08-account-session-proof.md).
+
+Recorded runtime results, with a real Clerk session token against the local API and the
+test Supabase project: email/password sign-in completes including the new-device trust
+challenge; `GET /me` accepts the token with the same subject, `no-store` and
+`Vary: Authorization`; missing credentials return 401; `GET /profile` reaches the
+database with that same token; revoking the session stops new tokens; a token copied
+before revocation still verifies until it expires. `bun run check` passes 127 tests.
+
+Observed limitations, not asserted defects: the session token template omits the email
+claim, so `/me` returns null; automated registration returns the provider's `action_blocked`
+abuse response; and the browser SDK stayed in `status: "loading"` in the automation
+browser, so browser-level sign-out and the real sign-up UI remain unproven. Immediate
+revocation of a copied token is still an open product decision.
+
+Next action: review this local slice, then choose between wiring the remaining account
+journeys in a browser session and starting the catalog-discovery milestone. Preserve the
+separate approvals needed for implementation, external settings, deployment and publication.
 
 ## Resume
 
