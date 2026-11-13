@@ -1,6 +1,6 @@
 # Current handoff
 
-Checkpoint: 2026-11-13. `main` at `d970c39` contains milestone 3 ([PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45),
+Checkpoint: 2026-11-13. `main` at `717da47` contains milestone 3 ([PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45),
 merge `b648c21`), milestone 4 ([PR #46](https://github.com/msti1899/modpack-creator-version-final/pull/46),
 merge `2ae50e7`), milestone 5 ([PR #49](https://github.com/msti1899/modpack-creator-version-final/pull/49),
 merge `e60a816`), milestone 6 ([PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48),
@@ -14,7 +14,9 @@ merge `b9167c0`) the completion-plan M5 group lifecycle proof
 ([PR #60](https://github.com/msti1899/modpack-creator-version-final/pull/60), merge
 `4e03da0`) and the completion-plan M4 pack assembly slice
 ([PR #62](https://github.com/msti1899/modpack-creator-version-final/pull/62), merge
-`d970c39`). Verify the branch and HEAD against this snapshot before resuming.
+`d970c39`) and the completion-plan M6 publication proof
+([PR #64](https://github.com/msti1899/modpack-creator-version-final/pull/64), merge
+`717da47`). Verify the branch and HEAD against this snapshot before resuming.
 This is a resume point, not a session history.
 
 ## Merged milestones
@@ -128,6 +130,10 @@ Still unproven after the local database work:
   [PR #62](https://github.com/msti1899/modpack-creator-version-final/pull/62) as
   `d970c39`, with the Backend checks passing in 42 seconds on the branch head after
   `main` was integrated. `main` runs 157 tests and 2699 assertions.
+- Published versions and sharing (completion plan M6): merged to `main` through
+  [PR #64](https://github.com/msti1899/modpack-creator-version-final/pull/64) as
+  `717da47`, with the Backend checks passing in 43 seconds on the branch head. `main`
+  runs 161 tests and 2880 assertions.
 
 ## Proposed next backend phase
 
@@ -370,10 +376,12 @@ Remaining: the unavailable-version cases are stub-driven, no upstream version wa
 during this slice, and export still re-fetches download metadata because manifest
 persistence is a separate decision.
 
-State: local branch only. Native risk assessment returned medium with `under_budget`, so
-no candidate review was due. Publication, merge and deployment: none performed. Next
-action: publish and merge remain separate decisions; re-run the live check after any
-change to the publication routes or the token template.
+State: merged to `main` through
+[PR #64](https://github.com/msti1899/modpack-creator-version-final/pull/64) as `717da47`,
+with the Backend checks passing in 43 seconds on the branch head. It was published as
+eleven commits, one coherent work unit each. Native risk assessment returned medium with
+`under_budget`, so no candidate review was due. No deployment is recorded. Next action:
+re-run the live check after any change to the publication routes or the token template.
 
 ## Resume
 
