@@ -327,6 +327,54 @@ commits, one per artifact, after the native assessment returned medium with
 any change to the group routes, RLS grants or Clerk token template; no deployment is
 recorded.
 
+## Backend completion M6: published versions and sharing (feat/published-sharing)
+
+The sixth milestone of the [completion plan](plans/backend-completion.md) is implemented
+as evidence work on `feat/published-sharing`, cut from `origin/main` at `5f68d7b` in its
+own worktree. No endpoint, migration, product rule or response shape changed. The
+publication feature itself shipped in roadmap milestone 5; this slice closes M6's four
+statements with tests and a recorded failure contract.
+
+`apps/api/tests/pack-publications.test.ts` grew from 17 to 20 tests: a caller without a
+group or an unknown publication is refused with the documented 404s, a denied export
+never reaches Modrinth, and an unavailable pinned version maps to the documented
+conflicts and upstream statuses while the frozen publication stays readable. pgTAP gained
+thirteen assertions showing that a later draft edit and a later publication leave every
+frozen selection, its presentation metadata and the active pointer untouched, and that a
+member who left a surviving group is refused on the next read. The signed-token PostgREST
+suite grew from 58 to 73 checks over the same surface, distinguishing a caller without a
+group from a caller in another group, and a provider-free test pins the live check's
+refusal guards. See [doc12](delivery/doc12-published-sharing.md) and the
+[feature log](../odd/tasks/completion-m6-published-sharing.md).
+
+Proof: `bun run check` passes both typechecks, 161 tests and 2880 assertions, up from 157
+and 2699, plus the web suite. `bun run db:test` PASS with six files and 217 tests;
+`bun run db:test:postgrest` 73 of 73. Five local-only mutations, three in API source and
+two in migrations, each made the new assertions fail and were reverted with
+`bun run db:reset`. The publication guide and API reference now name the export failure
+statuses; only wording was added.
+
+Hosted live run on 2026-11-13, authorized for this slice: `bun
+scripts/test-publication-session.ts --live` passed 30 checks with three real Clerk
+sessions against the selected test project through a locally running API, covering a live
+Modrinth proposal, publish without activation, member read and `.mrpack` export, member
+and foreign-group refusals, separate owner activation, a draft edit that left the frozen
+selection and the active pointer untouched, and a departed member refused on the next
+request. The first attempt failed one check with the documented 409 rejection because the
+edit dropped a required dependency; the script now reverses the complete selection. Six
+profile rows from both attempts were removed with one exact-id delete under the same
+authorization, and readback shows zero rows in the profile, group, request, publication
+and draft tables.
+
+Remaining: the unavailable-version cases are stub-driven, no upstream version was removed
+during this slice, and export still re-fetches download metadata because manifest
+persistence is a separate decision.
+
+State: local branch only. Native risk assessment returned medium with `under_budget`, so
+no candidate review was due. Publication, merge and deployment: none performed. Next
+action: publish and merge remain separate decisions; re-run the live check after any
+change to the publication routes or the token template.
+
 ## Resume
 
 1. Verify the branch, commit and local changes against this snapshot. Preserve
