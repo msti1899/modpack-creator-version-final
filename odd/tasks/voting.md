@@ -1,0 +1,117 @@
+# Voting
+
+Branch: `feat/voting`, based on `main` at `d5d3c40` (milestones 1-4 merged; milestone 5
+is being developed on a separate branch). Delivery: ask-on-risk; no pull request or
+merge authorized. Forecast: 900-1300 authored changed lines.
+Runners: `bun test apps/api/tests/votes.test.ts`, `bun run check`, and `bun run db:test`
+when a local Supabase stack is available. The tracked SQL suite cannot substitute for
+real pgTAP, PostgREST or multi-session concurrency.
+
+## Specs
+
+- S1: Approved roadmap milestone 6: "Owner-created concrete proposals and chosen
+  duration, fixed electorate, absolute majority, early approval, and binding owner
+  incorporation without automatic publication."
+- S2: Existing D7 (unchanged): "Only the owner starts mod-addition votes and chooses
+  each vote's duration." "Resolve the exact mod version and confirm its dependencies
+  before opening a vote, so the group votes on a concrete addition." "Fix the
+  electorate at vote creation, including the owner. Later joiners do not participate in
+  that vote or change its approval threshold." "Approval requires affirmative votes
+  from more than half of that electorate." "Approve immediately when that majority is
+  reached, without waiting for the deadline." "An approved result is binding: the owner
+  must incorporate the addition. Approval does not itself edit, publish, or activate a
+  pack version."
+- S3: Decisions of 2026-11-12, now recorded in D7: a member may change their own ballot
+  while the vote stays open and only the latest ballot counts; reaching the majority
+  closes the vote immediately and no later ballot is accepted; the owner may cancel an
+  open vote, which is terminal and adds nothing; a departure does not change the frozen
+  electorate or the majority threshold, so cast ballots stay counted and a missing
+  ballot stays an absence; one group may hold several independent open votes at once;
+  a vote that reaches its deadline without the majority ends rejected.
+- S4: Boundaries: backend only. Publication, active-version selection and sharing stay
+  in milestone 5; approval and incorporation never create, activate or publish a
+  version. No frontend or CD. Clerk remains the identity provider and the caller's
+  token is forwarded with a publishable key, never a service-role credential.
+  Public Modrinth search, resolution and `.mrpack` export behavior is unchanged.
+  Hosted database work needs its own explicit authorization.
+- S5: Existing D2/D5/D6 constraints that limit this slice: "Only the owner edits the
+  group's modpack"; "If the owner is the only member and leaves, delete the group and
+  its modpack rather than archiving them"; a draft's Minecraft version and loader may
+  change only while the whole explicit selection stays compatible; stored Modrinth
+  version IDs stay pinned and are never silently resolved or substituted.
+
+Implementation choices (not additional product requirements): a vote snapshot stores
+the pinned addition IDs plus the display labels read at creation, so a later catalog
+change cannot rewrite what the group voted on; opening a vote is refused when the
+group draft was saved by someone else in between (`revision` compare-and-swap, reusing
+the draft convention); incorporation merges the pinned addition into the current draft
+under the same revision compare-and-swap and the same compatibility rules as a draft
+save, and a conflict rejects the incorporation without changing the draft or the vote;
+durations are bounded to 1-720 hours; reads derive a closed-but-unresolved vote as
+rejected without mutating the row, while write paths persist that terminal state.
+
+## Tasks
+
+- T1 [S1-S5] Migration and SQL RPCs: vote, frozen electorate and ballot tables with the
+  established `revoke all` plus `security definer` RPC pattern, ownership and membership
+  enforcement, ballot upsert with early approval, cancellation, deadline rejection,
+  incorporation compare-and-swap, and paged reads. Route: inline. Status: complete
+  locally (`20261112230000_group_votes.sql`); real pgTAP unavailable.
+  Risk: items 1, 2, 3, 4 and 6.
+- T2 [S1-S5] API: exported addition-validation helper reusing the existing catalog and
+  selection rules, vote routes with body caps and error mapping, HTTP tests against the
+  fake PostgREST and Clerk fixtures. Route: inline. Status: complete locally; 16
+  focused tests / 185 assertions, full suite 102 tests / 1895 assertions, both
+  typechecks. Risk: items 1, 2, 3 and 6.
+- T3 [S1-S5] Native SQL suite under `supabase/tests/database/` for authorization,
+  electorate freeze, majority, early approval, cancellation, deadline rejection,
+  incorporation compare-and-swap and rejected-write state. Route: inline. Status: 68
+  assertions written; passed unchanged in the isolated supplemental PGlite harness
+  with all migrations and failed without the votes migration; real pgTAP, PostgREST
+  and real concurrency unproven.
+- T4 [S1-S5] Documentation: guide, backend API reference, delivery record, roadmap,
+  handoff and index links. Route: inline. Status: complete; doc05 added.
+- T5 [S1-S5] Independent verification of the named high-risk items and native candidate
+  review under its own consent. Route: delegated verification for named items.
+  Status: pending. Commit: none.
+
+## Log
+
+- L1: Work on milestone 6 started on 2026-11-12 in its own worktree and branch so the
+  milestone-5 work in the main checkout stays untouched. Scope came from the approved
+  roadmap row and the existing decision baseline.
+- L2: The four lifecycle rules the roadmap required before implementation were decided
+  on 2026-11-12: ballot changes until the majority, owner cancellation while open, a
+  frozen electorate unaffected by departures, and several independent open votes per
+  group. Recorded in D7; expiry without majority is recorded as rejection.
+- L3: A read-only explorer mapped the existing vertical slice. Findings used for these
+  tasks: all client access goes through `security definer` RPCs after an explicit
+  `revoke all`; the API derives the caller from the verified Clerk subject and forwards
+  the unchanged bearer token; SQL raises `P0001` with stable English messages that each
+  router maps to HTTP statuses; pagination is inline keyset with a `<micros>.<userId>`
+  cursor; the catalog and selection helpers in `apps/api/src/modrinth.ts` are module
+  private except `validateDraftSelection` and `exportPack`.
+- L4: Because no single-version seam is exported, the parent will add one narrow
+  exported validation helper instead of duplicating the compatibility rules, and will
+  keep the public resolution and export paths untouched.
+- L5: The explorer also recorded documentation maintenance points: a new guide plus a
+  `docs/README.md` link, a reference section, a delivery record after doc04, the
+  handoff checkpoint, the roadmap row and change log, and two stale status sentences
+  that mention voting as unplanned.
+- L6: The schema stores the pinned addition plus a display snapshot, keeps the
+  electorate in its own snapshot table with a composite foreign key on ballots, and
+  derives rejection from `closes_at` because no scheduler exists. Opening and
+  incorporating lock the group row first and reuse the draft revision compare-and-swap;
+  ballots lock only the vote row, so no lock cycle exists with draft saves.
+- L7: The HTTP slice was implemented before its test file was written, so RED was not
+  observed live. RED was verified afterwards against a copy of the base revision in
+  external scratch: 16 of 16 new tests failed there, and the two suites covering the
+  changed module produced identical results in both trees (14 tests / 478 assertions).
+- L8: The SQL slice has real RED/GREEN evidence: the tracked suite passes unchanged in
+  the isolated supplemental PGlite harness with all eight migrations, fails when the
+  votes migration is skipped, and the existing draft suite still passes with the new
+  migration applied. This harness is external scratch and is not committed.
+- L9: Limitation: this environment has no Docker and no local PostgreSQL, so
+  `bun run db:test` could not run. The tracked suite is written for pgTAP framing but
+  has only executed in the scratch harness. PostgREST, signed-session transport, real
+  concurrency and hosted application remain unproven.

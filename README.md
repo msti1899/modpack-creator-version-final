@@ -3,9 +3,10 @@
 An open-source project for creating and sharing Minecraft modpacks. Two independent
 applications share a Bun workspace: a Next.js frontend and a Hono API.
 The API implements Modrinth search, dependency resolution, `.mrpack` export,
-Clerk session verification and application profile endpoints. The frontend has
-account controls and a same-origin identity bridge, not a complete modpack editor.
-Groups, voting and pack persistence remain planned.
+Clerk session verification, application profile endpoints, group membership and
+modpack drafts, and group votes on mod additions. The frontend has account controls
+and a same-origin identity bridge, not a complete modpack editor. Published pack
+versions remain planned.
 
 Start with the local quick path below, or choose a task in the
 [documentation index](docs/README.md). The [current handoff](docs/handoff.md)

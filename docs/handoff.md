@@ -1,6 +1,6 @@
 # Current handoff
 
-Checkpoint: 2026-11-12. This worktree has two application branches recorded
+Checkpoint: 2026-11-12. This worktree has three application branches recorded
 separately. Milestone 3 lives on `feat/groups-permissions` (rebased onto `main` at
 `9219a87`), committed as `71dac1f` and published in
 [PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45) with
@@ -8,6 +8,8 @@ Backend CI passing and its authorized test-project migrations applied. Milestone
 lives on `feat/pack-drafts`, based on that milestone-3 branch. Application baseline
 before documentation publication: `main` at
 `22318bced38c3011a656ce85bb47509265800d28`; `a7ae8fb` is an ancestor.
+Milestone 6 is being implemented on `feat/voting`, created from `main` at `d5d3c40`
+and isolated in its own worktree while milestone 5 is developed separately.
 Verify the branch and HEAD before resuming; later documentation commits do not
 change that application baseline. This is a resume point, not a session history.
 
@@ -111,6 +113,35 @@ selection coverage through the routes, focused-test gating, the database suite u
 native assertions inside pgTAP framing, absent failure-path observability, no
 degraded mode when a pinned version disappears, and the approved irreversible
 sole-owner deletion.
+
+## Milestone 6: voting
+
+Milestone 6 is implemented locally on `feat/voting`, created from `main` at
+`d5d3c40` and isolated in its own worktree so the milestone-5 work stays untouched.
+The four lifecycle rules the roadmap required before implementation were decided and
+recorded in D7. Votes are owner-created concrete proposals with a chosen 1–720 hour
+duration, a frozen electorate that includes the owner, absolute majority with early
+approval, owner cancellation, and a separate owner incorporation action. Approval
+never edits, publishes or activates a pack version. See
+[voting tasks](../odd/tasks/voting.md), [doc05](delivery/doc05-voting.md) and the
+[voting guide](guides/voting.md).
+
+Proof on this branch: both typechecks pass; `bun test` passes 102 tests with 1895
+assertions, and the focused vote suite passes 16 tests with 185 assertions. RED for
+the HTTP slice was confirmed against a copy of the base revision in external scratch.
+The tracked `votes.test.sql` holds 68 assertions and passed unchanged in the isolated
+supplemental PGlite harness with all eight migrations, while the existing draft SQL
+suite still passes; without the votes migration the new suite fails.
+
+Missing proof for this branch: no commit, pull request, merge or hosted change is
+recorded. Real pgTAP (`bun run db:test` needs Docker and a local stack, both absent
+here), PostgREST, a signed Clerk→Hono→PostgREST vote request, real two-session
+concurrency and hosted migration application are unverified. Independent
+verification and native candidate review have not run.
+
+Next action on this branch: run independent verification of the named high-risk
+items, then assess the candidate for native review under its own consent. Committing
+and slicing the delivery are separate decisions and are not authorized yet.
 
 ## Previous documentation delivery
 

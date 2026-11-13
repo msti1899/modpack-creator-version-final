@@ -162,6 +162,67 @@ The table and RPC boundary enforces authorization, format and atomic revision
 checks. Modrinth compatibility is checked by Hono, not by SQL, so an owner calling
 the RPC directly bypasses catalog validation.
 
+### Group votes
+
+Requires the same verified Clerk session and signed database role as group routes.
+Every current member reads their own group's votes and ballot page; only the current
+owner starts, cancels and incorporates; only the frozen electorate votes. No
+submitted user or group ID selects another group's vote.
+
+| Method and path | JSON body | Success |
+| --- | --- | --- |
+| GET `/groups/me/votes` | None (query: `cursor`, `limit`) | 200 `{ votes, nextCursor }` |
+| POST `/groups/me/votes` | `{ gameVersion, loader, addVersionIds, durationHours, expectedDraftRevision }` | 200 vote object |
+| GET `/groups/me/votes/:voteId/ballots` | None (query: `cursor`, `limit`) | 200 `{ ballots, nextCursor }` |
+| POST `/groups/me/votes/:voteId/ballots` | `{ value }` where value is `approve` or `reject` | 200 vote object |
+| POST `/groups/me/votes/:voteId/cancel` | None | 200 vote object |
+| POST `/groups/me/votes/:voteId/incorporate` | `{ expectedRevision }` | 200 `{ vote, draft }` |
+
+A vote is
+`{ id, groupId, gameVersion, loader, proposal: [{ versionId, projectId, projectTitle, versionNumber }], durationHours, electorateSize, status, createdAt, closesAt, resolvedAt, incorporatedAt, approveCount, rejectCount, myBallot }`.
+`status` is `open`, `approved`, `rejected` or `cancelled`; `myBallot` is the caller's
+latest ballot or null. `proposal` is the snapshot stored at creation, so a later
+catalog change cannot rewrite what the group voted on. Ballot rows are
+`{ userId, username, ballot, castAt, updatedAt }`, with null ballot fields for an
+electorate member who has not voted.
+
+`addVersionIds` holds 1–50 exact Modrinth version IDs: the mod plus each required
+dependency the draft does not already contain. The API validates the union of the
+stored draft and the addition, requires the same Minecraft version and loader as the
+draft, and rejects an ID already stored. It never resolves or adds a dependency. No
+draft is needed to start voting; the first incorporation then creates the draft.
+Durations are 1–720 hours. Publication, activation and version records are out of
+scope here.
+
+The electorate is frozen at creation, including the owner, and later joiners are not
+added. A member may replace their own ballot while the vote is open. More than half
+of `electorateSize` affirmative ballots approves the vote immediately, and no ballot
+is accepted afterwards. A vote past `closesAt` without that majority reads
+`rejected`; no scheduler exists, so the stored status stays `open` and every write
+path refuses it. Cancellation by the owner is terminal. Several votes may be open at
+once, and a departure changes neither `electorateSize` nor the ballots already cast.
+
+Incorporation is a separate owner action. It merges the pinned addition into the
+current draft under the draft's `expectedRevision` compare-and-swap, appends without
+reshaping the existing selection, bumps the draft revision and records
+`incorporatedAt`. It returns the updated draft and never publishes, activates or
+versions the pack; those remain milestone 5. A stale revision, a changed Minecraft
+version or loader, or an addition already stored returns 409 with nothing written,
+leaving the vote approved and unincorporated.
+
+Page sizes default to 50 and are capped at 100. Vote cursors are
+`<microseconds>.<uuid>` and ballot cursors are a Clerk `user_...` subject; malformed
+cursors return 400. Bodies are capped at 16 KiB and reject unknown fields;
+database responses are capped at 256 KiB. Errors: 400 invalid input, 401
+authentication, 403 owner-only action or non-electorate ballot, 404 no current group
+or unknown vote, 409 stale revision, closed vote, incompatible settings, duplicate
+addition, unapproved or already incorporated, 502 unusable upstream response, 503
+missing database configuration and 504 timeout. Calls reject redirects, use a
+five-second timeout, forward the unchanged user token with a publishable key and
+never retry writes. As with drafts, Modrinth compatibility is validated by Hono, so
+a caller using the RPC directly bypasses catalog validation; SQL still enforces
+authorization, the frozen electorate, the majority and the draft compare-and-swap.
+
 ### GET /mods
 
 Query parameters: `query` (optional text), `gameVersion` (required), `loader`

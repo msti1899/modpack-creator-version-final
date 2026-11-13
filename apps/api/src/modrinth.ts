@@ -190,6 +190,45 @@ export async function validateDraftSelection(fetcher: Fetcher, input: RecordValu
   return config;
 }
 
+export type VoteProposal = { versionId: string; projectId: string; projectTitle: string; versionNumber: string };
+
+/**
+ * Validate a concrete mod addition against the group's current draft. The pinned
+ * addition must be complete on its own: required dependencies are supplied by the
+ * caller, never resolved implicitly. Returns the display snapshot stored with the
+ * vote so a later catalog change cannot rewrite what the group voted on.
+ */
+export async function validateVoteAddition(
+  fetcher: Fetcher,
+  draft: { gameVersion: string; loader: "fabric" | "forge" | "neoforge" | "quilt"; versionIds: string[] } | null,
+  input: RecordValue,
+): Promise<{ settings: { gameVersion: string; loader: "fabric" | "forge" | "neoforge" | "quilt"; versionIds: string[] }; proposal: VoteProposal[] }> {
+  const config = settings(input);
+  if (!config.versionIds.length) throw new PackError("Select at least one mod version.", 400);
+  if (draft) {
+    if (draft.gameVersion !== config.gameVersion || draft.loader !== config.loader) fail("Vote does not match the draft settings.");
+    const pinned = new Set(draft.versionIds);
+    if (config.versionIds.some((versionId) => pinned.has(versionId))) fail("A proposed version is already in the draft.");
+  }
+  const union = [...new Set([...(draft?.versionIds ?? []), ...config.versionIds])];
+  const selection = await approvedSelection(fetcher, { ...config, versionIds: union });
+  const pinned = new Map([...selection.versions.values()].map((version) => [version.id, version]));
+  const proposal = config.versionIds.map((versionId) => {
+    const version = pinned.get(versionId);
+    const project = version ? selection.projects.get(version.project_id) : undefined;
+    if (!version || !project) throw new PackError("Modrinth returned an unexpected version.", 502);
+    if (typeof project.title !== "string" || !project.title.trim() || project.title.length > 300 || /[\x00-\x1f\x7f]/.test(project.title)) throw new PackError("Modrinth returned an invalid project title.", 502);
+    if (typeof version.version_number !== "string" || !version.version_number.trim() || version.version_number.length > 100 || /[\x00-\x1f\x7f]/.test(version.version_number)) throw new PackError("Modrinth returned an invalid version name.", 502);
+    return {
+      versionId,
+      projectId: version.project_id,
+      projectTitle: project.title.trim(),
+      versionNumber: version.version_number.trim(),
+    };
+  });
+  return { settings: config, proposal };
+}
+
 export async function exportPack(fetcher: Fetcher, input: RecordValue) {
   const config = settings(input);
   const name = text(input.name, "pack name");

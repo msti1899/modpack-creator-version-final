@@ -22,7 +22,7 @@ votes. Start with working vertical slices rather than modeling every table upfro
 | 3. Groups and permissions | One group per person, owner/member permissions, public direct admission, private invitations requiring approval, and immediate ownership transfer before an owner leaves others behind. Test cross-group isolation and concurrent admission. | Implemented and published in PR #45 with Backend CI passing; authorized test-project migrations and real SQL isolation/concurrent-admission checks passed. Native review is incomplete, and actual pgTAP and real-session group-flow proof remain pending; no merge. See [doc02](../delivery/doc02-groups-permissions.md) and [groups tasks](../../odd/tasks/groups-permissions.md). |
 | 4. Persisted modpack draft | One draft pack per group, owner-only edits, exact approved mod/dependency versions, reuse of existing Modrinth resolution/export. Failed writes leave no partial selection. | Merged to `main` through PR #46 after local checks, authorized hosted PostgreSQL proof and native review approval. Actual pgTAP and a real-session HTTP flow remain unproven. See [draft tasks](../../odd/tasks/pack-drafts.md) and [doc04](../delivery/doc04-pack-drafts.md). |
 | 5. Published versions and sharing | Preserve earlier publications, explicit active-version selection by the owner, and links respecting access rules. Publishing does not automatically activate a version. | Planned. |
-| 6. Voting | Owner-created concrete proposals and chosen duration, fixed electorate, absolute majority, early approval, and binding owner incorporation without automatic publication. Resolve pending lifecycle rules first. | Planned. |
+| 6. Voting | Owner-created concrete proposals and chosen duration, fixed electorate, absolute majority, early approval, and binding owner incorporation without automatic publication. Resolve pending lifecycle rules first. | In progress on `feat/voting`, based on `main`. The lifecycle rules were decided on 2026-11-12 and recorded in D7. See [voting tasks](../../odd/tasks/voting.md). |
 
 The detailed product rules remain in the
 [decision baseline](../decisions/0001-project-baseline.md); this table does not
@@ -58,10 +58,13 @@ for another person after a rename. Username database rules and HTTP profile endp
 reviewed and integrated into main through PR12. Provider-linking rules above are
 accepted requirements, not implemented provider workflows.
 
-Before voting, clarify vote changes, cancellation, expiry/rejection, and member
-departures without silently changing the accepted fixed-electorate majority rule.
 Before sharing, settle any access details not already covered by group admission.
 Before production configuration, verify provider eligibility, budget, and delivery.
+
+Voting lifecycle rules were resolved on 2026-11-12 and are recorded in D7:
+ballot changes until the majority, owner cancellation while a vote is open, a frozen
+electorate unaffected by departures, independent concurrent votes, and rejection at
+the deadline. Expulsion does not exist in the current scope.
 
 ## Maintenance
 
@@ -70,6 +73,10 @@ completed work. Record meaningful changes below and keep the
 [handoff](../handoff.md) synchronized after each delivery.
 
 ### Change log
+
+- 2026-11-12: Milestone 6 started on its own branch and worktree (`feat/voting`) so the
+  milestone-5 work in progress stays isolated. The four pending vote lifecycle rules
+  were decided and recorded in D7; scope and acceptance are otherwise unchanged.
 
 - 2026-11-12: Milestone 4 was resumed. The owner decided that changing a draft's Minecraft version or loader requires the entire selection to remain compatible: an incompatible change is rejected without clearing or substituting approved versions. Work landed on `feat/pack-drafts` and was merged to `main` through PR #46 (merge commit `2ae50e7`), stacked on the milestone-3 PR #45.
 
