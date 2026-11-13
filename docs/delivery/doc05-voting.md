@@ -85,12 +85,14 @@ owns published versions and remains untouched here.
 
 ## Delivery state
 
-Implementation and documentation are complete locally on `feat/voting`, committed as
-`327867a` with production bytes unchanged afterwards; a follow-up commit adds the
-verification-derived HTTP regression coverage and documentation updates. No pull
-request, merge, hosted migration or deployment is recorded. Independent verification
-returned no blocker. Native candidate review has not started and no review consent was
-requested for this candidate. No hosted database change was made.
+Implementation and documentation are complete on `feat/voting`: `327867a` holds the
+feature, `fbdb9b8` the verification-derived HTTP regression coverage, and later
+commits record the review and publication state without touching production bytes.
+Independent verification returned no blocker. Native review approved the candidate and
+its acknowledgement burned the authority. Published as
+[PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48) with Backend
+checks passing in 46 seconds. No merge, hosted migration or deployment is recorded, and
+no hosted database change was made.
 
 ## Remaining work
 

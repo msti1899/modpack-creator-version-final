@@ -146,8 +146,12 @@ authority. No correction round opened. Six advisories are recorded in
 [doc05](delivery/doc05-voting.md#remaining-work); the electorate snapshot one was
 analyzed and holds by group-row lock discipline rather than by test.
 
-Next action on this branch: nothing is required to keep the work; publication, merge
-and slicing remain separate decisions and are not authorized.
+Delivery state on this branch: published as
+[PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48) with Backend
+checks passing in 46 seconds. No merge, deployment or hosted change is recorded.
+
+Next action on this branch: merge and deployment are separate decisions and are not
+authorized. Milestone 5 continues on its own branch.
 
 ## Previous documentation delivery
 

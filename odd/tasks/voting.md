@@ -156,3 +156,6 @@ no scheduler exists.
   still unproven. The other advisories are test-coverage gaps (upstream 401, no-draft
   route, timeout value, single-plan TAP output) and one impossible upstream shape
   (`draft: null` on incorporation). All are recorded as later work.
+- L16: The owner authorized publication. The branch was pushed and published as PR #48
+  against `main` with Backend checks passing in 46 seconds. Merge, deployment and any
+  hosted migration remain separate unauthorized decisions.
