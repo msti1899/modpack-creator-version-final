@@ -1,11 +1,12 @@
 # Current handoff
 
-Checkpoint: 2026-11-12. `main` at `5c83c5c` contains milestone 3 ([PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45),
+Checkpoint: 2026-11-12. `main` at `becd201` contains milestone 3 ([PR #45](https://github.com/msti1899/modpack-creator-version-final/pull/45),
 merge `b648c21`), milestone 4 ([PR #46](https://github.com/msti1899/modpack-creator-version-final/pull/46),
 merge `2ae50e7`), milestone 5 ([PR #49](https://github.com/msti1899/modpack-creator-version-final/pull/49),
 merge `e60a816`), milestone 6 ([PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48),
-merge `ea2c43f`) and the milestone-6 documentation record ([PR #50](https://github.com/msti1899/modpack-creator-version-final/pull/50),
-merge `5c83c5c`). Verify the branch and HEAD against this snapshot before resuming.
+merge `ea2c43f`), the milestone-6 documentation record ([PR #50](https://github.com/msti1899/modpack-creator-version-final/pull/50),
+merge `5c83c5c`) and the local database proof ([PR #51](https://github.com/msti1899/modpack-creator-version-final/pull/51),
+merge `becd201`). Verify the branch and HEAD against this snapshot before resuming.
 This is a resume point, not a session history.
 
 ## Merged milestones
@@ -52,20 +53,18 @@ migration is `20261112233000_group_votes.sql` and its delivery record is
 - Native review of the voting candidate approved it and burned its acknowledgement with
   no correction round; six advisories are recorded in doc06.
 
-## Local database proof (unmerged)
+## Local database proof
 
-Docker was installed with owner authorization on 2026-11-12, so a real local stack is
-now available and the database evidence listed as missing below was executed on
-`feat/backend-proof-completion`. Evidence and caveats are in
-[doc07](delivery/doc07-local-database-proof.md) and the
+Docker was installed with owner authorization on 2026-11-12, so a real local stack
+became available and the database evidence listed as missing below was executed.
+Evidence and caveats are in [doc07](delivery/doc07-local-database-proof.md) and the
 [feature log](../odd/tasks/backend-proof-completion.md).
 
 What now runs and passes against the local stack: actual pgTAP (six suites, 193
 tests), the profile upgrade regression, real multi-session races for public admission,
 publication sequencing and concurrent ballots, and signed-token PostgREST checks that
 exercise the authorization branch instead of only the Hono fallback. `bun run check`
-still passes 125 tests / 2310 assertions. The slice is committed on its branch and is
-not published or merged.
+still passes 125 tests / 2310 assertions.
 
 ## Missing proof
 
@@ -92,13 +91,15 @@ Still unproven after the local database work:
   [PR #48](https://github.com/msti1899/modpack-creator-version-final/pull/48) as `ea2c43f`.
   The pre-merge verification ran on the branch head with `main` already integrated, and
   the Backend checks run on the merge commit passed.
-- Local database proof: committed on `feat/backend-proof-completion`; not published,
-  not merged, not reviewed.
+- Local database proof: merged to `main` through
+  [PR #51](https://github.com/msti1899/modpack-creator-version-final/pull/51) as
+  `becd201`; the Backend checks passed in 50 seconds on the branch head. Native review
+  of that slice is still open.
 - No hosted change and no deployment is recorded for milestones 5 or 6.
 
-Next action: review and publish the `feat/backend-proof-completion` slice, and decide
-separately whether to apply the publication and votes migrations to the selected test
-project.
+Next action: start the native review of the merged database-proof slice, close the
+milestone 3 and milestone 5 review gaps, and decide separately whether to apply the
+publication and votes migrations to the selected test project.
 
 ## Resume
 
