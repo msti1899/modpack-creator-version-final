@@ -2,7 +2,7 @@ import { indexArchive } from "./zip";
 
 export type Fetcher = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 export class PackError extends Error {
-  constructor(message: string, readonly status: 400 | 409 | 502 | 504) { super(message); }
+  constructor(message: string, readonly status: 400 | 404 | 409 | 502 | 504) { super(message); }
 }
 type RecordValue = Record<string, unknown>;
 const object = (value: unknown): value is RecordValue => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -38,7 +38,7 @@ class Catalog {
   private cache = new Map<string, Promise<unknown>>();
   private deadline = Date.now() + 20_000;
   constructor(private fetcher: Fetcher) {}
-  async get(path: string, missingIsConflict = true): Promise<unknown> {
+  async get(path: string, missingIsConflict = true, missingIsNotFound = false): Promise<unknown> {
     if (Date.now() >= this.deadline) throw new PackError("Modrinth timed out. Please try again.", 504);
     const cached = this.cache.get(path);
     if (cached) return cached;
@@ -54,7 +54,10 @@ class Catalog {
         const timeout = error instanceof Error && ["TimeoutError", "AbortError"].includes(error.name);
         throw new PackError(timeout ? "Modrinth timed out. Please try again." : "Could not contact Modrinth.", timeout ? 504 : 502);
       }
-      if (response.status === 404 && missingIsConflict) fail("A selected mod or dependency is unavailable.");
+      if (response.status === 404) {
+        if (missingIsConflict) fail("A selected mod or dependency is unavailable.");
+        if (missingIsNotFound) throw new PackError("Mod not found.", 404);
+      }
       if (!response.ok) throw new PackError("Modrinth could not complete the request. Please try again later.", 502);
       try { return await response.json(); } catch { throw new PackError("Modrinth returned invalid JSON.", 502); }
     })();
@@ -171,6 +174,18 @@ export async function search(fetcher: Fetcher, input: URLSearchParams) {
     return { projectId: hit.project_id, title: hit.title, description: hit.description, slug: hit.slug };
   });
   return { hits, total: result.total_hits, offset };
+}
+function modSummary(value: unknown) {
+  if (!object(value) || typeof value.id !== "string" || typeof value.slug !== "string" || typeof value.title !== "string" || typeof value.description !== "string" || value.project_type !== "mod") throw new PackError("Modrinth returned an invalid project.", 502);
+  return { projectId: value.id, slug: value.slug, title: value.title, description: value.description };
+}
+/** Look up one project by ID or slug. A missing or non-mod project is a 404, never a 502. */
+export async function modDetail(fetcher: Fetcher, value: string) {
+  if (!/^[A-Za-z0-9_-]{1,64}$/.test(value)) throw new PackError("Invalid Modrinth identifier.", 400);
+  const project = await new Catalog(fetcher).get(`/project/${value}`, false, true);
+  if (!object(project)) throw new PackError("Modrinth returned an invalid project.", 502);
+  if (project.project_type !== "mod") throw new PackError("Mod not found.", 404);
+  return modSummary(project);
 }
 export async function resolve(fetcher: Fetcher, input: RecordValue) {
   const config = settings(input);

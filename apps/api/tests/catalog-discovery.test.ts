@@ -146,6 +146,25 @@ test("author is forwarded as its own facet", async () => {
   }
 });
 
+test("exact project lookup returns one summary and distinguishes not-found from failure", async () => {
+  const project = { id: "AbCdEf12", slug: "sodium", title: "Sodium", description: "Rendering", project_type: "mod" };
+  const { api, calls } = app((url) => ["/v2/project/sodium", "/v2/project/AbCdEf12"].includes(url.pathname) ? Response.json(project) : new Response("missing", { status: 404 }));
+  const found = await api.request("/mods/sodium");
+  expect(found.status).toBe(200);
+  expect(await found.json()).toEqual({ projectId: "AbCdEf12", slug: "sodium", title: "Sodium", description: "Rendering" });
+  expect(calls.map((url) => url.pathname)).toEqual(["/v2/project/sodium"]);
+  expect((await api.request("/mods/AbCdEf12")).status).toBe(200);
+  const missing = await api.request("/mods/missing");
+  expect(missing.status).toBe(404);
+  expect(await missing.json()).toEqual({ error: "Mod not found." });
+  for (const path of ["/mods/bad%20slug", "/mods/sodium.js", `/mods/${"a".repeat(65)}`]) {
+    expect([path, (await api.request(path)).status]).toEqual([path, 400]);
+  }
+  expect((await app(() => new Response("boom", { status: 500 })).api.request("/mods/sodium")).status).toBe(502);
+  expect((await createApp(async () => { throw new DOMException("timeout", "TimeoutError"); }).request("/mods/sodium")).status).toBe(504);
+  expect((await app(() => Response.json({ ...project, project_type: "resourcepack" })).api.request("/mods/sodium")).status).toBe(404);
+});
+
 test("malformed hits are rejected instead of being forwarded", async () => {
   for (const malformed of [
     hit("main", { project_type: "resourcepack" }),

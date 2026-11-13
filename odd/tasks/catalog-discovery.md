@@ -55,7 +55,9 @@ Minecraft/loader options, an exact-version picker, and any UI.
   observed for each filter's assertions before the implementation.
   Risk: item 3 (public API query contract).
   Evidence: `bun test` passes 142 tests and 2549 assertions with both typechecks.
-- T7 [S7] inline — exact project lookup route.
+- T7 [S7] inline — complete. `GET /mods/:idOrSlug` added with a 404 for a missing or
+  non-mod project and unchanged 502/504 behavior for upstream failure. Risk: item 3
+  (new public route). Evidence: `bun test` passes 143 tests and 2571 assertions.
 - T8 [S8] inline — enriched hit payload, response-size measurement, reference and
   guide updates, golden-hash recapture in the public regression test.
 
