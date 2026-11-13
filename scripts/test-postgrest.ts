@@ -433,7 +433,9 @@ try {
   expectRefused(await rpc("my_pack_publications", tokens.third, { p_limit: 20, p_before_sequence: null }),
     "A caller outside the group cannot list publications", "Group required.");
   expectRefused(await rpc("my_pack_publication", tokens.third, { p_publication_id: publicationId }),
-    "A caller outside the group cannot read a publication by id", "Group required.");
+    "A caller without a group cannot read a publication", "Group required.");
+  expectRefused(await rpc("my_pack_publication", tokens.outside, { p_publication_id: publicationId }),
+    "A caller in another group cannot read a foreign publication", "Publication not found.");
   expectRefused(await rpc("activate_pack_publication", tokens.third, { p_publication_id: publicationId }),
     "A caller outside the group cannot activate a publication", "Group required.");
 
