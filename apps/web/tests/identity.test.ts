@@ -79,3 +79,35 @@ test("the actual web GET route returns unavailable before invoking unconfigured 
     else process.env.CLERK_SECRET_KEY = previous;
   }
 });
+
+test("a session lookup failure is not logout and does not leave a cached identity", async () => {
+  let session: "signed-in" | "failed" | "signed-out" = "signed-in";
+  let calls = 0;
+  const handler = createIdentityProxy({ ...options,
+    getToken: async () => {
+      if (session === "failed") throw new Error("private-session-lookup-detail");
+      return session === "signed-out" ? null : "session-token";
+    },
+    fetcher: async () => { calls++; return Response.json({ user }); },
+  });
+  const signedIn = await handler();
+  expect(signedIn.status).toBe(200);
+  expect(await signedIn.json()).toEqual({ user });
+  expect(calls).toBe(1);
+
+  session = "failed";
+  const failed = await handler();
+  expect(failed.status).toBe(502);
+  expect(await failed.json()).toEqual({ error: "Could not verify API identity." });
+  expect(failed.headers.get("cache-control")).toBe("no-store");
+  expect(failed.headers.get("vary")).toBe("Cookie");
+  expect(calls).toBe(1);
+
+  session = "signed-out";
+  const signedOut = await handler();
+  expect(signedOut.status).toBe(401);
+  expect(await signedOut.json()).toEqual({ error: "Authentication required." });
+  expect(signedOut.headers.get("cache-control")).toBe("no-store");
+  expect(signedOut.headers.get("vary")).toBe("Cookie");
+  expect(calls).toBe(1);
+});
