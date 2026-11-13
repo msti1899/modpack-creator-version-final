@@ -140,3 +140,9 @@ no scheduler exists.
   and malformed-catalog cases were adopted as `votes-edge.test.ts` in a follow-up
   commit that does not change production bytes; the overlapping SQL probes were not
   duplicated.
+- L13: Native assessment over `d5d3c40..fbdb9b8` (committed only, untracked tooling
+  excluded) returned medium risk with reason `executable_change` and
+  `review_due: false`, `review_due_reason: under_budget`. No review transaction
+  started and no consent was requested. The named high-risk items are still recorded
+  in the task risk lines; escalation remains available if the owner asks for the
+  four-lens pass.

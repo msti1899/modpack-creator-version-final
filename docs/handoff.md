@@ -138,11 +138,15 @@ the base revision. Its boundary and error-mapping probes are now tracked.
 Missing proof for this branch: real pgTAP (`bun run db:test` needs Docker and a local
 stack, both absent here), PostgREST, a signed Clerk→Hono→PostgREST vote request, real
 two-session concurrency and hosted migration application. No pull request, merge or
-hosted change is recorded. Native candidate review has not run.
+hosted change is recorded.
 
-Next action on this branch: assess the committed candidate for native review under its
-own consent. Publication, merge and slicing are separate decisions and are not
-authorized yet.
+Native assessment over the committed range returned medium risk with
+`review_due_reason: under_budget`, so no review transaction started and no consent was
+requested; a later commit may reach the budget, and the owner can request the
+four-lens pass explicitly.
+
+Next action on this branch: nothing is required to keep the work; publication, merge,
+slicing and any review escalation are separate decisions and are not authorized yet.
 
 ## Previous documentation delivery
 

@@ -94,7 +94,10 @@ requested for this candidate. No hosted database change was made.
 
 ## Remaining work
 
-- Native candidate review is pending, under its own consent.
+- Native candidate review is pending, under its own consent. The native assessment
+  over the committed range returned medium risk (`executable_change`) and
+  `review_due_reason: under_budget`, so no transaction started; a later commit may
+  reach the budget, and the owner can still request the four-lens pass.
 - Real pgTAP and a multi-session concurrency check need a local Supabase stack;
   hosted proof would need its own explicit authorization.
 - Milestone 5 remains a separate branch; the two deliveries will need to be sequenced
