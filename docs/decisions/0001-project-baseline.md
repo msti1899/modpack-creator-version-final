@@ -68,6 +68,8 @@ the original context. Unresolved items are listed separately.
 - The owner may add mods directly; voting is optional.
 - If other members remain, the owner must transfer ownership to another member
   before leaving.
+- Ownership transfer takes effect immediately without recipient acceptance
+  (confirmed on 2026-11-12).
 - If the owner is the only member and leaves, delete the group and its modpack
   rather than archiving them. This records intended product behavior, not
   authorization to delete any current data.
@@ -185,7 +187,7 @@ set. See the [backend architecture](../architecture/modrinth-backend.md) and
   versions/dependencies. No guarantee of detecting every runtime mod conflict.
 - Vote changes, cancellation, expiry/rejection behavior, and how departures or
   expulsions affect previously eligible voters and their submitted votes.
-- Ownership-transfer acceptance and deletion confirmation/recovery semantics.
+- Deletion confirmation/recovery semantics.
 - Anonymous browsing and the visibility of pack contents to nonmembers.
 - Actual free-provider account eligibility and end-to-end email delivery.
 
