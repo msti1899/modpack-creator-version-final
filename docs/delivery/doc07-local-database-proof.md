@@ -69,9 +69,11 @@ project `modpack-creator-local`, PostgreSQL image `17.11.0.011`.
 ## Delivery state
 
 Implementation and documentation: this record and its commits on
-`feat/backend-proof-completion`. Review: not run for this slice. Commit: `7ad8f98` and
-`db263f2` hold the code changes; the documentation commit follows them. Publication:
-not authorized. Merge: not authorized. Deployment: none.
+`feat/backend-proof-completion`. Review: not run for this slice. Commit: `7ad8f98`,
+`db263f2` and `a6563c9`. Publication and merge: published and merged the same day
+through [PR #51](https://github.com/msti1899/modpack-creator-version-final/pull/51) as
+`becd201`, with the Backend checks passing in 50 seconds on the branch head.
+Deployment: none.
 
 ## Remaining work
 
