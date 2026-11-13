@@ -36,7 +36,8 @@ async function json(stream: ReadableStream<Uint8Array> | null): Promise<unknown>
   } finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
 }
 
-function snapshot(value: unknown) {
+export type DraftSnapshot = ReturnType<typeof draftSnapshot>;
+export function draftSnapshot(value: unknown) {
   if (!object(value) || typeof value.groupId !== "string" ||
     !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(value.groupId) ||
     (value.role !== "owner" && value.role !== "member")) throw new Error();
@@ -81,7 +82,7 @@ export function packDraftRoutes(identity: IdentityOptions, fetcher: Fetcher, dat
       throw new Error();
     }
     // Never expose arbitrary Data API fields or treat malformed upstream data as input errors.
-    try { return snapshot(value); } catch { throw new DraftFailure(502, "Draft service unavailable."); }
+    try { return draftSnapshot(value); } catch { throw new DraftFailure(502, "Draft service unavailable."); }
   }
   async function body(c: Context<IdentityEnv>, keys: string[]) {
     let value: unknown;
