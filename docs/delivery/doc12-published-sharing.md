@@ -116,9 +116,11 @@ provider account touched.
 ## Delivery state
 
 Implementation and evidence on `feat/published-sharing`, cut from `origin/main` at
-`5f68d7b` in an isolated worktree. The branch is local; nothing is published, merged,
-deployed or reviewed. The feature log is
-[completion-m6-published-sharing](../../odd/tasks/completion-m6-published-sharing.md).
+`5f68d7b` in an isolated worktree, merged to `main` through
+[PR #64](https://github.com/msti1899/modpack-creator-version-final/pull/64) as `717da47`
+with the Backend checks passing in 43 seconds on the branch head. It was published as
+eleven commits, one coherent work unit each. No deployment is recorded. The feature log
+is [completion-m6-published-sharing](../../odd/tasks/completion-m6-published-sharing.md).
 
 ## Remaining work
 

@@ -115,3 +115,8 @@ Runners: `bun test apps/api/tests/pack-publications.test.ts`, `bun run check`,
   both attempts were deleted with one exact-id statement under the same authorization;
   readback is zero in all six fixture tables and the provider instance holds no account
   created by this run.
+- L9: The branch was rewritten into eleven commits, one coherent work unit each, checked
+  at its intermediate commits (the first API commit runs 19 tests, the first database
+  commit is pgTAP PASS), and merged through
+  [PR #64](https://github.com/msti1899/modpack-creator-version-final/pull/64) as
+  `717da47` with the Backend checks passing in 43 seconds. No deployment is recorded.
