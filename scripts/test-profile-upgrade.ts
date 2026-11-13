@@ -25,7 +25,7 @@ try {
   }
   if (!ready) throw new Error("Disposable PostgreSQL did not become ready.");
   console.log(docker(["exec", id, "psql", "-X", "-U", "postgres", "-v", "ON_ERROR_STOP=1",
-    "-f", "/tests/tests/upgrades/clerk-profile-owners.sql"]));
+    "-f", "/tests/upgrade-tests/clerk-profile-owners.sql"]));
 } finally {
   // Only the exact container created above is removed; no networks/volumes are reused.
   docker(["rm", "--force", "--volumes", id]);

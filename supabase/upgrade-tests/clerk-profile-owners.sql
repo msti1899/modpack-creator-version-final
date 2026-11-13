@@ -11,15 +11,15 @@ create function auth.jwt() returns jsonb language sql stable as
   $$ select current_setting('request.jwt.claims', true)::jsonb $$;
 grant usage on schema public, auth to authenticated;
 
-\ir ../../migrations/20261104000000_explicit_function_execution.sql
-\ir ../../migrations/20261105000000_account_profiles.sql
+\ir ../migrations/20261104000000_explicit_function_execution.sql
+\ir ../migrations/20261105000000_account_profiles.sql
 insert into auth.users values ('11111111-1111-4111-8111-111111111111');
 insert into public.profiles values
   ('11111111-1111-4111-8111-111111111111', 'Legacy_Name', '2026-10-01T12:34:56Z');
 create temporary table original_profile as
   select user_id::text, username, username_changed_at from public.profiles;
 
-\ir ../../migrations/20261107000000_clerk_profile_owners.sql
+\ir ../migrations/20261107000000_clerk_profile_owners.sql
 
 do $$ begin
   if exists ((select * from original_profile except select * from public.profiles)
