@@ -31,6 +31,10 @@ the original context. Unresolved items are listed separately.
 - Include mods only initially; configuration-file uploads are deferred.
 - Confirm required dependencies with the owner before adding them. If the owner
   declines them, cancel the proposed mod addition.
+- An owner may change an existing draft's Minecraft version or loader only when
+  the entire explicit mod/dependency selection remains compatible. An incompatible
+  change is rejected without deleting or automatically substituting any approved
+  version (decided 2026-11-12).
 
 ### D3: Accounts and membership
 

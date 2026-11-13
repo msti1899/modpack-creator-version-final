@@ -1,8 +1,8 @@
 # Backend API reference
 
-The independent Hono API verifies identity for `/me`, `/profile` and group routes; catalog/pack
-routes remain public. Application pack persistence is not implemented.
-Local base URL: `http://127.0.0.1:3001`. POST bodies must be JSON.
+The independent Hono API verifies identity for `/me`, `/profile` and group/draft
+routes. Stateless `/mods` and `/packs/*` remain public.
+Local base URL: `http://127.0.0.1:3001`. Write bodies must be JSON.
 For a complete example, see the [creation guide](../guides/create-modpack.md).
 
 ## Endpoints
@@ -106,8 +106,8 @@ trim surrounding Unicode spaces, contain 1–60 characters without controls or
 U+FEFF, and need not be unique. Visibility is exactly `public` or `private`. IDs
 are UUIDs; member IDs are Clerk `user_...` subjects; invitation tokens contain 64
 lowercase hex digits. Queries cannot select another caller or additional fields.
-There is no listing, group-edit, expulsion, invitation-expiry or pack-persistence
-endpoint.
+There is no listing, group-edit, expulsion or invitation-expiry endpoint. Draft
+routes below have their own 16 KiB limit.
 
 Invalid input returns 400; authentication 401; owner/public-admission denial 403;
 missing group/request or invalid invitation 404; membership/profile/conflict
@@ -117,6 +117,50 @@ leave deletes the group and dependent group records. Transport/protocol failures
 return safe 502 errors, missing/unsafe database configuration 503, and timeouts
 504. No SQL details are exposed. Requests reject redirects, use a five-second
 timeout, cap response JSON at 256 KiB, and never automatically retry writes.
+
+### Group pack drafts
+
+Requires the same verified Clerk session and signed database role as group routes.
+Current members can read and export only their own group's draft; only its current
+owner may save it. No submitted owner or group ID chooses another group's draft.
+
+| Method and path | JSON body | Success |
+| --- | --- | --- |
+| GET `/groups/me/pack` | None | 200 `{ groupId, role, draft }` |
+| PUT `/groups/me/pack` | `{ gameVersion, loader, versionIds, expectedRevision }` | 200, same shape; creates on first save |
+| POST `/groups/me/pack/export` | `{ name, version, loaderVersion }` | 200 `.mrpack` attachment built from the stored selection |
+
+`draft` is null before the first save, otherwise
+`{ gameVersion, loader, versionIds, revision, updatedAt }`. Revisions are positive
+integers: submit `expectedRevision: 0` for creation, or the revision last read for a
+replacement. A stale revision returns 409 before any catalog work; refetch and
+reconcile explicitly instead of retrying automatically. The database compare-and-swap
+and the group row lock remain authoritative, and the save RPC rechecks the current
+owner, so a save racing an ownership transfer or group deletion cannot write.
+
+A write replaces the explicit selection atomically and validates every supplied mod
+and required-dependency version against Modrinth before the save RPC. Saving never
+chooses a newer version or adds a dependency: resolve and obtain approval first, and
+do not save a declined proposal. Changing Minecraft version or loader revalidates the
+whole supplied selection; an incompatible change returns 409 and leaves the stored
+draft untouched. Empty selections may be saved but cannot be exported. Explicit
+removals are accepted only while every required dependency of the remaining
+selection is still present.
+
+Bodies and database responses are capped at 16 KiB. Write bodies reject unknown
+fields. Export accepts only presentation fields and uses the stored IDs, so a caller
+cannot override the selection, game version, loader or target group; export
+publication and activation remain out of scope. Errors: 400 invalid input, 401
+authentication, 403 owner-only edit, 404 no current group or draft, 409 stale or
+incompatible selection, 502 upstream or protocol failure, 503 missing database
+configuration and 504 timeout. Draft calls reject redirects, use a five-second
+timeout, forward the unchanged user token with a publishable key and never retry.
+A transport error does not prove rollback: read the current revision before
+resubmitting.
+
+The table and RPC boundary enforces authorization, format and atomic revision
+checks. Modrinth compatibility is checked by Hono, not by SQL, so an owner calling
+the RPC directly bypasses catalog validation.
 
 ### GET /mods
 
