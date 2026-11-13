@@ -100,7 +100,7 @@ runner exists. Existing behavior sharing changed code must remain pinned.
 | --- | --- | --- |
 | M1. Account and session journey | Email/password registration, sign-in, sign-out and expired-session behavior have recorded results. Google/Discord linking and recovery follow D3. Distinguish API-auth rejection, browser logout and copied-token revocation. | Reuse Clerk; inspect configuration before proposing auth endpoints. Provider access and test accounts need bounded authorization. Immediate revocation remains an explicit decision. |
 | M2. Profile completion contract | A client can determine whether an authenticated account needs a profile, create one, resolve a username collision and rename under the existing cooldown/casing rules. Group creation without a profile remains predictably rejected. | Preserve `/me` unless a contract change is deliberately approved; prefer the existing profile interface. Record frontend onboarding as integration, not backend completion. Depends on M1 identity. |
-| M3. Complete catalog discovery contract | Document/test existing query/version/loader/offset filters, empty results and pagination. Decide and then implement only approved category/sort/environment filters and selector/detail/version-list interfaces. | Basic filters already implemented. Advanced filters and an exact-version picker need a decision before new behavior. Reject malformed approved input; pin existing requests. Independent of authenticated group work. |
+| M3. Complete catalog discovery contract | Document/test existing query/version/loader/offset filters, empty results and pagination. The approved filter scope is category, sort order, client/server environment and author on `GET /mods`, an exact project lookup route, and an enriched hit payload. Multi-select category is a union, and the environment filter means "runs on that side" using required or optional support, not "exclusive to that side". Selector data and an exact-version picker remain undecided. | Basic filters already implemented. Delivery order: first pin the existing behavior (empty results, offset bounds, the fixed page size, today's unknown-parameter behavior and upstream 429/5xx/timeout mapping) without adding behavior; then one filter per delivery with its contract tests, cheapest first; then the exact project lookup route, distinguishing not-found from upstream failure; then the enriched hit payload, measuring response size against the M9 concern. Reject malformed or unknown input and pin existing requests. No implementation is authorized by the scope decision alone. Independent of authenticated group work. |
 | M4. Pack assembly and dependency approval | A client can propose a mod, inspect required dependencies, accept or cancel, remove a selection, change compatible settings and save. Rejection or stale revision cannot partially change stored selections. | Reuse resolver, explicit-selection validation and draft replacement. Depends on M2/M3 for the complete journey, not for existing API functionality. No silent upgrades. |
 | M5. Group lifecycle and access | Tests cover public direct admission, private invite/request/approval, revocation, pages, transfer and departure; the caller's role/access changes immediately as defined by D4-D5. | Existing endpoints are the starting point. Directory/discovery and expulsion are not silently added. Independent of advanced catalog filters. |
 | M6. Published versions and sharing | Publish/list/read/activate/export work with real signed sessions; a nonmember/previous member cannot read or export. Draft changes do not rewrite historical selections or activation. Unavailable upstream versions fail predictably. | Depends on M4/M5. Hosted schema application is recorded already; it is not a pending migration step. Stronger file-manifest persistence is a separate decision. |
@@ -123,9 +123,10 @@ runner exists. Existing behavior sharing changed code must remain pinned.
 
 These are planning items, not a request to answer every question at once:
 
-- Which additional mod filters are needed: category, sort, client/server environment,
-  explicit version selection? Supported Minecraft/loaders selector data also needs a
-  defined source and cache policy if exposed.
+- Mod discovery scope for M3 is decided: category (union within the group), sort order,
+  client/server environment, author, exact project lookup by id or slug, and an enriched
+  hit payload. Still open: selector data for Minecraft and loader options, and an explicit
+  version picker. Selector data also needs a defined source and cache policy if exposed.
 - Does logout require browser/session sign-out only, or immediate invalidation of a
   previously copied token? The latter changes verification/revocation trade-offs.
 - What precise enforcement makes a vote binding, and what happens when several approved
@@ -147,6 +148,20 @@ undefined. No source changes, commits, publishing or remote actions are authoriz
 the request to assess and plan.
 
 ## Change log
+
+- 2026-11-13: M3 delivery order recorded. The slice pins existing search behavior
+  first (empty results, offset bounds, fixed page size, unknown-parameter behavior and
+  upstream failure mapping) before adding behavior; then adds one filter per delivery
+  with contract tests; then the exact project lookup route, distinguishing not-found
+  from upstream failure; then the enriched hit payload with a response-size measurement.
+  The slice is backend contract work with no client consuming the new fields yet, so no
+  user-visible improvement is claimed and implementation remains unauthorized.
+
+- 2026-11-13: M3 catalog-discovery scope was narrowed to a decided filter set: category,
+  sort order, client/server environment, author, exact project lookup by id or slug, and an
+  enriched hit payload. The environment filter is defined as "runs on that side", matching
+  required or optional support, so a mod that works on a side is not hidden because it is
+  not exclusive to it. This is a scope decision and authorizes no implementation.
 
 - 2026-11-13: The owner authorized starting M2, the profile-completion contract, as
   an isolated branch from the documentation baseline because M1 account/session work
