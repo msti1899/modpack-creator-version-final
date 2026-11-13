@@ -18,6 +18,7 @@ For the latest state and next action, use the [current handoff](../handoff.md).
 | [doc04: Persisted pack drafts](doc04-pack-drafts.md) | 2026-11-12 | Persist one exact approved draft per group with owner-only saves, compatible Minecraft/loader changes, and verified hosted PostgreSQL proof. |
 | [doc05: Published versions and sharing](doc05-published-versions.md) | 2026-11-12 | Publish immutable pack versions with owner-selected activation and member-only sharing, reusing the existing `.mrpack` export. |
 | [doc06: Group voting](doc06-voting.md) | 2026-11-12 | Add owner-created mod-addition votes with a frozen electorate, absolute majority, early approval, cancellation and binding owner incorporation without publication. |
+| [doc07: Local database proof](doc07-local-database-proof.md) | 2026-11-12 | Run actual pgTAP, the upgrade regression, real multi-session races and signed-token PostgREST checks on a real local stack, and record what they still cannot prove. |
 
 ## Add the next record
 
