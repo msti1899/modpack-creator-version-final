@@ -133,22 +133,22 @@ before revocation still verifies until it expires. `bun run check` passes 127 te
 
 Observed limitations, not asserted defects: the session token template omits the email
 claim, so `/me` returns null, and automated registration returns the provider's
-`action_blocked` abuse response. The account portal was then exercised in a real browser:
-the configured Discord, Google and email/password methods render, email/password sign-in
-completes including the new-device trust code, and `GET /api/me` through the web proxy
-returns the signed-in subject with `no-store`.
+`action_blocked` abuse response. The app's own account controls were then exercised in a
+real browser against unmodified application code: "Sign in" opens the modal with the
+configured Discord, Google and email/password methods, email/password sign-in completes
+including the new-device trust code, `/api/me` returns the signed-in subject with
+`no-store`, and signing out from the account menu returns the page to the signed-out state
+with `/api/me` answering 401.
 
-Two defects were reproduced on the web surface and are not fixed: the in-app Clerk UI
-never registers its components, so the "Sign in" and "Create account" buttons are inert
-and `Clerk.openSignIn()` throws `Clerk was not loaded with Ui components`; and after
-`Clerk.signOut()` resolved the `__session` cookie remained, so `/api/me` kept returning
-the identity until the cookie was removed. The second is observation only, because the
-SDK was already in a broken state on that page. Immediate revocation of a copied token
-is still an open product decision.
+An earlier entry in this checkpoint reported two web defects from that attempt. Both are
+withdrawn: the app had been opened at `127.0.0.1`, which Next 16 blocks from its
+development resources, so the client never hydrated and the controls were inert. The same
+steps on `localhost` work, and no application change was shipped. See
+[doc08](delivery/doc08-account-session-proof.md).
 
-Next action: fix the web account surface in its own slice, or start the catalog-discovery
-milestone. Preserve the separate approvals needed for implementation, external settings,
-deployment and publication.
+Next action: fix nothing on the account surface; start the catalog-discovery milestone, or
+decide the remaining open product questions. Preserve the separate approvals needed for
+implementation, external settings, deployment and publication.
 
 ## Resume
 
@@ -162,7 +162,12 @@ deployment and publication.
    runs pgTAP, `bun run db:test:upgrade` runs the disposable upgrade regression, and
    `bun run db:test:concurrency` plus `bun run db:test:postgrest` need the `docker` group,
    so run them through a shell that carries it. `bun run check` still needs no Docker.
-4. Hosted state moved on 2026-11-13: all nine repository migrations are now applied to
+4. A browser check of the web app must use `http://localhost:3000`. Next 16 blocks its
+   development resources for `127.0.0.1`, which leaves the page unhydrated with inert
+   controls and a Clerk instance that never loads. That artifact produced and later
+   withdrew a false defect report in [doc08](delivery/doc08-account-session-proof.md); an
+   unhydrated page is evidence about the harness first, not about the app.
+5. Hosted state moved on 2026-11-13: all nine repository migrations are now applied to
    the selected test project, including the publication and votes migrations. The owner
    authorized that application, the project was linked with the owner's CLI session, and
    the schema was read back afterwards. Hosted functional proof of the publication and

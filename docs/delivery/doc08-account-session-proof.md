@@ -74,12 +74,10 @@ Environment: CachyOS Linux, Bun 1.4.4, local API at `127.0.0.1:3001` with the re
   the frontend API returned `action_blocked` with a support reference. That check cannot
   be automated around without circumventing a security control, so the real sign-up UI
   journey remains a person-in-a-browser task.
-- **The browser SDK did not initialize in the automation browser.** Clerk stayed at
-  `status: "loading"` and never requested `/v1/environment`, even after the development
-  handshake completed and both the development-browser and client cookies were present.
-  Browser-level sign-out is therefore still unproven; this is recorded as an observation,
-  not asserted as a product defect, because the cause may be the automation browser's
-  cookie policy.
+- **The in-app account controls work.** A later check the same day signed in through the
+  app's own modal, reached `/api/me` and signed out again (see the browser journey). An
+  earlier note that the component layer never loads was an artifact of the automation
+  browser, not an application defect.
 - **A token copied before sign-out keeps verifying until it expires**, observed rather
   than assumed. Sign-out stops new tokens at the provider, which is what the application
   relies on. Immediate invalidation of an already-copied token remains an explicit
@@ -87,58 +85,36 @@ Environment: CachyOS Linux, Bun 1.4.4, local API at `127.0.0.1:3001` with the re
 
 ## Browser journey
 
-The account portal that Clerk serves for this instance was exercised in a real browser
-against the local web app on 2026-11-13, with the same disposable fixture.
+The local web app was exercised in a real browser on 2026-11-13 with a disposable fixture,
+using the app's own account controls rather than the hosted portal.
 
-- The portal renders the configured methods: Discord, Google, email address and password.
-- Email/password sign-in completed, including the new-device trust code, and redirected
-  back to `http://127.0.0.1:3000` with a live session.
-- `GET /api/me` through the Next.js proxy returned `200` with that session's subject and
-  `Cache-Control: no-store`.
-- Deleting the `__session` cookie made the same request return `401`, so the proxy and API
-  behave correctly when no credential is present.
+- `http://localhost:3000` renders the signed-out controls. The component layer is present
+  (`window.__internal_ClerkUICtor` is a function and the reported `uiVersion` is `1.42.5`),
+  and `Clerk` reaches `status: "ready"`.
+- "Sign in" opens the modal with the configured Discord, Google and email/password methods.
+- Email/password sign-in completed, including the new-device trust code, and the page
+  switched to the signed-in state with the account menu and the API-session link.
+- "Check API session" returned `{"user":{"id":"user_…","email":null}}` from `/api/me` with
+  `Cache-Control: no-store`, so the web proxy and the independent API both accepted the
+  browser session.
+- "Sign out" from the account menu cleared the session; the page returned to the signed-out
+  controls and `/api/me` answered `401` with `{"error":"Authentication required."}`.
 
-Two defects were observed in the app surface, both independent of the API:
+### Correction: the earlier defect report was an environment artifact
 
-- **The in-app Clerk UI does not initialize.** The "Sign in" and "Create account" buttons
-  render but do nothing. `Clerk.openSignIn()` throws `Clerk was not loaded with Ui
-  components`, and `window.__internal_ClerkUICtor` stays `undefined` even though the page
-  requested `@clerk/ui` and the CDN answered `200` with `application/javascript` after a
-  `307` to the versioned path. `Clerk.load()` also had to be invoked manually for the
-  instance to leave `status: "loading"`. The account journey is therefore unusable in the
-  web app today even though the portal and the API both work.
-- **Sign-out left a working session cookie.** After `Clerk.signOut()` resolved,
-  `Clerk.session` was `null` and `status` was back to `loading`, but `__session` remained
-  and `/api/me` kept returning the identity. Removing the cookie manually produced `401`.
-  Because the SDK was already in a broken state on this page, the cause cannot be
-  attributed to the app with confidence; it is recorded as observed behavior, not as a
-  diagnosed defect.
+The first attempts to exercise this journey loaded the app at `http://127.0.0.1:3000`
+instead of `http://localhost:3000`. Next 16 blocks its development resources for that
+origin (`Blocked cross-origin request to Next.js dev resource … from "127.0.0.1"`), so the
+client bundle never hydrated. The page rendered server HTML with inert buttons, Clerk
+stayed in `loading`, and `openSignIn()` reported that no UI components were loaded. That
+was recorded as two application defects; both claims are withdrawn. Repeating the same
+steps on `localhost` against unmodified application code produced the working journey
+above, and no application change was shipped.
 
-Neither defect was fixed here: both need a change to the web application, which is a
-separate slice from recording evidence.
-
-### Investigation note for the UI defect
-
-A follow-up attempt on 2026-11-13 was reverted without shipping, because no variant could
-be verified end to end in the automation browser. What it established:
-
-- The page requests `@clerk/ui` and the CDN answers `200` with `application/javascript`
-  after a `307` to the versioned path, but `window.__internal_ClerkUICtor` stays
-  `undefined` and the account controls have no component layer.
-- Injecting the same bundle manually defines that global as a function, so the bundle
-  itself is sound and the failure is in how the runtime picks it up.
-- With the global present, `Clerk.load({ ui: { ClerkUI: window.__internal_ClerkUICtor } })`
-  applies the component layer immediately: `openSignIn()` succeeds, the modal renders the
-  configured Discord, Google and email/password methods, and the reported `uiVersion` is
-  `1.42.5`. That is the working mechanism to build on.
-- Bundling `@clerk/ui` and passing `ui` to `ClerkProvider`, preloading the UI bundle with
-  `next/script` before Clerk, and a client bridge that called `load({ ui })` after mount
-  were each tried. None produced a verified working sign-in button in the automation
-  browser, and the instance repeatedly stayed at `status: "loading"`, so none was kept.
-
-Next attempt should start from the working `load({ ui })` behaviour above and confirm it
-in a browser whose Clerk instance reaches `ready` without the automation cookie workaround,
-then run the sign-in and sign-out journey through the real buttons.
+The practical rule for this repository: open the dev server on the hostname Next expects,
+or add the alternate origin to `allowedDevOrigins` before drawing conclusions from a
+browser check. An automation run that shows no hydration is evidence about the harness
+first, not about the app.
 
 ## Delivery state
 
@@ -151,12 +127,9 @@ then run the sign-in and sign-out journey through the real buttons.
 
 ## Remaining work
 
-- Fix the web account surface: the in-app Clerk UI never registers its components, so the
-  sign-in and sign-up buttons are inert, and sign-out does not clear the session cookie in
-  the observed environment. Both were reproduced on 2026-11-13 and belong to their own
-  web slice.
 - Automated registration through the frontend API stays blocked by provider abuse
-  protection; the account portal is the working path for creating an account.
+  protection; the in-app modal and the hosted portal are both working paths for creating
+  an account.
 - A profile write path was deliberately not exercised: no endpoint deletes a profile, so
   a write would leave a row for a deleted account.
 - Email/OAuth provider journeys beyond the owner's own verification, and the production
