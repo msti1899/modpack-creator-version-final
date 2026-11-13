@@ -75,6 +75,8 @@ completed work. Record meaningful changes below and keep the
 
 ### Change log
 
+- 2026-11-13: The publication and votes migrations were applied to the selected test project with owner authorization, after a read-only comparison showed exactly those two pending and no remote-only migration. The schema was read back afterwards: the new tables exist with row level security enabled and no client grants, and their RPCs are granted to `authenticated`. Hosted functional proof of the publication and voting flows remains separate and still needs a real signed session.
+
 - 2026-11-12: The local database proof was merged to `main` through [PR #51](https://github.com/msti1899/modpack-creator-version-final/pull/51) as merge commit `becd201`, with Backend checks passing. Native review of that slice, hosted application and provider setup remain open.
 
 - 2026-11-12: Docker became available with owner authorization, so the database evidence that milestones 3-6 recorded as missing was executed on a real local stack: actual pgTAP (six suites, 193 tests), the profile upgrade regression, real multi-session races for admission, publication and voting, and signed-token PostgREST checks. A discovery defect that made `bun run db:test` fail despite passing suites was fixed. Hosted application, native review and provider setup remain open. See [doc07](../delivery/doc07-local-database-proof.md).

@@ -98,8 +98,8 @@ Still unproven after the local database work:
 - No hosted change and no deployment is recorded for milestones 5 or 6.
 
 Next action: start the native review of the merged database-proof slice, close the
-milestone 3 and milestone 5 review gaps, and decide separately whether to apply the
-publication and votes migrations to the selected test project.
+milestone 3 and milestone 5 review gaps, and verify the publication and voting flows
+against the hosted project now that its migrations are applied.
 
 ## Resume
 
@@ -113,9 +113,11 @@ publication and votes migrations to the selected test project.
    runs pgTAP, `bun run db:test:upgrade` runs the disposable upgrade regression, and
    `bun run db:test:concurrency` plus `bun run db:test:postgrest` need the `docker` group,
    so run them through a shell that carries it. `bun run check` still needs no Docker.
-4. Hosted state is unchanged from the earlier checkpoints: the profile, group and draft
-   migrations are applied to the selected test project, and the publication and votes
-   migrations are not. Applying them needs explicit authorization. Do not access ambient
+4. Hosted state moved on 2026-11-13: all nine repository migrations are now applied to
+   the selected test project, including the publication and votes migrations. The owner
+   authorized that application, the project was linked with the owner's CLI session, and
+   the schema was read back afterwards. Hosted functional proof of the publication and
+   voting flows is still unproven and needs a real signed session. Do not access ambient
    CLI sessions or credentials beyond authorized test projects.
 5. Remaining unverified areas that need separate accounts or mailboxes are unchanged:
    full Google/Discord OAuth completion and real email delivery.
