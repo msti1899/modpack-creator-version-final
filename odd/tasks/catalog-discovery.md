@@ -88,3 +88,7 @@ Minecraft/loader options, an exact-version picker, and any UI.
   single-value parameters. Nine advisories were recorded; the three described in T9 were
   corrected and the rest stay as documented limits. `bun run check` then passed 153 tests
   and 2655 assertions.
+- 2026-11-13: Native candidate review approved the slice over the risk, resilience and
+  reliability lenses and burned its acknowledgement. Eight informational advisories were
+  recorded in [doc09](../../docs/delivery/doc09-catalog-discovery.md); none opened a
+  correction. The slice is still unpublished and unmerged.

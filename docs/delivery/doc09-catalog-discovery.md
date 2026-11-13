@@ -74,9 +74,36 @@ Environment: local Bun 1.4.4, no Docker, no hosted service or provider access.
   documentation (`98d439b`), and the verification correction (`ced57f8`). Not
   published, not merged.
 - Verification: independent verification passed S1–S8 with no blocker on 2026-11-13.
-- Review: no native candidate review has run for this branch.
+- Review: native candidate review completed and approved on 2026-11-13 over three
+  lenses (risk, resilience, reliability) for the committed range `6a552bf..fd5b7c9`, and
+  its acknowledgement burned the authority. This record was written after that
+  acknowledgement, so it is not part of the reviewed candidate.
 - Deployment: none. No database, migration, hosted setting or provider was touched,
   so no pgTAP, upgrade or concurrency runner applies to this slice.
+
+## Review advisories
+
+None of these opened a correction; they are separate later work and not a reason to
+re-run review on this candidate.
+
+- `category` has no cap on the number of distinct values, so a long list grows the
+  outbound search URL and an oversized upstream URI surfaces as 502 instead of a
+  fast 400. (WARNING, introduced)
+- The shared projection is fail-closed per page: one present-but-malformed enriched
+  field fails all 20 hits with a generic 502, and future upstream schema drift would
+  take the whole discovery surface down at once, with no field or hit identified in
+  the error. (WARNING, worsened)
+- Unknown-parameter rejection breaks requests the baseline accepted and ignored
+  (`limit`, `page`, `type`, `version`), and no caller audit accompanies that change.
+  (WARNING, introduced, accepted as S2 scope)
+- The new lookup route is an unauthenticated 1:1 proxy with no cache, rate limit or
+  circuit breaker, and maps upstream 429 to 502 for every caller. (WARNING, introduced)
+- The 14473-byte measurement and the 32 KiB assertions rest on fixture lengths for
+  fields the projection does not bound (`slug`, `title`, `description`), so the bound
+  is measured rather than enforced. (SUGGESTION)
+- The lookup path validates `project_type` itself but leaves the required `id` to the
+  shared projection; a mod body with a missing or non-string id becomes a 502 and that
+  branch is untested. (SUGGESTION)
 
 ## Remaining work
 

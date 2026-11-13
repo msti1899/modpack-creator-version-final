@@ -213,8 +213,10 @@ advisories were corrected in `ced57f8`; the rest are recorded limits in
 
 Remaining: selector data for Minecraft and loader options and an exact-version picker
 are still undecided; no web client consumes the new fields; no real-upstream, hosted or
-deployed check ran. The native assessment raised this slice to high risk because it
-tightens an existing public contract, so a candidate review is due before merge.
+deployed check ran. Native review approved the slice on 2026-11-13 over three lenses and
+burned its acknowledgement; its eight informational advisories are recorded in
+[doc09](delivery/doc09-catalog-discovery.md) as later work, including the missing cap on
+distinct `category` values and the lack of per-hit degradation on upstream schema drift.
 
 Next action: independently verify the branch, then decide its review and publication.
 
