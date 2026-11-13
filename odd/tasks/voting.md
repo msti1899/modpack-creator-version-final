@@ -161,3 +161,13 @@ no scheduler exists.
 - L16: The owner authorized publication. The branch was pushed and published as PR #48
   against `main` with Backend checks passing in 46 seconds. Merge, deployment and any
   hosted migration remain separate unauthorized decisions.
+
+- L17: Milestone 5 merged to `main` first (PR #49, `e60a816`), so this branch merged
+  `main` and renumbered its two colliding identifiers: the votes migration became
+  `20261112233000_group_votes.sql` and the delivery record became `doc06-voting.md`.
+  Conflicts in `apps/api/src/index.ts` and five documents were resolved by keeping both
+  features: both routers mounted, both API sections, both guides and both delivery
+  records, and one handoff checkpoint. After the merge `bun run check` passes 125 tests
+  / 2310 assertions, and all nine migrations plus the publication, votes and draft SQL
+  suites pass in one isolated PGlite session. Backend checks passed in 45 seconds on
+  the merged head.
