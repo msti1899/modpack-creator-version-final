@@ -274,6 +274,79 @@ select is((select count(*) from public.group_members
   0::bigint, 'A failed approval adds no membership');
 set local role authenticated;
 
+-- Request pages cross cursors, clamp limits and end empty; invalidated tokens cannot request.
+reset role;
+insert into public.profiles (user_id, username) values
+  ('user_ivan', 'Ivan'), ('user_judy', 'Judy'), ('user_kevin', 'Kevin'),
+  ('user_leo', 'Leo'), ('user_nina', 'Nina');
+set local role authenticated;
+
+select set_config('request.jwt.claims', '{"sub":"user_ivan","role":"authenticated"}', true);
+select lives_ok(format('select public.request_join(%L)', current_setting('test.token')),
+  'A fourth user requests the private group');
+select set_config('request.jwt.claims', '{"sub":"user_judy","role":"authenticated"}', true);
+select lives_ok(format('select public.request_join(%L)', current_setting('test.token')),
+  'A fifth user requests the private group');
+select set_config('request.jwt.claims', '{"sub":"user_kevin","role":"authenticated"}', true);
+select lives_ok(format('select public.request_join(%L)', current_setting('test.token')),
+  'A sixth user requests the private group');
+select set_config('request.jwt.claims', '{"sub":"user_leo","role":"authenticated"}', true);
+select lives_ok(format('select public.request_join(%L)', current_setting('test.token')),
+  'A seventh user requests the private group');
+
+select set_config('request.jwt.claims', '{"sub":"user_dave","role":"authenticated"}', true);
+select is((select jsonb_array_length(public.group_requests_page(null, 2)->'requests')), 2,
+  'The first request page is bounded');
+select set_config('test.request_cursor', (select public.group_requests_page(null, 2)->>'nextCursor'), true);
+select is((select (public.group_requests_page(current_setting('test.request_cursor'), 2)->>'nextCursor')) is not null,
+  true, 'The second full request page keeps a next cursor');
+select set_config('test.request_cursor',
+  (select public.group_requests_page(current_setting('test.request_cursor'), 2)->>'nextCursor'), true);
+select is((select jsonb_array_length(public.group_requests_page(current_setting('test.request_cursor'), 2)->'requests')), 1,
+  'The last request page carries the remainder');
+select is((select public.group_requests_page(current_setting('test.request_cursor'), 2)->>'nextCursor'),
+  null::text, 'The final request page has no next cursor');
+select is((select jsonb_array_length(public.group_requests_page(null, 0)->'requests')), 1,
+  'A request page limit below the minimum is clamped to one');
+select is((select jsonb_array_length(public.group_requests_page(null, 150)->'requests')), 5,
+  'A request page limit above the maximum is accepted without truncating');
+select is((select public.group_requests_page('9999999999999999.user_zzz', 2)->'requests'), '[]'::jsonb,
+  'A request page past the end is empty');
+select is((select public.group_requests_page('9999999999999999.user_zzz', 2)->>'nextCursor'),
+  null::text, 'A request page past the end has no next cursor');
+
+select is((select jsonb_array_length(public.group_members_page(null, 0)->'members')), 1,
+  'A member page limit below the minimum is clamped to one');
+select is((select public.group_members_page(null, 0)->>'nextCursor') is not null, true,
+  'A clamped member page keeps a next cursor');
+select is((select jsonb_array_length(public.group_members_page(null, 150)->'members')), 2,
+  'A member page limit above the maximum is accepted without truncating');
+select is((select public.group_members_page('9999999999999999.user_zzz', 2)->'members'), '[]'::jsonb,
+  'A member page past the end is empty');
+select is((select public.group_members_page('9999999999999999.user_zzz', 2)->>'nextCursor'),
+  null::text, 'A member page past the end has no next cursor');
+
+select lives_ok($$select public.create_invitation()$$, 'The owner issues an invitation before rotation');
+select set_config('test.rotated_token', (select public.my_group()->'invitation'->>'token'), true);
+select lives_ok($$select public.create_invitation()$$, 'The owner rotates the invitation again');
+select set_config('test.token', (select public.my_group()->'invitation'->>'token'), true);
+
+select set_config('request.jwt.claims', '{"sub":"user_nina","role":"authenticated"}', true);
+select throws_ok(format('select public.request_join(%L)', current_setting('test.rotated_token')),
+  'P0001', 'Invitation is invalid.', 'A rotated token cannot create a join request');
+select lives_ok(format('select public.request_join(%L)', current_setting('test.token')),
+  'The current token still creates a join request');
+
+select set_config('request.jwt.claims', '{"sub":"user_dave","role":"authenticated"}', true);
+select lives_ok($$select public.revoke_invitation()$$, 'The owner revokes the current invitation');
+select set_config('request.jwt.claims', '{"sub":"user_nina","role":"authenticated"}', true);
+select throws_ok(format('select public.resolve_invitation(%L)', current_setting('test.token')),
+  'P0001', 'Invitation is invalid.', 'A revoked token does not resolve');
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"user_leo","role":"authenticated"}', true);
+select throws_ok(format('select public.request_join(%L)', current_setting('test.token')),
+  'P0001', 'Invitation is invalid.', 'A revoked token cannot create a join request');
+
 -- Ownership transfer and departure.
 select set_config('request.jwt.claims', '{"sub":"user_alice","role":"authenticated"}', true);
 select throws_ok($$select public.transfer_ownership('user_mallory')$$,
