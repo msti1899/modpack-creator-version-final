@@ -80,8 +80,9 @@ handoff), which was corrected afterwards.
 ## Delivery state
 
 Implementation, tests, documentation, hosted proof and native review are complete for
-the recorded candidate. Committed and pushed on `feat/pack-drafts`; no pull request,
-merge or deployment is recorded.
+the recorded candidate. Merged to `main` through
+[PR #46](https://github.com/msti1899/modpack-creator-version-final/pull/46) as merge
+commit `2ae50e7`, stacked on milestone 3 in PR #45. No deployment is recorded.
 
 ## Remaining work
 

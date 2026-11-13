@@ -102,8 +102,10 @@ Clerk->Hono->PostgREST draft request, and HTTP-side Modrinth validation through 
 deployed API. Database checks prove authorization, format and atomicity, not remote
 catalog validation or JWT signature admission.
 
-Delivery state: committed and pushed on `feat/pack-drafts`; no pull request, merge or
-deployment is recorded. Review advisories still open as later work: group error-map
+Delivery state: merged to `main` through [PR #46](https://github.com/msti1899/modpack-creator-version-final/pull/46)
+(merge commit `2ae50e7`), stacked on the milestone-3 PR #45 (`b648c21`). Backend
+checks passed on both before merge. No deployment is recorded. Review advisories
+still open as later work: group error-map
 HTTP coverage, draft 404 and malformed-body precedence, empty/50/51/duplicate
 selection coverage through the routes, focused-test gating, the database suite using
 native assertions inside pgTAP framing, absent failure-path observability, no
