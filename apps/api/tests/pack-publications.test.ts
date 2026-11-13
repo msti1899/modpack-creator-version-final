@@ -40,6 +40,7 @@ type Options = {
   failures?: Record<string, { status: number; body: unknown }>;
   faults?: { data?: Error };
   database?: { url: string; publishableKey?: string };
+  modules?: Record<string, { status?: number; body?: unknown; fault?: Error }>;
 };
 
 function setup(options: Options = {}) {
@@ -55,6 +56,11 @@ function setup(options: Options = {}) {
   const api = createApp(async (input) => {
     const path = new URL(String(input)).pathname.replace("/v2", "");
     lookups.push(path);
+    const override = options.modules?.[path];
+    if (override?.fault) throw override.fault;
+    if (override) return override.body === undefined
+      ? new Response(null, { status: override.status ?? 200 })
+      : Response.json(override.body, { status: override.status ?? 200 });
     const value = catalog[path];
     return value ? Response.json(value) : new Response(null, { status: 404 });
   }, clerk, async (url, init) => {
@@ -341,6 +347,47 @@ test("publication RPC errors map to documented statuses without leaking internal
   const response = await request("POST", presentation, "/groups/me/pack/publications");
   expect(response.status).toBe(502);
   expect(await response.json()).toEqual({ error: "Publication service unavailable." });
+});
+
+test("a caller outside the group receives no publication data and no export performs an upstream call", async () => {
+  // The RPCs resolve membership from the signed subject, so a caller without a group,
+  // a caller in another group and a member whose membership ended all reach Hono as the
+  // same documented refusal. Only the database can distinguish the causes; the HTTP
+  // boundary must not, and must not expose group or publication data either way.
+  for (const path of ["/groups/me/pack/publications", `/groups/me/pack/publications/${publicationId}`,
+    "/groups/me/pack/publications?limit=2&before=5"]) {
+    const { request, operations, lookups } = setup({
+      failures: { my_pack_publications: { status: 400, body: { code: "P0001", message: "Group required." } },
+        my_pack_publication: { status: 400, body: { code: "P0001", message: "Group required." } } },
+    });
+    const response = await request("GET", undefined, path);
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: "Group required." });
+    expect(operations.length).toBe(1);
+    expect(lookups).toEqual([]);
+  }
+  const absent = setup({ failures: { my_pack_publication: { status: 400,
+    body: { code: "P0001", message: "Publication not found." } } } });
+  for (const path of [`/groups/me/pack/publications/${publicationId}`,
+    `/groups/me/pack/publications/${otherPublicationId}/export`]) {
+    const response = await absent.request("GET", undefined, path);
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: "Publication not found." });
+  }
+  expect(absent.lookups).toEqual([]);
+  expect(absent.operations.map((operation) => operation.name)).toEqual(["my_pack_publication", "my_pack_publication"]);
+});
+
+test("a denied export returns no archive and never reaches Modrinth", async () => {
+  const { request, operations, lookups } = setup({ failures: { my_pack_publication: { status: 400,
+    body: { code: "P0001", message: "Group required." } } } });
+  const response = await request("GET", undefined, `/groups/me/pack/publications/${publicationId}/export`);
+  expect(response.status).toBe(404);
+  expect(response.headers.get("content-disposition")).toBeNull();
+  expect(response.headers.get("content-type")).not.toContain("zip");
+  expect(await response.json()).toEqual({ error: "Group required." });
+  expect(operations).toEqual([{ name: "my_pack_publication", args: { p_publication_id: publicationId } }]);
+  expect(lookups).toEqual([]);
 });
 
 test("publication transport faults and missing configuration map to documented statuses", async () => {
