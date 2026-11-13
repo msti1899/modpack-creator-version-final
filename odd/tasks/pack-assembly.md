@@ -57,13 +57,18 @@ implemented and documented; they are pinned here, not rewritten.
   undefined. Risk: item 3 (public API payload contract).
 - T2 [S3–S7] inline — complete in the first work unit. The journey test composes the
   public resolver with the draft routes over one in-memory row and asserts the exact
-  `save_pack_draft` arguments, the untouched row after each rejection, and the absence
-  of catalog work for a stale revision. Those assertions passed at the baseline, so
-  they pin existing behavior rather than a change.
+  `save_pack_draft` arguments, the row hash after each rejection, the absence of
+  catalog work for oversized and stale writes, and the absence of a save call for a
+  rejected proposal. Those assertions passed at the baseline, so they pin existing
+  behavior rather than a change.
 - T3 [S1–S7] inline — in progress. The route reference and both guides are updated in
   the first work unit; the delivery record and handoff follow independent verification.
-- T4 [S1–S7] delegated verifier — pending. Independent verification over the feature
-  document, with the baseline commit and the probe command forms.
+- T4 [S1–S7] delegated verifier — complete. Independent verification met S1–S7 with no
+  blocker and three advisories, all taken in the correction batch: the vote path's
+  title-before-version-name error precedence was restored and pinned, the journey test
+  now asserts the exact save arguments and row-hash stability, and the size record was
+  corrected to measured values. Environment limits left unexercised: live Modrinth,
+  real PostgreSQL compare-and-swap and row lock, Docker, and the 504 timeout path.
 
 ## Log
 
@@ -79,5 +84,14 @@ implemented and documented; they are pinned here, not rewritten.
   typechecks. The additive guarantee was checked two ways: the exact resolve payload
   pin in `packs.test.ts` was updated only for the fixture titles, and the public
   regression golden was recomputed with only the `POST /packs/resolve` hash changing,
-  the other nine request hashes unchanged. A 50-mod closure with realistic
-  maximum-length values measured 13495 bytes.
+  the other nine request hashes unchanged. A 50-version closure measured 13495 bytes
+  in the first measurement, which independent verification could not reproduce.
+- 2026-11-13: Independent verification met S1–S7 with no blocker and reproduced the
+  documented baseline and candidate counts. It observed three advisories: the vote
+  path's error precedence changed when a title and a version name are malformed at
+  once, the task wording overstated what the journey test asserted, and the size
+  record's fixture parameters were not described. All three were taken in one
+  correction batch. Re-measured with documented fixtures, a 50-version closure is
+  8895 bytes with 30-character titles and names and 24095 bytes with every title at
+  the 300-character ceiling; the independent measurement of 7093 and 22739 bytes used
+  shorter identifiers. `bun run check` then passed 157 tests and 2699 assertions.

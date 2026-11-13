@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { createHash } from "node:crypto";
 import { createApp } from "../src/index";
 import { clerk, clerkToken } from "./fixtures/clerk";
 
@@ -33,7 +34,7 @@ type StoredDraft = { gameVersion: string; loader: string; versionIds: string[]; 
  * routes read and write one in-memory draft row through compare-and-swap. */
 function setup(options: { draft?: StoredDraft; overrides?: Record<string, unknown> } = {}) {
   let stored: StoredDraft | null = options.draft ?? null;
-  const operations: { name: string; args: Record<string, string | string[]> }[] = [];
+  const operations: { name: string; args: Record<string, unknown> }[] = [];
   const lookups: string[] = [];
   const fixtures = { ...catalog, ...options.overrides };
   const api = createApp(async (input) => {
@@ -78,6 +79,9 @@ test("a proposal keeps readable titles and fails closed on an unusable one", asy
   const padded = setup({ overrides: { "/project/dep": project("dep", "  Fabric API  ") } });
   const proposal = await (await padded.request("/packs/resolve", "POST", { ...settings, versionIds: [], projectId: "main" })).json();
   expect(proposal.versions.at(-1).projectTitle).toBe("Fabric API");
+  const longest = setup({ overrides: { "/project/dep": project("dep", "z".repeat(300)) } });
+  const boundary = await (await longest.request("/packs/resolve", "POST", { ...settings, versionIds: [], projectId: "main" })).json();
+  expect(boundary.versions.at(-1).projectTitle).toBe("z".repeat(300));
   for (const title of [undefined, "", "   ", "bad\u0000title", "t".repeat(301)]) {
     const { request } = setup({ overrides: { "/project/dep": project("dep", title) } });
     const response = await request("/packs/resolve", "POST", { ...settings, versionIds: [], projectId: "main" });
@@ -88,29 +92,37 @@ test("a proposal keeps readable titles and fails closed on an unusable one", asy
 
 test("propose, cancel, accept, remove and change settings keep every rejection atomic", async () => {
   const { request, operations, lookups, stored } = setup();
+  const digest = () => createHash("sha256").update(JSON.stringify(stored())).digest("hex");
 
   // Propose: a stateless candidate closure the caller may present for approval.
   const proposal = await (await request("/packs/resolve", "POST", { ...settings, versionIds: [], projectId: "main" })).json();
   const versionIds = proposal.versions.map((entry: { id: string }) => entry.id);
 
   // Cancel: nothing is stored and no write is attempted.
+  const emptyRow = digest();
   expect(await (await request("/groups/me/pack", "GET")).json()).toEqual({ groupId, role: "owner", draft: null });
   expect(operations.filter((operation) => operation.name === "save_pack_draft")).toHaveLength(0);
+  expect(digest()).toBe(emptyRow);
 
   // Accept: one atomic write stores exactly the approved closure.
   const accepted = await request("/groups/me/pack", "PUT", { ...settings, versionIds, expectedRevision: 0 });
   expect(accepted.status).toBe(200);
   expect(stored()).toMatchObject({ ...settings, versionIds: ["main-v", "dep-v"], revision: 1 });
+  expect(operations.find((operation) => operation.name === "save_pack_draft")?.args).toEqual({
+    p_group_id: groupId, p_game_version: "1.21.1", p_loader: "fabric",
+    p_version_ids: ["main-v", "dep-v"], p_expected_revision: 0,
+  });
 
   // Remove a mod: the remaining selection keeps its exact versions.
   expect((await request("/groups/me/pack", "PUT", { ...settings, versionIds: ["dep-v"], expectedRevision: 1 })).status).toBe(200);
   expect(stored()).toMatchObject({ ...settings, versionIds: ["dep-v"], revision: 2 });
 
   // Remove a dependency that a remaining mod requires: rejected, row untouched.
+  const removed = digest();
   const broken = await request("/groups/me/pack", "PUT", { ...settings, versionIds: ["main-v"], expectedRevision: 2 });
   expect(broken.status).toBe(409);
   expect(await broken.json()).toEqual({ error: "A required dependency is missing or conflicts with the approved selection. Resolve and approve dependencies first." });
-  expect(stored()).toMatchObject({ ...settings, versionIds: ["dep-v"], revision: 2 });
+  expect(digest()).toBe(removed);
 
   // Compatible settings change with a removal in the same write.
   const changed = await request("/groups/me/pack", "PUT", { gameVersion: "1.21.2", loader: "quilt", versionIds: ["dep-v"], expectedRevision: 2 });
@@ -118,17 +130,27 @@ test("propose, cancel, accept, remove and change settings keep every rejection a
   expect(stored()).toMatchObject({ gameVersion: "1.21.2", loader: "quilt", versionIds: ["dep-v"], revision: 3 });
 
   // Incompatible settings change: rejected, row untouched.
+  const incompatibleRow = digest();
   const incompatible = await request("/groups/me/pack", "PUT", { gameVersion: "1.20.1", loader: "quilt", versionIds: ["dep-v"], expectedRevision: 3 });
   expect(incompatible.status).toBe(409);
   expect(await incompatible.json()).toEqual({ error: "A mod version does not support the selected Minecraft version and loader." });
-  expect(stored()).toMatchObject({ gameVersion: "1.21.2", loader: "quilt", versionIds: ["dep-v"], revision: 3 });
+  expect(digest()).toBe(incompatibleRow);
+
+  // Oversized selection: rejected before any catalog request.
+  const catalogBefore = lookups.length;
+  const oversized = await request("/groups/me/pack", "PUT", { ...settings,
+    versionIds: Array.from({ length: 51 }, (_, index) => `v${index + 1}`), expectedRevision: 3 });
+  expect(oversized.status).toBe(400);
+  expect(await oversized.json()).toEqual({ error: "Select at most 50 mod versions." });
+  expect(lookups.length).toBe(catalogBefore);
+  expect(digest()).toBe(incompatibleRow);
 
   // Stale revision: rejected before any catalog request.
-  const before = lookups.length;
   const stale = await request("/groups/me/pack", "PUT", { ...settings, versionIds: ["dep-v"], expectedRevision: 1 });
   expect(stale.status).toBe(409);
   expect(await stale.json()).toEqual({ error: "Draft revision conflict." });
-  expect(lookups.length).toBe(before);
+  expect(lookups.length).toBe(catalogBefore);
+  expect(digest()).toBe(incompatibleRow);
 
   // Only the three accepted writes reached the save RPC.
   expect(operations.filter((operation) => operation.name === "save_pack_draft")).toHaveLength(3);

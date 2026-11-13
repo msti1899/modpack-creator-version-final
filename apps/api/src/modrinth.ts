@@ -312,11 +312,13 @@ export async function validateVoteAddition(
   const proposal = config.versionIds.map((versionId) => {
     const version = pinned.get(versionId);
     if (!version) throw new PackError("Modrinth returned an unexpected version.", 502);
+    // Title validation keeps the baseline precedence over the version-name check.
+    const projectTitle = inspectableTitle(selectedProject(selection, version.project_id));
     if (typeof version.version_number !== "string" || !version.version_number.trim() || version.version_number.length > 100 || /[\x00-\x1f\x7f]/.test(version.version_number)) throw new PackError("Modrinth returned an invalid version name.", 502);
     return {
       versionId,
       projectId: version.project_id,
-      projectTitle: inspectableTitle(selectedProject(selection, version.project_id)),
+      projectTitle,
       versionNumber: version.version_number.trim(),
     };
   });
