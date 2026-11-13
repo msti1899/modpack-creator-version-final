@@ -390,6 +390,39 @@ test("a denied export returns no archive and never reaches Modrinth", async () =
   expect(lookups).toEqual([]);
 });
 
+test("an unavailable pinned version fails the export predictably and the publication stays readable", async () => {
+  const cases = [
+    ["a version Modrinth no longer serves", { "/version/dep-v": { status: 404 } },
+      409, "A selected mod or dependency is unavailable."],
+    ["a project Modrinth no longer serves", { "/project/main": { status: 404 } },
+      409, "A selected mod or dependency is unavailable."],
+    ["a version that dropped the frozen loader", { "/version/main-v": { status: 200,
+      body: { ...metadata("main-v", "main"), game_versions: ["1.20.1"] } } },
+    409, "A mod version does not support the selected Minecraft version and loader."],
+    ["malformed version metadata", { "/version/main-v": { status: 200, body: { id: "main-v" } } },
+      502, "Modrinth returned invalid version metadata."],
+    ["an upstream server error", { "/version/dep-v": { status: 503, body: {} } },
+      502, "Modrinth could not complete the request. Please try again later."],
+    ["an upstream timeout", { "/version/main-v": { fault: new DOMException("late", "TimeoutError") } },
+      504, "Modrinth timed out. Please try again."],
+    ["a transport fault", { "/version/main-v": { fault: new Error("SECRET reset") } },
+      502, "Could not contact Modrinth."],
+  ] as const;
+  for (const [label, modules, status, message] of cases) {
+    const { request, operations, lookups } = setup({ modules });
+    const response = await request("GET", undefined, `/groups/me/pack/publications/${publicationId}/export`);
+    expect([label, response.status, await response.json()]).toEqual([label, status, { error: message }]);
+    expect(response.headers.get("content-disposition")).toBeNull();
+    expect(response.headers.get("content-type")).not.toContain("zip");
+    expect(lookups.length).toBeGreaterThan(0);
+    // The frozen publication is still readable: only its archive is unavailable.
+    expect(operations.map((operation) => operation.name)).toEqual(["my_pack_publication"]);
+    const detail = await request("GET", undefined, `/groups/me/pack/publications/${publicationId}`);
+    expect(detail.status).toBe(200);
+    expect((await detail.json()).publication.id).toBe(publicationId);
+  }
+});
+
 test("publication transport faults and missing configuration map to documented statuses", async () => {
   for (const [fault, status, message] of [
     [new DOMException("late", "TimeoutError"), 504, "Publication service timed out."],
