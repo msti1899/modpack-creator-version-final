@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-dvh bg-zinc-950 font-sans text-zinc-100 antialiased">
+      <body className="min-h-dvh bg-background font-sans text-foreground antialiased">
         {hasClerkConfiguration() ? (
           <ClerkProvider afterSignOutUrl="/" signInFallbackRedirectUrl="/" signUpFallbackRedirectUrl="/">{children}</ClerkProvider>
         ) : children}
