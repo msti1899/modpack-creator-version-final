@@ -140,7 +140,10 @@ separate authorization.
   projection, the readability slot was refused once and re-admitted from the bound
   status, the review approved, and the acknowledgement burned the authority. Sixteen
   advisories were recorded, none blocking.
-- L12: Recorded limits: the live check depends on the public catalog for its candidates,
+- L12: Merged to `main` through [PR #66](https://github.com/msti1899/modpack-creator-version-final/pull/66)
+  as `e5246e0` on 2026-11-13 (UTC 2026-11-14), with the Backend checks passing on the
+  branch head and on the merge commit. No deployment is recorded.
+- L13: Recorded limits: the live check depends on the public catalog for its candidates,
   the satisfaction branch is not proven for every possible pin shape, and deadline expiry
   stays a read-time derivation proven in pgTAP only. No deployment, publication or merge is
   recorded by this document.
