@@ -131,6 +131,37 @@ one authorized hosted run on 2026-11-13.
   a run therefore needs the printed cleanup before the database is empty.
 - No deployment, no publication and no merge are recorded by this document.
 
+## Native review
+
+The owner asked for the full lens pass on 2026-11-13 after the slice was published.
+Candidate consent was granted for this slice only, and the native plan selected four
+lenses over the base-diff projection (`risk`, `resilience`, `readability`,
+`reliability`). The readability slot was refused once by the transport with
+`reviewer_result_not_admissible`; the bound status reoffered exactly that slot and the
+relaunch was admitted. The review approved the candidate and its acknowledgement burned
+the authority (`gentle-ai.review-acknowledged/v1`, action `acknowledged`). No correction
+round opened.
+
+Sixteen informational advisories are recorded as later work, never as a reason to
+re-review these bytes:
+
+- Test determinism and scope: the concurrency observation counts every incorporated vote
+  in the database instead of the fixture's group, the independence race binds an unused
+  winner, the revision literals are unnamed, and no race pits a draft save against an
+  incorporation.
+- Live-check robustness: the 504 retry is passed to mutating calls, and a run that aborts
+  before its final steps leaves group, draft and vote rows that the printed cleanup does
+  not remove.
+- Test honesty: three case names claim coverage they do not pin (an HTTP "writes
+  nothing" case, a proposal-title case that compares version IDs, and a retry comment
+  that contradicts its callers).
+- Diagnostics and readability: the seventh SQL suite still plans one TAP result for
+  roughly sixty probes, the Clerk JS version is duplicated as a literal, the fixed test
+  OTP is unexplained, and the integer-maximum revision sentinel carries no reason.
+- Pre-existing and out of scope: the owner refusal map lets an authenticated caller
+  distinguish an absent vote from another group's vote, which is the documented contract
+  and predates this slice.
+
 ## Delivery state
 
 Implementation and evidence on `feat/voting-obligations`, cut from `origin/main` at

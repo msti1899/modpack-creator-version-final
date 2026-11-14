@@ -413,6 +413,10 @@ after cleanup shows zero rows in every fixture table except the pre-existing
 `m4proof13` profile. See [doc13](delivery/doc13-voting-obligations.md) and the
 [feature log](../odd/tasks/completion-m7-voting-obligations.md).
 
+Native review ran the full four-lens pass at the owner's request and approved the
+candidate, burning its acknowledgement with no correction round; sixteen informational
+advisories are recorded in [doc13](delivery/doc13-voting-obligations.md) as later work.
+
 State: published as [PR #66](https://github.com/msti1899/modpack-creator-version-final/pull/66)
 on 2026-11-13, with the Backend checks passing in 44 seconds on the branch head; merge is a
 separate decision. Next action: re-run the live check after any change to the vote routes,

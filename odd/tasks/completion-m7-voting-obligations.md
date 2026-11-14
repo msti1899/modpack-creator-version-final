@@ -85,7 +85,10 @@ separate authorization.
   Status: complete on `ffc9dd8`: no blocker, S1-S5 and S7 met, S6 verified locally with
   the hosted leg recorded but not re-run, three advisories. Its probes were committed as
   `supabase/tests/database/votes-obligations.test.sql`, taking `bun run db:test` to seven
-  files and 218 tests, and the assertion count was corrected to 26. Risk: item 3.
+  files and 218 tests, and the assertion count was corrected to 26. The owner then
+  requested the full lens pass; native review ran four lenses, approved the candidate and
+  burned its acknowledgement with no correction round, and its sixteen informational
+  advisories are recorded in doc13 as later work. Risk: item 3.
 
 ## Log
 
@@ -132,7 +135,12 @@ separate authorization.
 - L10: Published as [PR #66](https://github.com/msti1899/modpack-creator-version-final/pull/66)
   on 2026-11-13 with the Backend checks passing in 44 seconds on the branch head. Merge is a
   separate decision and no deployment is recorded.
-- L11: Recorded limits: the live check depends on the public catalog for its candidates,
+- L11: Full lens pass on 2026-11-13: consent was granted for this candidate, the native
+  plan selected risk, resilience, readability and reliability over the base-diff
+  projection, the readability slot was refused once and re-admitted from the bound
+  status, the review approved, and the acknowledgement burned the authority. Sixteen
+  advisories were recorded, none blocking.
+- L12: Recorded limits: the live check depends on the public catalog for its candidates,
   the satisfaction branch is not proven for every possible pin shape, and deadline expiry
   stays a read-time derivation proven in pgTAP only. No deployment, publication or merge is
   recorded by this document.
