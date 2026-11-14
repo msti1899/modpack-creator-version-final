@@ -32,9 +32,9 @@ refresh/logout proxy is added. Clients must migrate to Clerk controls/session AP
 this is an explicit auth-contract cutover, not backward-compatible provider mixing.
 See [local identity](../guides/local-identity.md) and [account access](../guides/local-account-access.md).
 
-### GET /profile, POST /profile, PATCH /profile
+### GET /profile, POST /profile, PATCH /profile, DELETE /profile
 
-All three require a verified Clerk user-session bearer token and inherit `/me`'s authentication
+All four require a verified Clerk user-session bearer token and inherit `/me`'s authentication
 errors and `no-store`/Authorization cache headers. The API derives the owner from
 verified Clerk identity and forwards the unchanged user token to the Data API
 under RLS. Its signed `role` must be exactly `authenticated`; missing/other roles
@@ -58,13 +58,25 @@ return 401 before database access. Privileged API keys are never accepted. Query
 - The first rename is immediate; later actual changes require 30 days or return
   409. An identical write leaves the timestamp unchanged. Previous names become
   available again.
+- DELETE deletes the caller's application account data and returns 200 with
+  `{ account: { deleted, group } }`. `group` is `{ id, deleted }` for a caller who
+  belonged to a group, and `null` otherwise. An owner who still has other members
+  is refused with 409 `Transfers are required before leaving a group with other
+  members.` and nothing changes; the last member's deletion removes the group, its
+  draft, its published versions and its votes. A member's deletion removes only the
+  membership: the group, its draft and its published versions survive, and the
+  account's frozen electorate rows and cast ballots stay counted. The profile row
+  is deleted, so the username becomes available immediately. The call is
+  idempotent: repeating it, or calling it without a profile, returns 200 with
+  `deleted: false`. A non-empty body returns 400; DELETE accepts no fields. Clerk
+  keeps owning the sign-in account, and this route never calls a provider.
 
 Data API failures return safe errors: 401 for expired/rejected credentials,
 502 for protocol/network/permission failures and rate limits, 504 for timeout.
 Requests reject redirects, use a five-second timeout including response reading,
 and cap response JSON at 4 KiB. There are no automatic retries. A transport error
 does not prove a write rolled back: read the profile before deciding to retry.
-No signup, provider-linking, or profile deletion endpoint is included.
+No signup or provider-linking endpoint is included.
 
 Database configuration is independent of Clerk: missing/unsafe Supabase URL or
 publishable/anon key returns 503. URLs use HTTPS except loopback development; no
@@ -246,7 +258,9 @@ A vote is
 latest ballot or null. `proposal` is the snapshot stored at creation, so a later
 catalog change cannot rewrite what the group voted on. Ballot rows are
 `{ userId, username, ballot, castAt, updatedAt }`, with null ballot fields for an
-electorate member who has not voted.
+electorate member who has not voted. A participant who deleted their account keeps
+their row, their frozen electorate entry and any cast ballot, and is reported with
+`username: null` because no profile remains; the subject ID stays stable.
 
 `addVersionIds` holds 1–50 exact Modrinth version IDs: the mod plus each required
 dependency the draft does not already contain. The API validates the union of the
@@ -369,7 +383,8 @@ Errors return `{ "error": "..." }`: 400 for invalid input, 404 for an unknown
 catalog project, 409 for incompatible or unresolvable selections, 502 for upstream
 failures including rate limits, and 504 for timeouts. Unknown routes retain the
 default Hono 404 response. Check the status before treating an export response as
-a ZIP.
+a ZIP. Account deletion adds one refusal: 409 with the transfer-before-leaving
+message, which changes nothing.
 
 - At most 50 mods including dependencies and 100 upstream lookups per operation.
 - Pack request bodies: 16 KiB. Pack names and search queries: 100 characters.
