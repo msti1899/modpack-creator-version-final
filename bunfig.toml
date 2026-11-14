@@ -1,0 +1,5 @@
+[test]
+# Vitest owns the component and hook suites, and Playwright owns the browser
+# specs. Bun's runner must not pick them up: they import their own runners and
+# would fail outside them.
+pathIgnorePatterns = ["apps/web/tests/ui/**", "apps/web/tests/lib/**", "apps/web/e2e/**"]
