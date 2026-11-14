@@ -53,6 +53,12 @@ existed, so it scanned the 404 page; from PR #76 the same case covers the real
 route. Not run: authenticated journeys (real password, Google, Discord) and a
 Lighthouse run on the new shell.
 
+On 2026-11-14 the configured build was opened in a real browser against the
+development Clerk instance: `/sign-in` answered `200` with the Clerk email field and
+the Google connection rendered, no "accounts unavailable" fallback and no console
+error. That confirms the screen renders with the provider configured; signing in was
+not attempted.
+
 ## Delivery state
 
 All four slices are merged to `main`: #73 as `d1eb096`, #74 as `d4c7ea4`, #75 as
