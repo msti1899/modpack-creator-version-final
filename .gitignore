@@ -11,3 +11,5 @@ coverage/
 .lighthouseci/
 playwright-report/
 test-results/
+# Local AI runtime state
+.atl/
