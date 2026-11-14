@@ -27,6 +27,7 @@ For the latest state and next action, use the [current handoff](../handoff.md).
 | [doc13: Voting obligations and lifecycle](doc13-voting-obligations.md) | 2026-11-13 | Decide that binding is an owner obligation that blocks nothing, discharge an already-satisfied approved addition without rewriting the draft, and pin the conflict, transfer and concurrency behaviour on the pgTAP, HTTP, signed-token PostgREST, race and hosted live surfaces. |
 | [doc14: Clerk middleware proxy loop](doc14-clerk-proxy-loop.md) | 2026-11-14 | Diagnose the same-URL rewrite that made every routed response answer 500 after the 30 s proxy timeout when the bind host and the request host differ, fix it in the proxy wrapper, and pin the header-preserving conversion. |
 | [doc15: Web tooling and sign-in screen](doc15-web-tooling-signin.md) | 2026-11-14 | Publish the frontend stack, the two-runner test harness, the approved palette and the dedicated sign-in screen as four independent slices, and record the CI and authenticated-journey gaps. |
+| [doc16: Mod browser screen](doc16-mod-browser.md) | 2026-11-14 | Implement the approved catalog-ledger direction as `/mods`: a proxied Modrinth search with facets, paging, selection, light and dark themes, verified against the frozen mockup, with pack wiring and publication still open. |
 
 ## Add the next record
 

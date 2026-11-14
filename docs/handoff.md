@@ -495,6 +495,33 @@ older `feat/frontend-tooling` branch duplicates work already on `main` and can b
 dropped. Next action: run the authenticated journeys once a session environment
 exists, and replace the bridge with the workflow step when a credential with the
 `workflow` scope is available.
+## Mod browser screen (feat/mod-browser)
+
+On 2026-11-14 the owner asked for the mod browser: three design directions in the
+Design Canvas, then implementation of the approved one with the corresponding
+verification. Round `v1` produced three directions; direction A, "Catalog ledger", was
+approved as `A1` after a dark theme was added to it, and the reference copy was frozen
+read-only before any application code was written.
+
+`/mods` now browses the merged catalog API with a text query, category, environment and
+author facets, five sort orders, 20 results per page with a total, row selection and the
+loading, empty, error-with-retry and end-of-results states. Light and dark render from
+one root scope. The browser reaches the API through a new `GET /api/mods` server route
+handler, because the API sends no CORS headers; the handler rejects unknown or invalid
+parameters locally with 400 and maps upstream failure to 502 or 504.
+
+Workflow gates `impl`, `qa` and `delivery` all passed at `192f36b`, and `close` recorded
+`delivered`: `bun run check` runs 173 Bun tests and 81 Vitest tests with both typechecks,
+and the Playwright suite runs 29 cases including three axe scans and six proxy-rejection
+checks. Independent verification returned PASS with no blocker after one correction
+round that fixed misleading error copy and a flaky axe assertion. Accepted differences,
+open decisions and unproven areas are recorded in
+[doc16](delivery/doc16-mod-browser.md).
+
+State: committed on `feat/mod-browser`, not pushed, no pull request. The branch is
+isolated on purpose. Next action: review the diff and decide publication; pack wiring,
+the settings source for Minecraft and loader, and the exact-version picker remain open.
+
 ## Resume
 
 1. Verify the branch, commit and local changes against this snapshot. Preserve
