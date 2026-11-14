@@ -25,6 +25,7 @@ For the latest state and next action, use the [current handoff](../handoff.md).
 | [doc11: Pack assembly and dependency approval](doc11-pack-assembly.md) | 2026-11-13 | Name every proposed mod and dependency in pack resolution, and pin the approve, cancel, removal, settings-change and atomic-rejection journey without adding an endpoint or a migration. |
 | [doc12: Published versions and sharing](doc12-published-sharing.md) | 2026-11-13 | Pin the member-only read and export contract, the unavailable-upstream export mapping and the immutability of frozen selections across draft edits, on the HTTP, pgTAP and signed-token PostgREST surfaces, and add the hosted live check that awaits authorization. |
 | [doc13: Voting obligations and lifecycle](doc13-voting-obligations.md) | 2026-11-13 | Decide that binding is an owner obligation that blocks nothing, discharge an already-satisfied approved addition without rewriting the draft, and pin the conflict, transfer and concurrency behaviour on the pgTAP, HTTP, signed-token PostgREST, race and hosted live surfaces. |
+| [doc14: Clerk middleware proxy loop](doc14-clerk-proxy-loop.md) | 2026-11-14 | Diagnose the same-URL rewrite that made every routed response answer 500 after the 30 s proxy timeout when the bind host and the request host differ, fix it in the proxy wrapper, and pin the header-preserving conversion. |
 
 ## Add the next record
 

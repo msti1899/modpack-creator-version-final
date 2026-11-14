@@ -426,6 +426,36 @@ with the Backend checks passing on the branch head and on the merge commit. Next
 re-run the live check after any change to the vote routes, the incorporation function or
 the token template, and treat the recorded review advisories as later work.
 
+## Clerk middleware proxy loop (issue #70)
+
+On 2026-11-14 the loop that answered `500` after 30 seconds on every routed request with
+Clerk configured was diagnosed and fixed on `fix/clerk-proxy-loop`, cut from `main` at
+`0751622`. The 30-second boundary is Next 16's internal `proxyTimeout`. Two conditions
+combine: `@clerk/nextjs` 7.9.24 converts its pass-through into an explicit rewrite of the
+same URL, and Next 16 builds `initUrl` from the server's bind hostname while Clerk builds
+the rewrite from the request `Host` header. With `127.0.0.1` and `localhost` the origins
+differ, so the router forwards the request to itself; one request produced 299
+`clerkMiddleware` executions before the socket closed. The original middleware bound to
+`localhost` answers in 0.12 s, which isolates the mismatch as the trigger.
+
+`apps/web/src/lib/middleware-response.ts` turns a same-URL rewrite back into a
+pass-through while keeping the `x-clerk-*` request headers that `auth()` reads at the
+origin. A rewrite to another path or host is left untouched. The same code path exists
+in `@clerk/nextjs` 7.10.0, so the workaround stays until the packages resolve the
+interaction; binding the server to the browser host repairs only the local case, while a
+deployment behind a public hostname keeps the mismatch.
+
+Observed on 2026-11-14 with `next start` on port 3101 and the configured development
+keys: before the fix `/` answered `500` in 30.07 s; after it, `/` answers `200` in 0.10 s
+and `/api/me` answers `401` in 0.02 s with no proxy error logged. `bun run check` passes
+170 tests, five of them new. A real signed-in session against this build is still
+unverified. Evidence is in [doc14](delivery/doc14-clerk-proxy-loop.md).
+
+The unpublished `feat/frontend-tooling` branch also carries this proxy change. Publishing
+it needs a credential with the `workflow` scope because it edits
+`.github/workflows/backend-ci.yml`, which the current token lacks; until then its
+frontend tooling and sign-in slices stay off `main`. No deployment is recorded.
+
 ## Resume
 
 1. Verify the branch, commit and local changes against this snapshot. Preserve
