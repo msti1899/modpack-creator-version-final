@@ -27,11 +27,40 @@ bun run dev
 - API health check: http://localhost:3001/health
 
 Run either application independently with `bun run dev:web` or `bun run dev:api`.
+For one command that also brings the optional local database up first, run
+`bash scripts/dev.sh` (see [one-command startup](#one-command-local-startup)).
 For Clerk configuration, use the [local identity guide](docs/guides/local-identity.md).
 The [historical startup report](docs/handoff-history-2026-11-12.md#local-startup-correction-and-api-configuration)
 records the previously verified localhost-binding workaround.
 The API defaults to port 3001; optionally copy `apps/api/.env.example` to
 `apps/api/.env` to configure `PORT`. Never commit real environment files.
+
+### One-command local startup
+
+`scripts/dev.sh` starts the optional local database before the two development
+servers, so one command brings the whole stack up:
+
+```bash
+bash scripts/dev.sh          # database, then web and api
+bash scripts/dev.sh status   # local database status
+bash scripts/dev.sh stop     # stop the local database
+```
+
+It installs workspace dependencies when `node_modules` is missing and refuses
+extra or unsupported arguments. When Docker is not reachable it prints a warning
+and starts the web and api servers without the database, because the existing
+endpoints do not require one. Stopping the script leaves the database containers
+running; use `bash scripts/dev.sh stop` for that.
+
+A shell alias for convenience belongs to your machine, not this repository. Add
+one to the shell profile you actually use, for example in
+`~/.config/fish/config.fish`:
+
+```fish
+alias mpc='bash /path/to/modpack-creator-version-final/scripts/dev.sh'
+alias mpc-stop='bash /path/to/modpack-creator-version-final/scripts/dev.sh stop'
+alias mpc-status='bash /path/to/modpack-creator-version-final/scripts/dev.sh status'
+```
 
 ## Check locally
 
