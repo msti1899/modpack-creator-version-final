@@ -8,3 +8,6 @@ coverage/
 .env.*
 !.env.example
 !.env.*.example
+.lighthouseci/
+playwright-report/
+test-results/
