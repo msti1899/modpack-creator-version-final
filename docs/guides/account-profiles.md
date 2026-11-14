@@ -46,6 +46,50 @@ Group creation and joining require a profile: `POST /groups` without one returns
 not a transient failure. `GET /me` stays identity-only, so clients must call
 `GET /profile` to detect a missing profile.
 
+## Delete the account
+
+`DELETE /profile` deletes the caller's application account data:
+
+- `200 { "account": { "deleted": true, "group": null } }` for an account without a
+  group. `group` is `{ "id", "deleted" }` when the caller belonged to one.
+- `409 {"error": "Transfers are required before leaving a group with other members."}`
+  when the caller owns a group that still has other members. Nothing changes; the
+  owner transfers ownership first, exactly as when leaving a group.
+- The last member's deletion removes the group, its draft, its published versions
+  and its votes. A member's deletion removes only the membership.
+- The profile row is deleted, so the username becomes available immediately.
+  Votes, frozen electorates, cast ballots, invitations and decided requests of a
+  surviving group are kept; the deleted account stays there as an opaque subject
+  with no username.
+- Repeating the call is safe: it returns `200` with `"deleted": false` because the
+  requested end state already holds. Send no body, or an empty JSON object; any
+  field returns `400`.
+
+Clerk keeps owning the sign-in account, so this route changes no credential and
+calls no provider. Deleting the account in Clerk instead, without calling this
+route, is reconciled by the provider webhook described below once that endpoint is
+registered.
+
+## Provider-side deletion
+
+`POST /webhooks/clerk` receives Clerk identity events. It reacts only to
+`user.deleted`; every other event type is acknowledged and ignored. The request must
+carry a signature that verifies against `CLERK_WEBHOOK_SIGNING_SECRET`, and the write
+uses `SUPABASE_SECRET_KEY`. Without both values the route answers `503` and changes
+nothing, so an unconfigured deployment never applies a half-configured deletion.
+
+The same retention rules apply, with one difference: an owner who can no longer sign
+in cannot transfer first. Ownership therefore passes immediately to the remaining
+member who has been in the group longest, ordered by join time and then by subject.
+The successor needs no acceptance step, and the group, its draft, its publications
+and its votes are untouched. A member loses only the membership, the last member
+deletes the group, and a repeated event writes nothing. The session route above keeps
+its `409` refusal, because a holder who can still sign in keeps the choice.
+
+Registering the endpoint and its signing secret in Clerk needs a public URL, which is
+a deployment step. Until that exists, a Clerk-only deletion in a live environment is
+not reconciled. See [ADR0005](../decisions/0005-provider-account-reconciliation.md).
+
 ## Database contract
 
 `public.profiles` contains `user_id`, `username`, and nullable
@@ -63,10 +107,17 @@ RLS compares it to `auth.jwt()->>'sub'`, not UUID-only `auth.uid()`. A user with
 
 Authenticated users may select their own row, insert only their own `user_id`
 and `username`, and update only `username`. RLS isolates accounts. Anonymous
-access, deletion, ownership changes, and client timestamp writes are not granted.
-The invoker trigger sets the rename timestamp in the database; it is not an
-executable client RPC. PostgreSQL row locks and the unique index arbitrate races,
-not a separate username-availability lookup.
+access, direct table deletion, ownership changes, and client timestamp writes are
+not granted. Deletion is available only through the `delete_my_account` RPC, which
+resolves the caller from the signed subject. The invoker trigger sets the rename
+timestamp in the database; it is not an executable client RPC. PostgreSQL row
+locks and the unique index arbitrate races, not a separate username-availability
+lookup.
+
+A deleted account leaves no profile row, so a surviving group's historical rows
+keep only the Clerk subject. The four foreign keys that previously made that
+impossible are gone; `groups.owner_id` and `group_members.user_id` still guard
+ownership and membership, and the departure step removes those rows first.
 
 ## Verify locally
 

@@ -495,6 +495,71 @@ older `feat/frontend-tooling` branch duplicates work already on `main` and can b
 dropped. Next action: run the authenticated journeys once a session environment
 exists, and replace the bridge with the workflow step when a credential with the
 `workflow` scope is available.
+## Backend completion M8: account deletion and reconciliation (feat/account-deletion)
+
+The eighth milestone of the [completion plan](plans/backend-completion.md) is implemented
+on `feat/account-deletion`, cut from `origin/main` at `afea8bf` in its own worktree. It is
+not published, not merged, has no pull request and no native review, and touches no hosted
+project or provider setting.
+
+[ADR0004](decisions/0004-account-deletion.md) records the first decision: deletion is in
+scope as the authenticated holder deleting their own application data through
+`DELETE /profile`, Clerk keeps owning the identity, and that path uses no webhook and no
+service-role credential. Ownership and membership reuse D5, so an owner with other
+members is refused with the existing transfer message and nothing changes, while the last
+member's deletion removes the group, its draft, its publications and its votes. The profile
+row and its username are deleted and the name is immediately reusable. A surviving group
+keeps its votes, frozen electorates, cast ballots, invitation creators and request deciders
+with the Clerk subject as an opaque tombstone; the four foreign keys that made a deleted
+profile impossible are dropped, and `groups.owner_id` plus `group_members.user_id` remain.
+The call is idempotent and answers `200 { account: { deleted, group } }`.
+
+[ADR0005](decisions/0005-provider-account-reconciliation.md) then decided and completed the
+provider half on 2026-11-14: a verified Clerk `user.deleted` is authoritative and is
+reconciled by `POST /webhooks/clerk`. A group whose owner can no longer sign in passes
+immediately to its longest-standing remaining member, ordered by join time and then by
+subject, with no acceptance step; every other case reuses ADR0004. The route fails closed
+without `CLERK_WEBHOOK_SIGNING_SECRET` or `SUPABASE_SECRET_KEY`, ignores every other event
+type, and writes through a `service_role`-only routine that no client role can reach.
+
+Observed on 2026-11-14 with the local disposable stack: `bun run check` passes both
+typechecks with 192 tests and 3196 assertions plus the web suite, `bun run db:test` is PASS
+with nine files and 250 tests, and `bun run db:test:postgrest` passes 136 of 136 checks, up
+from 97 before the milestone. RED was observed before the implementation by hiding each
+route and by local database mutations that each made the new assertions fail; all were
+reverted with `bun run db:reset`. The only changed pre-existing expectation is the line in
+`apps/api/tests/profiles.test.ts` that asserted `DELETE /profile` was absent. See
+[doc16](delivery/doc16-account-deletion.md), [doc17](delivery/doc17-account-reconciliation.md)
+and the [feature log](../odd/tasks/completion-m8-account-deletion.md).
+
+Independent read-only verification ran twice in fresh contexts. The first pass found one
+blocker the session slice caused: the ballot page required a 3–20 character username while
+the database returns `username: null` for a retained tombstone, so a surviving group's
+ballot page answered `502` after a member deleted their account. That combination was
+unreachable before deletion existed. It is fixed in `449c8aa`, with the verifier's probe
+committed as `apps/api/tests/vote-tombstones.test.ts`; a recheck confirmed it closed. The
+provider pass found no blocker and two advisories, both fixed: impossible payloads that
+claimed a succession without a surviving group were acknowledged, and the body bound trusted
+a declared length so a streamed oversized body was buffered in full. Its probes are
+committed and the pgTAP suite gained the non-insertion-order succession case.
+
+The local environment is configured as of 2026-11-14: `apps/api/.env` (ignored) holds the
+local stack's publishable and secret keys plus the signing secret of one development webhook
+endpoint registered against the Clerk CLI relay. The running API answers 401 to an unsigned
+or forged delivery and 200 to a correctly signed one, and the same route deleted a real probe
+profile through the real PostgREST surface. A genuine delivery was then exercised on the same
+date: a disposable Clerk user with a local profile was deleted through the Backend API, the
+registered endpoint delivered `user.deleted` through the relay, and the profile disappeared
+within two seconds. The disposable user and its row were removed; the instance holds only the
+accounts that predate the check. Clerk's Backend API exposes only the Svix app and its
+dashboard link, so the endpoint secret comes from the Dashboard, and the local endpoint still
+points at the relay rather than a deployment. The authored diff exceeds the 400-line planning heuristic, so publishing this
+slice needs a delivery-chain decision when publication is authorized; the commits already
+separate decisions, database, HTTP surfaces, verification fix and evidence.
+
+Next action: decide whether to publish and merge this branch, and register the webhook when
+a public URL exists.
+
 ## Mod browser screen (feat/mod-browser)
 
 On 2026-11-14 the owner asked for the mod browser: three design directions in the
@@ -516,7 +581,7 @@ and the Playwright suite runs 29 cases including three axe scans and six proxy-r
 checks. Independent verification returned PASS with no blocker after one correction
 round that fixed misleading error copy and a flaky axe assertion. Accepted differences,
 open decisions and unproven areas are recorded in
-[doc16](delivery/doc16-mod-browser.md).
+[doc18](delivery/doc18-mod-browser.md).
 
 State: committed on `feat/mod-browser`, not pushed, no pull request. The branch is
 isolated on purpose. Next action: review the diff and decide publication; pack wiring,
