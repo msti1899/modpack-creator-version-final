@@ -134,8 +134,10 @@ one authorized hosted run on 2026-11-13.
 ## Delivery state
 
 Implementation and evidence on `feat/voting-obligations`, cut from `origin/main` at
-`ddd1b8f` in an isolated worktree, published as work-unit commits on the feature
-branch. No deployment is recorded. The feature log is
+`ddd1b8f` in an isolated worktree, published as
+[PR #66](https://github.com/msti1899/modpack-creator-version-final/pull/66) with the
+Backend checks passing in 44 seconds on the branch head. It is not merged and no
+deployment is recorded. The feature log is
 [completion-m7-voting-obligations](../../odd/tasks/completion-m7-voting-obligations.md).
 
 ## Remaining work

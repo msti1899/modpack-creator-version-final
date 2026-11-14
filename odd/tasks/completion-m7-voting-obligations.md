@@ -129,7 +129,10 @@ separate authorization.
   rows were removed before the passing run. The passing run on 2026-11-13 recorded 41
   checks, and readback afterwards shows zero rows in every fixture table except the
   pre-existing `m4proof13` profile.
-- L10: Recorded limits: the live check depends on the public catalog for its candidates,
+- L10: Published as [PR #66](https://github.com/msti1899/modpack-creator-version-final/pull/66)
+  on 2026-11-13 with the Backend checks passing in 44 seconds on the branch head. Merge is a
+  separate decision and no deployment is recorded.
+- L11: Recorded limits: the live check depends on the public catalog for its candidates,
   the satisfaction branch is not proven for every possible pin shape, and deadline expiry
   stays a read-time derivation proven in pgTAP only. No deployment, publication or merge is
   recorded by this document.
