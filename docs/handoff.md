@@ -583,9 +583,13 @@ round that fixed misleading error copy and a flaky axe assertion. Accepted diffe
 open decisions and unproven areas are recorded in
 [doc18](delivery/doc18-mod-browser.md).
 
-State: committed on `feat/mod-browser`, not pushed, no pull request. The branch is
-isolated on purpose. Next action: review the diff and decide publication; pack wiring,
-the settings source for Minecraft and loader, and the exact-version picker remain open.
+State: merged to `main` through [PR #82](https://github.com/msti1899/modpack-creator-version-final/pull/82)
+as `c99a98d`, with the Backend checks passing in 58 seconds on the branch head. Before the
+merge the branch integrated `main` at `c8bcaa4` (account deletion), which renumbered this
+record from doc16 to doc18; the merged tree runs 192 Bun tests and 81 Vitest tests with both
+typechecks. The branch is merged and can be dropped. Next action: wire the pack so a selected
+mod reaches a draft, decide where the Minecraft and loader settings come from, and decide the
+exact-version picker; publication of a hosted journey is still unproven.
 
 ## Resume
 
