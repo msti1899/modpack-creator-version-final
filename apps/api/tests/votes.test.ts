@@ -225,7 +225,7 @@ test("a pending obligation and a discharged one are distinguishable in the vote 
   expect(calls).toEqual([{ name: "my_group_votes", args: { p_cursor: null, p_limit: null } }]);
 });
 
-test("a satisfied incorporation discharges the vote without rewriting the draft", async () => {
+test("the satisfied incorporation response carries the discharge and the unchanged draft", async () => {
   const unchanged = { gameVersion: "1.21.1", loader: "fabric", versionIds: ["main-v", "dep-v", "add-v"],
     revision: 3, updatedAt: "2026-11-12T00:00:00Z" };
   const { request, calls } = setup({ results: { incorporate_group_vote: {
@@ -239,7 +239,7 @@ test("a satisfied incorporation discharges the vote without rewriting the draft"
   expect(calls).toEqual([{ name: "incorporate_group_vote", args: { p_vote_id: voteId, p_expected_draft_revision: 3 } }]);
 });
 
-test("every incorporation refusal keeps its documented status and writes nothing", async () => {
+test("every incorporation refusal keeps its documented status", async () => {
   const cases = [
     ["Draft revision conflict.", 409], ["Vote does not match the draft settings.", 409],
     ["A proposed version is already in the draft.", 409], ["Vote is not approved.", 409],

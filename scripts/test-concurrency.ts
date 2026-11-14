@@ -116,7 +116,8 @@ insert into public.group_votes (group_id, created_by, game_version, loader, addi
     (array['race_version_c']::text[], 'approved', now()),
     (array['race_version_d']::text[], 'approved', now()),
     (array['race_version_e']::text[], 'approved', now()),
-    (array['race_version_e']::text[], 'approved', now())
+    (array['race_version_e']::text[], 'approved', now()),
+    (array['race_version_f']::text[], 'approved', now())
   ) as v(addition, status, resolved)
   where g.owner_id = '${voteOwner}';
 insert into public.group_vote_electorate (vote_id, user_id)
@@ -139,7 +140,9 @@ select json_build_object(
   'voteC', (select id from public.group_votes where addition = array['race_version_c']),
   'voteD', (select id from public.group_votes where addition = array['race_version_d']),
   'voteE1', (select id from public.group_votes where addition = array['race_version_e'] order by id limit 1),
-  'voteE2', (select id from public.group_votes where addition = array['race_version_e'] order by id offset 1 limit 1)
+  'voteE2', (select id from public.group_votes where addition = array['race_version_e'] order by id offset 1 limit 1),
+  'voteF', (select id from public.group_votes where addition = array['race_version_f']),
+  'voteGroup', (select id from public.groups where owner_id = '${voteOwner}')
 )::text;
 `;
 
@@ -160,7 +163,9 @@ select json_build_object(
     where g.owner_id = '${voteOwner}'),
   'draftVersions', (select to_json(version_ids) from public.pack_drafts d join public.groups g on g.id = d.group_id
     where g.owner_id = '${voteOwner}'),
-  'incorporatedVotes', (select count(*) from public.group_votes where incorporated_at is not null)
+  'incorporatedVotes', (select count(*) from public.group_votes v
+    join public.groups g on g.id = v.group_id
+    where g.owner_id = '${voteOwner}' and v.incorporated_at is not null)
 )::text;
 `;
 
@@ -178,7 +183,7 @@ try {
   if (resolved.code !== 0) throw new Error(`Identifier lookup failed: ${resolved.err}`);
   const ids = JSON.parse(resolved.out) as {
     admissionOne: string; admissionTwo: string; ballotVote: string;
-    voteC: string; voteD: string; voteE1: string; voteE2: string;
+    voteC: string; voteD: string; voteE1: string; voteE2: string; voteF: string; voteGroup: string;
   };
 
   const [admissionHolder, admissionContender] = await race(
@@ -214,16 +219,42 @@ try {
     `first=${firstBallot.code} second=${secondBallot.code} ${firstBallot.err} ${secondBallot.err}`,
   );
 
-  // Two independent approved votes incorporated at once: the group lock serializes
-  // them, so exactly one writes and the other is refused for the moved revision.
-  const incorporate = (id: string, revision: number) =>
-    `select public.incorporate_group_vote('${id}'::uuid, ${revision})`;
-  const run = async (subject: string, statement: string) =>
-    psql(session(subject, statement, 0));
+  // A draft save and an incorporation both compare-and-swap the same revision under the
+  // group lock, so exactly one wins and the loser changes nothing.
+  const incorporation = (id: string, expected: number) =>
+    `select public.incorporate_group_vote('${id}'::uuid, ${expected})`;
+  const draftSave = (expected: number) => `select public.save_pack_draft(
+    '${ids.voteGroup}'::uuid, '1.21.1', 'fabric', array['race_version_a'], ${expected})`;
+  const run = async (subject: string, statement: string) => psql(session(subject, statement, 0));
 
+  // The draft revision advances by exactly one per successful writer, so every expected
+  // value below is derived instead of hardcoded.
+  let revision = 1;
+  const [saveHolder, saveContender] = await race(
+    { subject: voteOwner, statement: draftSave(revision) },
+    { subject: voteOwner, statement: incorporation(ids.voteC, revision) },
+  );
+  const saveWon = saveHolder.code === 0;
+  expect(
+    saveWon !== (saveContender.code === 0) &&
+      (saveWon ? saveContender.err.includes("Draft revision conflict.") : saveHolder.err.includes("Draft revision conflict.")),
+    "a draft save and an incorporation cannot both write one revision",
+    `save=${saveHolder.code} incorporate=${saveContender.code} ${saveHolder.err} ${saveContender.err}`,
+  );
+  revision += 1;
+  if (saveWon) {
+    const retriedSave = await run(voteOwner, incorporation(ids.voteC, revision));
+    expect(retriedSave.code === 0,
+      "the refused incorporation succeeds against the saved revision",
+      `code=${retriedSave.code} ${retriedSave.err}`);
+    revision += 1;
+  }
+
+  // Two independent approved votes incorporated at once: exactly one writes and the
+  // other is refused for the moved revision, then succeeds against it.
   const [firstIndependent, secondIndependent] = await race(
-    { subject: voteOwner, statement: incorporate(ids.voteC, 1) },
-    { subject: voteOwner, statement: incorporate(ids.voteD, 1) },
+    { subject: voteOwner, statement: incorporation(ids.voteD, revision) },
+    { subject: voteOwner, statement: incorporation(ids.voteF, revision) },
   );
   expect(
     (firstIndependent.code === 0) !== (secondIndependent.code === 0) &&
@@ -232,19 +263,19 @@ try {
     "concurrent independent incorporations keep exactly one draft write",
     `first=${firstIndependent.code} second=${secondIndependent.code} ${firstIndependent.err} ${secondIndependent.err}`,
   );
-
-  const independentWinner = firstIndependent.code === 0 ? ids.voteC : ids.voteD;
-  const independentLoser = firstIndependent.code === 0 ? ids.voteD : ids.voteC;
-  const retried = await run(voteOwner, incorporate(independentLoser, 2));
-  expect(retried.code === 0,
+  revision += 1;
+  const independentLoser = firstIndependent.code === 0 ? ids.voteF : ids.voteD;
+  const retriedIndependent = await run(voteOwner, incorporation(independentLoser, revision));
+  expect(retriedIndependent.code === 0,
     "the refused independent incorporation succeeds against the new revision",
-    `code=${retried.code} ${retried.err}`);
+    `code=${retriedIndependent.code} ${retriedIndependent.err}`);
+  revision += 1;
 
   // Two approved votes for one addition, incorporated at once, then the refused one
   // incorporated twice: one discharge, one already-incorporated refusal, one copy.
   const [firstDuplicate, secondDuplicate] = await race(
-    { subject: voteOwner, statement: incorporate(ids.voteE1, 3) },
-    { subject: voteOwner, statement: incorporate(ids.voteE2, 3) },
+    { subject: voteOwner, statement: incorporation(ids.voteE1, revision) },
+    { subject: voteOwner, statement: incorporation(ids.voteE2, revision) },
   );
   expect(
     (firstDuplicate.code === 0) !== (secondDuplicate.code === 0) &&
@@ -253,11 +284,11 @@ try {
     "concurrent duplicate approvals keep exactly one draft write",
     `first=${firstDuplicate.code} second=${secondDuplicate.code} ${firstDuplicate.err} ${secondDuplicate.err}`,
   );
-
+  revision += 1;
   const duplicateLoser = firstDuplicate.code === 0 ? ids.voteE2 : ids.voteE1;
   const [firstRetry, secondRetry] = await race(
-    { subject: voteOwner, statement: incorporate(duplicateLoser, 4) },
-    { subject: voteOwner, statement: incorporate(duplicateLoser, 4) },
+    { subject: voteOwner, statement: incorporation(duplicateLoser, revision) },
+    { subject: voteOwner, statement: incorporation(duplicateLoser, revision) },
   );
   expect(
     firstRetry.code === 0 && secondRetry.code !== 0 &&
@@ -265,6 +296,8 @@ try {
     "one vote incorporated twice is discharged once",
     `first=${firstRetry.code} second=${secondRetry.code} ${secondRetry.err}`,
   );
+  // A satisfied discharge records the obligation without bumping the revision.
+  const expectedRevision = revision;
 
   const snapshot = await psql(observation);
   if (snapshot.code !== 0) throw new Error(`Observation failed: ${snapshot.err}`);
@@ -289,13 +322,12 @@ try {
     `status=${String(observed.voteStatus)} resolvedAtSet=${String(observed.resolvedAtSet)}`);
 
   const storedVersions = observed.draftVersions as string[];
-  expect(observed.draftRevision === 4 &&
-    storedVersions.filter((id) => id === "race_version_c").length === 1 &&
-    storedVersions.filter((id) => id === "race_version_d").length === 1 &&
-    storedVersions.filter((id) => id === "race_version_e").length === 1,
+  expect(observed.draftRevision === expectedRevision &&
+    ["race_version_c", "race_version_d", "race_version_e", "race_version_f"]
+      .every((id) => storedVersions.filter((stored) => stored === id).length === 1),
   "the incorporation races store every addition exactly once",
-  `revision=${String(observed.draftRevision)} versions=${JSON.stringify(storedVersions)}`);
-  expect(observed.incorporatedVotes === 4,
+  `revision=${String(observed.draftRevision)} expected=${expectedRevision} versions=${JSON.stringify(storedVersions)}`);
+  expect(observed.incorporatedVotes === 5,
     "every approved vote is discharged exactly once",
     `incorporatedVotes=${String(observed.incorporatedVotes)}`);
 } finally {

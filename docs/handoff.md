@@ -403,19 +403,20 @@ that branch and was applied to the selected test project as the only pending mig
 
 Proof on this branch: `bun run check` passes both typechecks with 165 tests and 2962
 assertions, up from 161 and 2880. The pgTAP vote suite gained 26 assertions, the independent verifier's probes became
-a seventh suite, and `bun run db:test` PASS with seven files and 218 tests. The signed-token PostgREST suite grew
-from 73 to 97 checks, and the real multi-session race suite from eight to fourteen,
-including two independent incorporations, a duplicate approved addition and one vote
-incorporated twice. Two mutations, one in the new SQL branch and one in the HTTP error
-map, made the new assertions fail and were reverted. The hosted live check passed 41
-checks with three real Clerk sessions and a live Modrinth proposal, and hosted readback
-after cleanup shows zero rows in every fixture table except the pre-existing
-`m4proof13` profile. See [doc13](delivery/doc13-voting-obligations.md) and the
+a seventh suite, and `bun run db:test` PASS with seven files and 228 tests. The
+signed-token PostgREST suite grew from 73 to 97 checks, and the real multi-session race
+suite from eight to sixteen, including a save against an incorporation, two independent
+incorporations, a duplicate approved addition and one vote incorporated twice. Two mutations, one in the new SQL branch and one in the HTTP error
+map, made the new assertions fail and were reverted. The hosted live check passed 42
+checks with three real Clerk sessions and a live Modrinth proposal after the review fixes,
+and hosted readback after cleanup shows zero rows in every fixture table except the
+pre-existing `m4proof13` profile. See [doc13](delivery/doc13-voting-obligations.md) and the
 [feature log](../odd/tasks/completion-m7-voting-obligations.md).
 
 Native review ran the full four-lens pass at the owner's request and approved the
-candidate, burning its acknowledgement with no correction round; sixteen informational
-advisories are recorded in [doc13](delivery/doc13-voting-obligations.md) as later work.
+candidate, burning its acknowledgement with no correction round. Fifteen of its sixteen
+informational advisories were fixed in a follow-up slice and the sixteenth is a
+pre-existing contract; [doc13](delivery/doc13-voting-obligations.md) records both.
 
 State: merged to `main` through
 [PR #66](https://github.com/msti1899/modpack-creator-version-final/pull/66) as `e5246e0`,

@@ -95,12 +95,15 @@ function cookieOf(response: Response) {
 
 // Development instances gate client requests behind a short-lived browser token, and one
 // token does not serve a second sign-in flow, so each account obtains its own.
+const CLERK_JS_VERSION = "6.43.0";
+
 async function browserQuery(): Promise<string> {
-  const response = await fetch(`${fapi}/v1/dev_browser?_clerk_js_version=6.43.0`, { method: "POST", headers: { Origin: origin } });
+  const response = await fetch(`${fapi}/v1/dev_browser?_clerk_js_version=${CLERK_JS_VERSION}`,
+    { method: "POST", headers: { Origin: origin } });
   if (!response.ok) throw new Error(`the development instance did not issue a browser token (${response.status})`);
   const token = ((await response.json()) as { token?: string }).token;
   if (!token) throw new Error("the development instance returned no browser token");
-  return `_clerk_js_version=6.43.0&__clerk_db_jwt=${encodeURIComponent(token)}`;
+  return `_clerk_js_version=${CLERK_JS_VERSION}&__clerk_db_jwt=${encodeURIComponent(token)}`;
 }
 
 async function form(path: string, body?: Record<string, string>, cookie?: string) {
@@ -131,6 +134,7 @@ async function createAccount(label: string): Promise<Account> {
     { strategy: "password", password }, created.cookie);
   const trustPrepared = await form(`/v1/client/sign_ins/${created.payload?.response?.id}/prepare_second_factor?${query}`,
     { strategy: "email_code" }, factor.cookie);
+  // A Clerk test address (`+clerk_test`) accepts this fixed code instead of a mailed one.
   const trusted = await form(`/v1/client/sign_ins/${created.payload?.response?.id}/attempt_second_factor?${query}`,
     { strategy: "email_code", code: "424242" }, trustPrepared.cookie);
   const sessionId: string | undefined = trusted.payload?.response?.created_session_id;
@@ -145,8 +149,10 @@ type Reply = { status: number; body: any };
 
 /**
  * A cold hosted PostgREST round trip can exceed the 5-second route timeout, which the
- * API reports as 504. One retry distinguishes that from a real failure, as recorded in
- * doc11; the retry is only used for requests that have no additional side effect.
+ * API reports as 504. Reads are retried once, as recorded in doc11. A write is never
+ * retried: the server may have committed before timing out, so a retry could duplicate a
+ * vote or a group. A 504 on a write fails its check and the cleanup statement removes
+ * whatever the committed attempt created.
  */
 async function call(method: string, path: string, token: string, body?: unknown, retries = 0): Promise<Reply> {
   const response = await fetch(`${apiUrl}${path}`, {
@@ -158,7 +164,10 @@ async function call(method: string, path: string, token: string, body?: unknown,
   let parsed: any = null;
   try { parsed = text ? JSON.parse(text) : null; } catch { parsed = text; }
   const reply = { status: response.status, body: parsed };
-  if (retries > 0 && reply.status === 504) return call(method, path, token, body, retries - 1);
+  // Only a read may retry: a committed write would be duplicated by a second attempt.
+  if (retries > 0 && method === "GET" && reply.status === 504) {
+    return call(method, path, token, body, retries - 1);
+  }
   return reply;
 }
 
@@ -186,7 +195,7 @@ async function nextAddition(token: string, current: string[], candidates: string
   for (const projectId of candidates) {
     if (used.has(projectId)) continue;
     const resolved = await call("POST", "/packs/resolve", token,
-      { projectId, gameVersion: "1.21.1", loader: "fabric", versionIds: current }, 1);
+      { projectId, gameVersion: "1.21.1", loader: "fabric", versionIds: current });
     if (resolved.status !== 200) continue;
     const versions = (resolved.body?.versions ?? []) as { id: string; projectTitle?: string }[];
     const addition = versions.filter((version) => !current.includes(version.id));
@@ -218,18 +227,24 @@ try {
       { username: usernames[account.label as keyof typeof usernames] });
     check(`${account.label} creates its profile`, created.status, 201);
   }
-  writeFileSync(cleanupPath,
-    `delete from public.profiles where user_id in (${accounts.map((a) => `'${a.id}'`).join(", ")});\n`);
+  // Written before any group exists: an aborted run still leaves a statement that removes
+  // every group this run could have created, its votes and its drafts, plus the profiles.
+  const cleanupSql = [
+    `delete from public.groups where owner_id in (${accounts.map((a) => `'${a.id}'`).join(", ")});`,
+    `delete from public.profiles where user_id in (${accounts.map((a) => `'${a.id}'`).join(", ")});`,
+    "",
+  ].join("\n");
+  writeFileSync(cleanupPath, cleanupSql);
 
-  const createdGroup = await call("POST", "/groups", owner.token, { name: `Live Votes ${suffix}`, visibility: "public" }, 1);
+  const createdGroup = await call("POST", "/groups", owner.token, { name: `Live Votes ${suffix}`, visibility: "public" });
   check("the owner creates the voting group with a real session",
     [createdGroup.status, createdGroup.body?.group?.role], [201, "owner"]);
   const groupId: string = createdGroup.body?.group?.id ?? "";
 
-  const joined = await call("POST", `/groups/${groupId}/join`, member.token, undefined, 1);
+  const joined = await call("POST", `/groups/${groupId}/join`, member.token, undefined);
   check("a second real session joins the group", [joined.status, joined.body?.group?.role], [200, "member"]);
 
-  const other = await call("POST", "/groups", outsider.token, { name: `Live Votes Other ${suffix}`, visibility: "public" }, 1);
+  const other = await call("POST", "/groups", outsider.token, { name: `Live Votes Other ${suffix}`, visibility: "public" });
   check("a third real session creates its own group", other.status, 201);
   const outsiderGroupId: string = other.body?.group?.id ?? "";
 
@@ -241,7 +256,7 @@ try {
   const used = new Set<string>();
   const seed = await nextAddition(owner.token, [], candidates, used);
   const seeded = await call("PUT", "/groups/me/pack", owner.token,
-    { gameVersion: "1.21.1", loader: "fabric", versionIds: seed.versionIds, expectedRevision: 0 }, 1);
+    { gameVersion: "1.21.1", loader: "fabric", versionIds: seed.versionIds, expectedRevision: 0 });
   check("the owner stores a live draft selection", [seeded.status, seeded.body?.draft?.revision], [200, 1]);
   let selection: string[] = seeded.body?.draft?.versionIds ?? [];
 
@@ -250,27 +265,29 @@ try {
   const opened = await call("POST", "/groups/me/votes", owner.token, {
     gameVersion: "1.21.1", loader: "fabric", addVersionIds: first.versionIds,
     durationHours: 24, expectedDraftRevision: 1,
-  }, 1);
+  });
   const voteId: string = opened.body?.id ?? "";
   check("the owner opens a vote for a live concrete addition",
     [opened.status, opened.body?.status, opened.body?.electorateSize], [200, "open", 2]);
-  check("the vote stores the proposal titles read from the catalog",
+  check("the vote stores the proposal version ids it was opened with",
     (opened.body?.proposal ?? []).map((item: any) => item.versionId), first.versionIds);
+  check("the vote stores the proposal titles read from the catalog",
+    (opened.body?.proposal ?? []).map((item: any) => item.projectTitle), first.titles);
 
-  const memberBallot = await call("POST", `/groups/me/votes/${voteId}/ballots`, member.token, { value: "approve" }, 1);
+  const memberBallot = await call("POST", `/groups/me/votes/${voteId}/ballots`, member.token, { value: "approve" });
   check("a member approves and the vote stays open",
     [memberBallot.status, memberBallot.body?.approveCount, memberBallot.body?.status], [200, 1, "open"]);
-  const changed = await call("POST", `/groups/me/votes/${voteId}/ballots`, member.token, { value: "reject" }, 1);
+  const changed = await call("POST", `/groups/me/votes/${voteId}/ballots`, member.token, { value: "reject" });
   check("the member replaces their own ballot",
     [changed.status, changed.body?.approveCount, changed.body?.rejectCount], [200, 0, 1]);
-  const restored = await call("POST", `/groups/me/votes/${voteId}/ballots`, member.token, { value: "approve" }, 1);
+  const restored = await call("POST", `/groups/me/votes/${voteId}/ballots`, member.token, { value: "approve" });
   check("the restored ballot counts once", [restored.body?.approveCount, restored.body?.rejectCount], [1, 0]);
 
-  const memberCancel = await call("POST", `/groups/me/votes/${voteId}/cancel`, member.token, undefined, 1);
+  const memberCancel = await call("POST", `/groups/me/votes/${voteId}/cancel`, member.token, undefined);
   check("a member cannot cancel an open vote",
     [memberCancel.status, memberCancel.body?.error], [403, "Only the group owner may cancel votes."]);
 
-  const approved = await call("POST", `/groups/me/votes/${voteId}/ballots`, owner.token, { value: "approve" }, 1);
+  const approved = await call("POST", `/groups/me/votes/${voteId}/ballots`, owner.token, { value: "approve" });
   check("the absolute majority approves the vote immediately",
     [approved.status, approved.body?.status, typeof approved.body?.resolvedAt], [200, "approved", "string"]);
   check("approval edits no draft", ((await call("GET", "/groups/me/pack", owner.token, undefined, 1)).body?.draft?.versionIds), selection);
@@ -281,17 +298,17 @@ try {
     [pendingList.status, pendingVote?.status, pendingVote?.incorporatedAt], [200, "approved", null]);
 
   const savedAgain = await call("PUT", "/groups/me/pack", owner.token,
-    { gameVersion: "1.21.1", loader: "fabric", versionIds: selection, expectedRevision: 1 }, 1);
+    { gameVersion: "1.21.1", loader: "fabric", versionIds: selection, expectedRevision: 1 });
   check("a draft save is accepted while the obligation is pending",
     [savedAgain.status, savedAgain.body?.draft?.revision], [200, 2]);
   const stillPending = await call("GET", "/groups/me/votes?limit=20", member.token, undefined, 1);
   const unchangedObligation = (stillPending.body?.votes ?? []).find((vote: any) => vote.id === voteId);
   check("the draft save does not discharge the obligation", unchangedObligation?.incorporatedAt, null);
 
-  const stale = await call("POST", `/groups/me/votes/${voteId}/incorporate`, owner.token, { expectedRevision: 1 }, 1);
+  const stale = await call("POST", `/groups/me/votes/${voteId}/incorporate`, owner.token, { expectedRevision: 1 });
   check("a stale revision is refused", [stale.status, stale.body?.error], [409, "Draft revision conflict."]);
 
-  const incorporated = await call("POST", `/groups/me/votes/${voteId}/incorporate`, owner.token, { expectedRevision: 2 }, 1);
+  const incorporated = await call("POST", `/groups/me/votes/${voteId}/incorporate`, owner.token, { expectedRevision: 2 });
   check("the current owner incorporates the approved addition",
     [incorporated.status, incorporated.body?.draft?.revision, incorporated.body?.vote?.incorporatedAt !== null], [200, 3, true]);
   const appended = incorporated.body?.draft?.versionIds as string[];
@@ -299,32 +316,32 @@ try {
     [appended.slice(0, selection.length), appended.slice(selection.length)], [selection, first.versionIds]);
   selection = appended;
 
-  const twice = await call("POST", `/groups/me/votes/${voteId}/incorporate`, owner.token, { expectedRevision: 3 }, 1);
+  const twice = await call("POST", `/groups/me/votes/${voteId}/incorporate`, owner.token, { expectedRevision: 3 });
   check("an incorporated vote cannot be incorporated twice",
     [twice.status, twice.body?.error], [409, "Vote is already incorporated."]);
 
   // Two approved votes for one addition: the first appends, the second is satisfied.
   const second = await nextAddition(owner.token, selection, candidates, used);
   const firstDuplicate = await call("POST", "/groups/me/votes", owner.token, {
-    gameVersion: "1.21.1", loader: "fabric", addVersionIds: second.versionIds, durationHours: 24, expectedDraftRevision: 3 }, 1);
+    gameVersion: "1.21.1", loader: "fabric", addVersionIds: second.versionIds, durationHours: 24, expectedDraftRevision: 3 });
   const secondDuplicate = await call("POST", "/groups/me/votes", owner.token, {
-    gameVersion: "1.21.1", loader: "fabric", addVersionIds: second.versionIds, durationHours: 24, expectedDraftRevision: 3 }, 1);
+    gameVersion: "1.21.1", loader: "fabric", addVersionIds: second.versionIds, durationHours: 24, expectedDraftRevision: 3 });
   check("two independent votes may propose one addition at once",
     [firstDuplicate.status, secondDuplicate.status, firstDuplicate.body?.id !== secondDuplicate.body?.id], [200, 200, true]);
   const duplicateIds = [firstDuplicate.body?.id as string, secondDuplicate.body?.id as string];
   for (const id of duplicateIds) {
-    await call("POST", `/groups/me/votes/${id}/ballots`, member.token, { value: "approve" }, 1);
-    await call("POST", `/groups/me/votes/${id}/ballots`, owner.token, { value: "approve" }, 1);
+    await call("POST", `/groups/me/votes/${id}/ballots`, member.token, { value: "approve" });
+    await call("POST", `/groups/me/votes/${id}/ballots`, owner.token, { value: "approve" });
   }
   const duplicateApproved = await call("GET", "/groups/me/votes?limit=20", owner.token, undefined, 1);
   check("both duplicate votes reach the majority",
     duplicateIds.map((id) => (duplicateApproved.body?.votes ?? []).find((vote: any) => vote.id === id)?.status),
     ["approved", "approved"]);
 
-  const firstDischarge = await call("POST", `/groups/me/votes/${duplicateIds[0]}/incorporate`, owner.token, { expectedRevision: 3 }, 1);
+  const firstDischarge = await call("POST", `/groups/me/votes/${duplicateIds[0]}/incorporate`, owner.token, { expectedRevision: 3 });
   check("the first approved duplicate appends the addition",
     [firstDischarge.status, firstDischarge.body?.draft?.revision], [200, 4]);
-  const satisfied = await call("POST", `/groups/me/votes/${duplicateIds[1]}/incorporate`, owner.token, { expectedRevision: 4 }, 1);
+  const satisfied = await call("POST", `/groups/me/votes/${duplicateIds[1]}/incorporate`, owner.token, { expectedRevision: 4 });
   check("the second approved duplicate is satisfied without rewriting the draft",
     [satisfied.status, satisfied.body?.draft?.revision, satisfied.body?.vote?.incorporatedAt !== null,
       satisfied.body?.draft?.versionIds?.includes(second.versionIds[0])], [200, 4, true, true]);
@@ -335,38 +352,38 @@ try {
   // Cancellation is terminal and adds nothing.
   const third = await nextAddition(owner.token, selection, candidates, used);
   const cancellable = await call("POST", "/groups/me/votes", owner.token, {
-    gameVersion: "1.21.1", loader: "fabric", addVersionIds: third.versionIds, durationHours: 24, expectedDraftRevision: 4 }, 1);
-  const cancelled = await call("POST", `/groups/me/votes/${cancellable.body?.id}/cancel`, owner.token, undefined, 1);
+    gameVersion: "1.21.1", loader: "fabric", addVersionIds: third.versionIds, durationHours: 24, expectedDraftRevision: 4 });
+  const cancelled = await call("POST", `/groups/me/votes/${cancellable.body?.id}/cancel`, owner.token, undefined);
   check("the owner cancels an open vote", [cancelled.status, cancelled.body?.status], [200, "cancelled"]);
-  const ballotAfterCancel = await call("POST", `/groups/me/votes/${cancellable.body?.id}/ballots`, member.token, { value: "approve" }, 1);
+  const ballotAfterCancel = await call("POST", `/groups/me/votes/${cancellable.body?.id}/ballots`, member.token, { value: "approve" });
   check("a cancelled vote accepts no ballot",
     [ballotAfterCancel.status, ballotAfterCancel.body?.error], [409, "This vote is already closed."]);
-  const incorporateCancelled = await call("POST", `/groups/me/votes/${cancellable.body?.id}/incorporate`, owner.token, { expectedRevision: 4 }, 1);
+  const incorporateCancelled = await call("POST", `/groups/me/votes/${cancellable.body?.id}/incorporate`, owner.token, { expectedRevision: 4 });
   check("a cancelled vote is never incorporated",
     [incorporateCancelled.status, incorporateCancelled.body?.error], [409, "Vote is not approved."]);
 
   // The obligation belongs to the group: the current owner discharges it.
   const fourth = await nextAddition(owner.token, selection, candidates, used);
   const transferable = await call("POST", "/groups/me/votes", owner.token, {
-    gameVersion: "1.21.1", loader: "fabric", addVersionIds: fourth.versionIds, durationHours: 24, expectedDraftRevision: 4 }, 1);
+    gameVersion: "1.21.1", loader: "fabric", addVersionIds: fourth.versionIds, durationHours: 24, expectedDraftRevision: 4 });
   const transferableId: string = transferable.body?.id ?? "";
-  await call("POST", `/groups/me/votes/${transferableId}/ballots`, member.token, { value: "approve" }, 1);
-  await call("POST", `/groups/me/votes/${transferableId}/ballots`, owner.token, { value: "approve" }, 1);
-  const handedOver = await call("POST", "/groups/me/ownership", owner.token, { userId: member.id }, 1);
+  await call("POST", `/groups/me/votes/${transferableId}/ballots`, member.token, { value: "approve" });
+  await call("POST", `/groups/me/votes/${transferableId}/ballots`, owner.token, { value: "approve" });
+  const handedOver = await call("POST", "/groups/me/ownership", owner.token, { userId: member.id });
   check("the owner transfers the group with a pending obligation",
     [handedOver.status, handedOver.body?.group?.role], [200, "member"]);
-  const previousOwner = await call("POST", `/groups/me/votes/${transferableId}/incorporate`, owner.token, { expectedRevision: 4 }, 1);
+  const previousOwner = await call("POST", `/groups/me/votes/${transferableId}/incorporate`, owner.token, { expectedRevision: 4 });
   check("the previous owner cannot discharge the obligation",
     [previousOwner.status, previousOwner.body?.error], [403, "Only the group owner may incorporate votes."]);
-  const transferred = await call("POST", `/groups/me/votes/${transferableId}/incorporate`, member.token, { expectedRevision: 4 }, 1);
+  const transferred = await call("POST", `/groups/me/votes/${transferableId}/incorporate`, member.token, { expectedRevision: 4 });
   check("the new owner discharges the transferred obligation",
     [transferred.status, transferred.body?.draft?.revision, transferred.body?.vote?.incorporatedAt !== null], [200, 5, true]);
   selection = transferred.body?.draft?.versionIds ?? selection;
-  const returned = await call("POST", "/groups/me/ownership", member.token, { userId: owner.id }, 1);
+  const returned = await call("POST", "/groups/me/ownership", member.token, { userId: owner.id });
   check("the group is transferred back to the original owner",
     [returned.status, returned.body?.group?.role], [200, "member"]);
 
-  const left = await call("DELETE", "/groups/me/membership", member.token, undefined, 1);
+  const left = await call("DELETE", "/groups/me/membership", member.token, undefined);
   check("the member leaves a group that survives", [left.status, left.body?.groupDeleted], [200, false]);
   const departedVotes = await call("GET", "/groups/me/votes", member.token, undefined, 1);
   check("a previous member cannot read the group votes",
@@ -377,10 +394,10 @@ try {
     [outsiderVotes.status, outsiderVotes.body?.votes?.length], [200, 0]);
 
   // Close both groups through the API so only profiles need SQL cleanup.
-  const deleted = await call("DELETE", "/groups/me/membership", owner.token, undefined, 1);
+  const deleted = await call("DELETE", "/groups/me/membership", owner.token, undefined);
   check("the sole owner leaving deletes the group and its votes",
     [deleted.status, deleted.body?.groupDeleted], [200, true]);
-  const outsiderDeleted = await call("DELETE", "/groups/me/membership", outsider.token, undefined, 1);
+  const outsiderDeleted = await call("DELETE", "/groups/me/membership", outsider.token, undefined);
   check("the other group is closed as well", [outsiderDeleted.status, outsiderDeleted.body?.groupDeleted], [200, true]);
 
   // The live catalog stays the only source of version IDs; record what was used.
@@ -392,6 +409,22 @@ try {
 } catch (error) {
   failures.push(`run aborted: ${error instanceof Error ? error.message : String(error)}`);
 } finally {
+  // A run that aborted before its final steps still closes its groups through the API,
+  // so the hosted rows do not depend on the operator running the printed statement.
+  for (const account of accounts) {
+    try {
+      const closed = await call("DELETE", "/groups/me/membership", account.token);
+      // 409 "Membership required." means the group is already gone. Any other refusal
+      // (an owner with other members, for example) is reported but not fatal: the
+      // printed statement removes those rows because the API cannot.
+      if (closed.status === 409 && closed.body?.error === "Membership required.") continue;
+      if (closed.status !== 200 && closed.status !== 404) {
+        console.log(`note cleanup left the group of ${account.label} to the SQL statement: status ${closed.status}`);
+      }
+    } catch (error) {
+      failures.push(`cleanup could not close the group of ${account.label}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
   for (const id of createdUserIds) {
     try { await clerkApi("DELETE", `/users/${id}`); }
     catch (error) { failures.push(`could not delete ${id}: ${error instanceof Error ? error.message : String(error)}`); }
@@ -401,5 +434,5 @@ try {
 console.log(failures.length
   ? `\n${failures.length} check(s) failed:\n${failures.join("\n")}`
   : "\nAll live voting checks passed.");
-console.log(`\nprofiles still exist for these accounts; run the cleanup before relying on an empty database:\n  ${cleanupPath}`);
+console.log(`\nif any row survived the run, this statement removes it before the database is reused:\n  ${cleanupPath}`);
 process.exit(failures.length ? 1 : 0);

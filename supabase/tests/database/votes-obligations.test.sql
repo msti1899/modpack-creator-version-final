@@ -8,7 +8,7 @@
 -- multi-element addition is satisfied in a different order, and the no-draft path is
 -- unchanged.
 begin;
-select plan(1);
+select plan(11);
 
 create function pg_temp.assert(p_ok boolean, p_msg text) returns void language plpgsql as $$
 begin if p_ok is distinct from true then raise exception 'PROBE FAIL: %', p_msg; end if; end $$;
@@ -121,6 +121,8 @@ select pg_temp.assert(pg_temp.fp_data() = current_setting('probe.fp_data_before'
 select pg_temp.assert(pg_temp.vote(current_setting('probe.vote1'))->>'incorporatedAt' is not null, 'CASE A vote list shows discharged');
 select pg_temp.assert(pg_temp.active_pub_count() = 1, 'CASE A one active publication');
 
+select pass('A: satisfied incorporation writes nothing');
+
 -- CASE B: partial overlap writes nothing, then the owner can discharge it.
 select set_config('probe.vote2', public.open_group_vote(current_setting('probe.group')::uuid,'1.21.1','fabric',
   array['partial-a','partial-b'], pg_temp.proposal(array['partial-a','partial-b']), 24, 2)->>'id', true);
@@ -140,6 +142,8 @@ insert into probe_result select 'partial_ok', public.incorporate_group_vote(curr
 select pg_temp.assert((select body->'draft'->'versionIds' from probe_result where label='partial_ok') =
   '["main-v","dep-v","add-v","partial-a","partial-b"]'::jsonb, 'CASE B owner discharges after removing the overlap');
 select pg_temp.assert(pg_temp.vote(current_setting('probe.vote2'))->>'incorporatedAt' is not null, 'CASE B vote discharged');
+
+select pass('B: partial overlap writes nothing and is later discharged');
 
 -- CASE C: stale revision and changed settings keep their exact messages and write nothing.
 select set_config('probe.vote3', public.open_group_vote(current_setting('probe.group')::uuid,'1.21.1','fabric',
@@ -162,6 +166,8 @@ select public.save_pack_draft(current_setting('probe.group')::uuid,'1.21.1','fab
 insert into probe_result select 'settings_ok', public.incorporate_group_vote(current_setting('probe.vote3')::uuid,7);
 select pg_temp.assert((select body->'draft'->>'revision' from probe_result where label='settings_ok') = '8', 'CASE C restored settings allow incorporation');
 
+select pass('C: stale revision and changed settings write nothing');
+
 -- CASE D: previous owner refused after transfer; new owner succeeds.
 select set_config('probe.vote4', public.open_group_vote(current_setting('probe.group')::uuid,'1.21.1','fabric',
   array['transfer-v'], pg_temp.proposal(array['transfer-v']), 24, 8)->>'id', true);
@@ -180,6 +186,8 @@ insert into probe_result select 'transfer_ok', public.incorporate_group_vote(cur
 select pg_temp.assert((select body->'draft'->>'revision' from probe_result where label='transfer_ok') = '9', 'CASE D new owner discharges and bumps revision');
 select pg_temp.assert((select body->'vote'->>'incorporatedAt' from probe_result where label='transfer_ok') is not null, 'CASE D transferred vote discharged');
 
+select pass('D: previous owner refused, new owner discharges');
+
 -- CASE E: an approved vote stays pending across an unrelated draft save.
 select set_config('probe.vote5', public.open_group_vote(current_setting('probe.group')::uuid,'1.21.1','fabric',
   array['unrelated-v'], pg_temp.proposal(array['unrelated-v']), 24, 9)->>'id', true);
@@ -196,6 +204,8 @@ select pg_temp.assert(pg_temp.vote(current_setting('probe.vote5'))->>'status' = 
 select set_config('request.jwt.claims', '{"sub":"user_verifym7a","role":"authenticated"}', true);
 insert into probe_result select 'unrelated_ok', public.incorporate_group_vote(current_setting('probe.vote5')::uuid,10);
 select pg_temp.assert((select body->'draft'->>'revision' from probe_result where label='unrelated_ok') = '11', 'CASE E unrelated vote incorporated');
+
+select pass('E: pending obligation survives an unrelated save');
 
 -- CASE F: exact refusal messages and no writes for every remaining rejection.
 select set_config('probe.vote6', public.open_group_vote(current_setting('probe.group')::uuid,'1.21.1','fabric',
@@ -217,6 +227,8 @@ select set_config('request.jwt.claims', '{"sub":"user_verifym7late","role":"auth
 select pg_temp.expect_error(format('select public.incorporate_group_vote(%L,11)', current_setting('probe.vote6')),
   'Only the group owner may incorporate votes.');
 select pg_temp.assert(pg_temp.fp_all() = current_setting('probe.fp_before'), 'CASE F non-owner and not-found wrote nothing');
+
+select pass('F: refusal map keeps its messages and writes nothing');
 
 -- CASE G: a pending obligation blocks no publication, activation, membership or transfer.
 select set_config('request.jwt.claims', '{"sub":"user_verifym7a","role":"authenticated"}', true);
@@ -248,6 +260,8 @@ select pg_temp.assert(pg_temp.active_pub_versions() = array['main-v','dep-v','ad
 select pg_temp.assert(pg_temp.pub_count() = 2, 'CASE G publication rows untouched by votes');
 select pg_temp.assert(pg_temp.fp_pubs() = current_setting('probe.fp_pubs_before'), 'CASE G incorporation wrote no publication row');
 
+select pass('G: pending obligation blocks no unrelated operation');
+
 -- CASE H: ordering across several approved votes is the owner's choice, no queue.
 select set_config('request.jwt.claims', '{"sub":"user_verifym7b","role":"authenticated"}', true);
 select set_config('probe.vote8', public.open_group_vote(current_setting('probe.group')::uuid,'1.21.1','fabric',
@@ -273,6 +287,8 @@ select pg_temp.assert((select body->'draft'->>'revision' from probe_result where
 select pg_temp.assert(pg_temp.vote(current_setting('probe.vote8'))->>'incorporatedAt' is not null
   and pg_temp.vote(current_setting('probe.vote9'))->>'incorporatedAt' is not null, 'CASE H both obligations discharged without a queue');
 
+select pass('H: ordering across approved votes is the owner choice');
+
 -- CASE I: a multi-element addition present in full, in a different order, is satisfied.
 select set_config('request.jwt.claims', '{"sub":"user_verifym7b","role":"authenticated"}', true);
 select set_config('probe.vote10', public.open_group_vote(current_setting('probe.group')::uuid,'1.21.1','fabric',
@@ -294,6 +310,8 @@ select pg_temp.assert((select body->'draft'->'versionIds' from probe_result wher
 select pg_temp.assert(pg_temp.fp_data() = current_setting('probe.fp_data_before'), 'CASE I multi-element satisfied wrote nothing');
 select pg_temp.assert(pg_temp.vote(current_setting('probe.vote10'))->>'incorporatedAt' is not null, 'CASE I multi-element vote discharged');
 
+select pass('I: multi-element addition satisfied in another order');
+
 -- CASE J: settings are checked before satisfaction, so a present addition with changed settings is refused.
 select set_config('probe.vote11', public.open_group_vote(current_setting('probe.group')::uuid,'1.21.1','fabric',
   array['y1'], pg_temp.proposal(array['y1']), 24, 16)->>'id', true);
@@ -311,6 +329,8 @@ select pg_temp.expect_error(format('select public.incorporate_group_vote(%L,17)'
   'Vote does not match the draft settings.');
 select pg_temp.assert(pg_temp.fp_all() = current_setting('probe.fp_before'), 'CASE J present addition with changed settings wrote nothing');
 select pg_temp.assert(pg_temp.vote(current_setting('probe.vote11'))->>'incorporatedAt' is null, 'CASE J present addition with changed settings stays pending');
+
+select pass('J: settings are checked before satisfaction');
 
 -- CASE K: the no-draft incorporation path is unchanged (creates the draft, revision 1).
 reset role;
@@ -334,6 +354,6 @@ select pg_temp.assert((select body->'draft'->>'revision' from probe_result where
 select pg_temp.assert((select body->'draft'->'versionIds' from probe_result where label='empty_draft') = '["first-v"]'::jsonb, 'CASE K no-draft incorporation stores the addition');
 select pg_temp.assert((select body->'vote'->>'incorporatedAt' from probe_result where label='empty_draft') is not null, 'CASE K no-draft incorporation discharges the vote');
 
-select pass('Voting obligation: satisfied, partial, stale, settings, transfer, pending-read and ordering contracts');
+select pass('K: no-draft incorporation creates revision one');
 select * from finish();
 rollback;
