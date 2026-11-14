@@ -105,7 +105,7 @@ runner exists. Existing behavior sharing changed code must remain pinned.
 | M5. Group lifecycle and access | Tests cover public direct admission, private invite/request/approval, revocation, pages, transfer and departure; the caller's role/access changes immediately as defined by D4-D5. | Existing endpoints are the starting point. Directory/discovery and expulsion are not silently added. Independent of advanced catalog filters. |
 | M6. Published versions and sharing | Publish/list/read/activate/export work with real signed sessions; a nonmember/previous member cannot read or export. Draft changes do not rewrite historical selections or activation. Unavailable upstream versions fail predictably. | Depends on M4/M5. Hosted schema application is recorded already; it is not a pending migration step. Stronger file-manifest persistence is a separate decision. |
 | M7. Voting obligations and lifecycle | Open/change/cancel/expire/approve/incorporate are exercised, including fixed electorate and concurrent independent proposals. An explicit decision explains what “binding” requires and how conflicting pending additions are handled. | Depends on M4/M5. Do not automatically edit/publish/activate or block unrelated operations without approval. Deadline read semantics and notification scheduling are different concerns. Done on 2026-11-13: D7 records the obligation and conflict rules, and the lifecycle is pinned in pgTAP, HTTP, signed-token PostgREST, real multi-session races and a hosted live check. See [doc13](../delivery/doc13-voting-obligations.md). |
-| M8. Account deletion and exceptional lifecycle | First decide whether deletion is in this scope and define ownership, membership, historical ballots and profile/username retention. If approved, rejected actions preserve data and provider events cannot strand inconsistent records. | Conditional product scope and destructive-data/security review. Not a request to delete current accounts or install a webhook. Depends on M1/M2/M5/M7 rules. Done on 2026-11-14: ADR0004 decides the application-owned surface and retention rules, and `DELETE /profile` deletes the caller's own account while a surviving group keeps its votes, ballots, electorates, invitations and decisions. Provider reconciliation stays an open decision. See [doc16](../delivery/doc16-account-deletion.md). |
+| M8. Account deletion and exceptional lifecycle | First decide whether deletion is in this scope and define ownership, membership, historical ballots and profile/username retention. If approved, rejected actions preserve data and provider events cannot strand inconsistent records. | Conditional product scope and destructive-data/security review. Not a request to delete current accounts or install a webhook. Depends on M1/M2/M5/M7 rules. Done on 2026-11-14: ADR0004 decides the application-owned surface and retention rules, `DELETE /profile` deletes the caller's own account while a surviving group keeps its votes, ballots, electorates, invitations and decisions, and ADR0005 adds the verified Clerk `user.deleted` reconciliation with ownership succession. Registering the provider endpoint needs a public URL. See [doc16](../delivery/doc16-account-deletion.md) and [doc17](../delivery/doc17-account-reconciliation.md). |
 | M9. Abuse limits and failure handling | Measure then bound catalog response bytes, expensive public work and request duration; exercise upstream 401/429, timeout and malformed responses. Errors distinguish the failing subsystem and never leak secrets. | Hardening proposal, not a reproduced exploit. Inventory existing per-route body limits before adding a shared limiter. Rate-limit identity/storage and HTTP status contracts require a design decision. |
 | M10. Trustworthy database/integration CI | CI executes relevant pgTAP, upgrade, real-session/concurrency and PostgREST checks against disposable isolated state. Races prove actual overlap, fail on an appropriate mutation and touch only unique fixtures. Cleanup failure makes a runner fail. | Current CI runs app checks/build and upgrade, but not all new database runners. Current race uses timed sleeps and broad cleanup prefixes; strengthen before CI reuse. Three SQL suites emit one TAP result despite many internal checks; improve diagnostics. |
 | M11. Operations for the selected Vercel architecture | Validate both independent projects, environment origins/token configuration, key rotation, readiness/logging without secrets, quotas and rollback. Record a smoke result and the environment actually tested. | D9 already selects Vercel; a Docker image, owned domain and platform-choice interview are not prerequisites. Do not infer deployed behavior from loopback-only `dev.ts`. Deployment/CD remains separately authorized. |
@@ -132,9 +132,11 @@ These are planning items, not a request to answer every question at once:
 - What precise enforcement makes a vote binding, and what happens when several approved
   additions conflict or ownership changes before incorporation?
 - Is account deletion in this phase? Decided on 2026-11-14 by
-  [ADR0004](../decisions/0004-account-deletion.md) for the caller's own application data.
-  Still open: confirmation/recovery UX and provider-side reconciliation, which needs a
-  webhook secret, a service-role credential and a rule for an owner who can no longer act.
+  [ADR0004](../decisions/0004-account-deletion.md) for the caller's own application data, and
+  the provider path by
+  [ADR0005](../decisions/0005-provider-account-reconciliation.md), including ownership
+  succession to the longest-standing member. Still open: confirmation/recovery UX and
+  registering the webhook endpoint, which needs a public URL.
 - Should public groups be discoverable in a directory? Current scope permits direct
   joining but explicitly does not implement a listing interface.
 - Web UI is not part of the backend-only roadmap. Track backend readiness and UI
@@ -144,15 +146,27 @@ These are planning items, not a request to answer every question at once:
 
 ## Next action
 
-M1-M8 have their evidence recorded. M8 decided the deletion scope and implemented the
-application-owned surface; its provider reconciliation is an open decision that needs a
-webhook secret, a service-role credential and a rule for an owner who can no longer act.
+M1-M8 have their evidence recorded. M8 decided both deletion surfaces: the session path and
+the verified provider path, including ownership succession when an owner can no longer act.
+Registering the Clerk endpoint needs a public URL, so it waits on a deployment decision.
 M9/M10 are hardening and CI work that support the implemented slices, and M11 needs
 deployment consent. Selector data and the exact-version picker still need a product
 decision. No implementation, provider configuration or publication is authorized by this
-plan alone.
+plan alone beyond what its records name.
 
 ## Change log
+
+- 2026-11-14: ADR0005 and its implementation complete M8's provider half on the same
+  `feat/account-deletion` branch. A verified Clerk `user.deleted` event now deletes the
+  application account through `POST /webhooks/clerk`; ownership of a group whose owner can
+  no longer act passes to the longest-standing remaining member, and every other case reuses
+  ADR0004. The shared routine is provider-neutral, `delete_account_for` is executable by
+  `service_role` only, and the route fails closed without its signing secret or secret key.
+  Local evidence: `bun run check` 190 tests and 3176 assertions, `bun run db:test` PASS with
+  nine files and 250 tests, and 136 signed-token PostgREST checks, up from 126. The endpoint
+  is not registered in Clerk because that needs a public URL; no hosted project or provider
+  setting was touched. See [doc17](../delivery/doc17-account-reconciliation.md). Not
+  published, not merged.
 
 - 2026-11-14: M8, account deletion and exceptional lifecycle, was implemented on
   `feat/account-deletion` from `origin/main` at `afea8bf`. ADR0004 decides that deletion is
