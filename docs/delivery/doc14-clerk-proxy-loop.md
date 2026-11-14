@@ -92,9 +92,10 @@ not a change to application behavior.
 
 ## Delivery state
 
-Implementation, tests and this record ship on `fix/clerk-proxy-loop` through the
-pull request that closes #70. The merge commit is recorded in the following
-checkpoint. No deployment is recorded.
+Implementation, tests and this record are merged to `main` through
+[PR #71](https://github.com/msti1899/modpack-creator-version-final/pull/71) as
+`5a49605`; the Backend checks passed in 46 seconds on the branch head. Issue #70
+closed on the merge. No deployment is recorded.
 
 ## Remaining work
 

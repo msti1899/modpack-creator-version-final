@@ -456,6 +456,12 @@ it needs a credential with the `workflow` scope because it edits
 `.github/workflows/backend-ci.yml`, which the current token lacks; until then its
 frontend tooling and sign-in slices stay off `main`. No deployment is recorded.
 
+State: merged to `main` through [PR #71](https://github.com/msti1899/modpack-creator-version-final/pull/71)
+as `5a49605`, with the Backend checks passing in 46 seconds on the branch head. Issue
+#70 closed on the merge. Next action: run the authenticated browser journeys with a real
+session, and publish or drop `feat/frontend-tooling` once a credential with the `workflow`
+scope is available.
+
 ## Resume
 
 1. Verify the branch, commit and local changes against this snapshot. Preserve
