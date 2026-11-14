@@ -16,9 +16,9 @@ merge `b9167c0`) the completion-plan M5 group lifecycle proof
 ([PR #62](https://github.com/msti1899/modpack-creator-version-final/pull/62), merge
 `d970c39`) and the completion-plan M6 publication proof
 ([PR #64](https://github.com/msti1899/modpack-creator-version-final/pull/64), merge
-`717da47`), plus the completion-plan M7 voting-obligation slice on
-`feat/voting-obligations`. Verify the branch and HEAD against this snapshot before
-resuming. This is a resume point, not a session history.
+`717da47`), plus the completion-plan M7 voting-obligation slice
+([PR #66](https://github.com/msti1899/modpack-creator-version-final/pull/66), merge
+`e5246e0`). Verify the branch and HEAD against this snapshot before resuming. This is a resume point, not a session history.
 
 ## Merged milestones
 
@@ -417,10 +417,11 @@ Native review ran the full four-lens pass at the owner's request and approved th
 candidate, burning its acknowledgement with no correction round; sixteen informational
 advisories are recorded in [doc13](delivery/doc13-voting-obligations.md) as later work.
 
-State: published as [PR #66](https://github.com/msti1899/modpack-creator-version-final/pull/66)
-on 2026-11-13, with the Backend checks passing in 44 seconds on the branch head; merge is a
-separate decision. Next action: re-run the live check after any change to the vote routes,
-the incorporation function or the token template, or merge the slice.
+State: merged to `main` through
+[PR #66](https://github.com/msti1899/modpack-creator-version-final/pull/66) as `e5246e0`,
+with the Backend checks passing on the branch head and on the merge commit. Next action:
+re-run the live check after any change to the vote routes, the incorporation function or
+the token template, and treat the recorded review advisories as later work.
 
 ## Resume
 
