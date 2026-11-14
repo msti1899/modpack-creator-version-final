@@ -104,7 +104,7 @@ runner exists. Existing behavior sharing changed code must remain pinned.
 | M4. Pack assembly and dependency approval | A client can propose a mod, inspect required dependencies, accept or cancel, remove a selection, change compatible settings and save. Rejection or stale revision cannot partially change stored selections. | Reuse resolver, explicit-selection validation and draft replacement. Depends on M2/M3 for the complete journey, not for existing API functionality. No silent upgrades. |
 | M5. Group lifecycle and access | Tests cover public direct admission, private invite/request/approval, revocation, pages, transfer and departure; the caller's role/access changes immediately as defined by D4-D5. | Existing endpoints are the starting point. Directory/discovery and expulsion are not silently added. Independent of advanced catalog filters. |
 | M6. Published versions and sharing | Publish/list/read/activate/export work with real signed sessions; a nonmember/previous member cannot read or export. Draft changes do not rewrite historical selections or activation. Unavailable upstream versions fail predictably. | Depends on M4/M5. Hosted schema application is recorded already; it is not a pending migration step. Stronger file-manifest persistence is a separate decision. |
-| M7. Voting obligations and lifecycle | Open/change/cancel/expire/approve/incorporate are exercised, including fixed electorate and concurrent independent proposals. An explicit decision explains what “binding” requires and how conflicting pending additions are handled. | Depends on M4/M5. Do not automatically edit/publish/activate or block unrelated operations without approval. Deadline read semantics and notification scheduling are different concerns. |
+| M7. Voting obligations and lifecycle | Open/change/cancel/expire/approve/incorporate are exercised, including fixed electorate and concurrent independent proposals. An explicit decision explains what “binding” requires and how conflicting pending additions are handled. | Depends on M4/M5. Do not automatically edit/publish/activate or block unrelated operations without approval. Deadline read semantics and notification scheduling are different concerns. Done on 2026-11-13: D7 records the obligation and conflict rules, and the lifecycle is pinned in pgTAP, HTTP, signed-token PostgREST, real multi-session races and a hosted live check. See [doc13](../delivery/doc13-voting-obligations.md). |
 | M8. Account deletion and exceptional lifecycle | First decide whether deletion is in this scope and define ownership, membership, historical ballots and profile/username retention. If approved, rejected actions preserve data and provider events cannot strand inconsistent records. | Conditional product scope and destructive-data/security review. Not a request to delete current accounts or install a webhook. Depends on M1/M2/M5/M7 rules. |
 | M9. Abuse limits and failure handling | Measure then bound catalog response bytes, expensive public work and request duration; exercise upstream 401/429, timeout and malformed responses. Errors distinguish the failing subsystem and never leak secrets. | Hardening proposal, not a reproduced exploit. Inventory existing per-route body limits before adding a shared limiter. Rate-limit identity/storage and HTTP status contracts require a design decision. |
 | M10. Trustworthy database/integration CI | CI executes relevant pgTAP, upgrade, real-session/concurrency and PostgREST checks against disposable isolated state. Races prove actual overlap, fail on an appropriate mutation and touch only unique fixtures. Cleanup failure makes a runner fail. | Current CI runs app checks/build and upgrade, but not all new database runners. Current race uses timed sleeps and broad cleanup prefixes; strengthen before CI reuse. Three SQL suites emit one TAP result despite many internal checks; improve diagnostics. |
@@ -141,13 +141,27 @@ These are planning items, not a request to answer every question at once:
 
 ## Next action
 
-Review this capability inventory with the owner, starting with session behavior and
-the required mod-search filters. Agree that first coherent slice before implementing.
-Do not start with reviews/deployment while the intended user-facing capabilities remain
-undefined. No source changes, commits, publishing or remote actions are authorized by
-the request to assess and plan.
+M1-M7 have their evidence recorded; the remaining work needs decisions rather than
+implemented interfaces. M8 (account deletion) needs the retention and ownership decision
+before any code, M9/M10 are hardening and CI work that support the implemented slices,
+and M11 needs deployment consent. Selector data and the exact-version picker still need a
+product decision. No implementation, provider configuration or publication is authorized
+by this plan alone.
 
 ## Change log
+
+- 2026-11-13: M7, voting obligations and lifecycle, was implemented on
+  `feat/voting-obligations` from `origin/main` at `ddd1b8f`. D7 now records what binding
+  requires, that a pending obligation blocks no unrelated operation, that the current
+  owner is the incorporator after a transfer, and how a conflicting pending addition is
+  resolved: a wholly present addition is satisfied without rewriting the draft, while a
+  partial overlap stays a 409 that writes nothing. The new migration
+  `20261113190000_vote_incorporation_satisfied.sql` carries that branch and was applied to
+  the selected hosted project. Evidence: pgTAP PASS with 217 tests, 97 signed-token
+  PostgREST checks, 14 real concurrency checks, 165 Bun tests and 2962 assertions, and a
+  41-check hosted live run with real Clerk sessions. See
+  [doc13](../delivery/doc13-voting-obligations.md). This slice adds one incorporation
+  branch and evidence; it changes no other route, message or status.
 
 - 2026-11-13: M5 merged to `main` through
   [PR #60](https://github.com/msti1899/modpack-creator-version-final/pull/60) as

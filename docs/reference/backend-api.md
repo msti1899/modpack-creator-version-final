@@ -269,8 +269,17 @@ current draft under the draft's `expectedRevision` compare-and-swap, appends wit
 reshaping the existing selection, bumps the draft revision and records
 `incorporatedAt`. It returns the updated draft and never publishes, activates or
 versions the pack. A stale revision, a changed Minecraft
-version or loader, or an addition already stored returns 409 with nothing written,
+version or loader, or a partially stored addition returns 409 with nothing written,
 leaving the vote approved and unincorporated.
+
+An addition already present in full with matching settings is satisfied instead of
+rejected: the call records `incorporatedAt` and returns the unchanged draft and its
+revision. That is how a second approved vote for the same concrete addition is
+discharged after the first one appended it. `GET /groups/me/votes` is the obligation
+read: `status: "approved"` with `incorporatedAt: null` is pending. A pending
+obligation blocks no draft save, publication, activation or ownership transfer, and
+the current owner is the only incorporator after a transfer; the previous owner
+receives 403.
 
 Page sizes default to 50 and are capped at 100. Vote cursors are
 `<microseconds>.<uuid>` and ballot cursors are a Clerk `user_...` subject; malformed

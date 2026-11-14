@@ -65,7 +65,10 @@ provider eligibility, budget, and delivery.
 Voting lifecycle rules were resolved on 2026-11-12 and are recorded in D7:
 ballot changes until the majority, owner cancellation while a vote is open, a frozen
 electorate unaffected by departures, independent concurrent votes, and rejection at
-the deadline. Expulsion does not exist in the current scope.
+the deadline. On 2026-11-13 D7 also recorded what a binding approval enforces: an
+obligation the current owner discharges, which blocks no unrelated operation, and
+which is satisfied without a draft rewrite when the exact addition is already present.
+Expulsion does not exist in the current scope.
 
 ## Maintenance
 
@@ -74,6 +77,15 @@ completed work. Record meaningful changes below and keep the
 [handoff](../handoff.md) synchronized after each delivery.
 
 ### Change log
+
+- 2026-11-13: The completion plan's M7 gained its decision and its evidence. D7 now
+  defines the binding obligation and the conflict rules, the incorporation function
+  discharges an already-satisfied addition without rewriting the draft, and the vote
+  lifecycle is pinned by pgTAP, HTTP, signed-token PostgREST and real concurrency checks
+  plus a hosted run with real Clerk sessions. The new migration
+  `20261113190000_vote_incorporation_satisfied.sql` was applied to the selected test
+  project as the only pending migration. See
+  [doc13](../delivery/doc13-voting-obligations.md).
 
 - 2026-11-13: Milestone 2 gained a recorded real-session result. A Clerk email/password sign-in completes against the configured development instance, the same session token reaches `/me` and `/profile` on the test project, and revoking the session stops new tokens. The app's own account controls also sign in and out in a real browser, with `/api/me` returning the subject and 401 after sign-out. An earlier defect report from that attempt was withdrawn: it came from opening the dev server at an origin Next 16 blocks, so the client never hydrated. The session token template omits the email claim, so `/me` returns null until the provider configuration changes. Immediate revocation of a copied token remains open. See [doc08](../delivery/doc08-account-session-proof.md).
 

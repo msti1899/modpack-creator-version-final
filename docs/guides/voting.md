@@ -101,6 +101,32 @@ matches the vote, the call returns 409 and changes nothing; the vote stays appro
 and unincorporated. Resolve the conflict deliberately, then incorporate against the
 revision you just read.
 
+## Pending obligations and conflicting additions
+
+An `approved` vote with `incorporatedAt: null` is a pending obligation. The vote list
+`GET /groups/me/votes` is the only place that reports it; there is no separate
+obligation endpoint. A pending obligation blocks nothing: the owner may save drafts,
+publish, activate and transfer ownership while it is open, and approving a second vote
+is never blocked by the first.
+
+Several approved votes may therefore ask for additions that overlap:
+
+- **The addition is absent from the draft.** The call appends it and bumps the
+  revision, as above.
+- **The whole addition is already present** with the same Minecraft version and
+  loader. The group's decision is already satisfied, so the call records
+  `incorporatedAt` and leaves the draft and its revision untouched. This happens when
+  another approved vote or a manual save put the same version in place first.
+- **Only part of the addition is present.** The call returns 409 `A proposed version
+  is already in the draft.` and writes nothing, because the API cannot tell which
+  part of the proposal is already in effect.
+
+The remedy stays in the owner's hands: incorporate in another order, or save a draft
+that removes the overlapping version and then incorporate again. Ordering across
+several approved votes is never automatic, and an approved vote is never merged into
+another or deleted. The obligation belongs to the group, so the current owner is the
+only one who can discharge it; a previous owner is refused after a transfer.
+
 ## Errors
 
 | Status | Meaning |
