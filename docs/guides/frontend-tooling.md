@@ -66,8 +66,10 @@ owns only `tests/ui/` and `tests/lib/`.
 including the web ones, without tripping over files that import another runner.
 
 `bun run check` runs both typechecks, every Bun suite and the Vitest suites. The CI
-job runs the Bun gate only; running `test:web` in CI needs a workflow change, which
-requires a credential with the `workflow` scope.
+job runs the Bun gate, and `tests/web-suites.test.ts` runs the same `test:web`
+command from inside that gate, so the component suites are covered in CI. A dedicated
+workflow step would need a credential with the `workflow` scope; remove the bridge
+when it lands, because running both executes Vitest twice.
 
 ## Playwright
 
