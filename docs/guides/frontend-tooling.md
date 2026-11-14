@@ -43,7 +43,7 @@ Two generated changes were reverted or corrected, and both are deliberate:
 
 `src/lib/utils.ts` and `src/components/ui/button.tsx` are the generated source files
 that shipped. The theme values were later replaced by the approved Copper Workshop
-palette; `apps/web/DESIGN.md` is the local design reference and is not tracked.
+palette, recorded in the tracked `apps/web/DESIGN.md`.
 
 ## Test runners
 
