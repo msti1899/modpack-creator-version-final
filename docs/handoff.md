@@ -462,6 +462,32 @@ as `5a49605`, with the Backend checks passing in 46 seconds on the branch head. 
 session, and publish or drop `feat/frontend-tooling` once a credential with the `workflow`
 scope is available.
 
+## Frontend tooling and sign-in screen (PRs #73-#76)
+
+The frontend work that had stayed unpublished was delivered on 2026-11-14 as four
+slices cut from the current `main`, so no slice carried the conflicts of the older
+`feat/frontend-tooling` branch. #73 adds shadcn/ui with Radix and Lucide,
+`react-hook-form` with `zod`, TanStack Query, the Tailwind base layer, the `cn` helper
+and a Button primitive. #74 adds Vitest with jsdom and React Testing Library,
+Playwright with axe-core and Lighthouse CI, and `bunfig.toml` excludes those
+directories from Bun's runner so the existing `bun test` gate stays green without a CI
+workflow change. #75 applies the approved Copper Workshop palette to the shell. #76
+adds `/sign-in` and `/sso-callback`, links the home account controls to the screen and
+keeps account creation on the existing modal.
+
+Merges: #73 as `d1eb096`, #74 as `d4c7ea4`, #75 as `8bb9606`, #76 as `6c7aa4a`; the
+Backend checks passed on every branch head. `bun run check` now runs 172 Bun tests and
+15 Vitest tests, and the Playwright suite runs 4 browser cases including an axe scan
+of `/sign-in`. The CI job still runs only the Bun gate: adding `test:web` to the
+workflow needs a credential with the `workflow` scope. Authenticated journeys remain
+unverified because they need a provider-reachable environment. See
+[doc15](delivery/doc15-web-tooling-signin.md) and the
+[frontend tooling guide](guides/frontend-tooling.md).
+
+State: merged. The older `feat/frontend-tooling` branch now duplicates work already on
+`main` and can be dropped. Next action: run the authenticated journeys once a session
+environment exists, and decide whether the web suites join CI.
+
 ## Resume
 
 1. Verify the branch, commit and local changes against this snapshot. Preserve
