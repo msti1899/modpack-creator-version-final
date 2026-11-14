@@ -88,6 +88,26 @@ names remain reserved, including legacy rows. No email-based account linking.
 
 See the [profile guide](../guides/account-profiles.md) for database guarantees.
 
+### POST /webhooks/clerk
+
+Receives Clerk identity events and needs no bearer token: the signature is the only
+authority. The request must carry the standard webhook headers signed with
+`CLERK_WEBHOOK_SIGNING_SECRET`; the handler fails closed with 503 when that secret or
+`SUPABASE_SECRET_KEY` is missing, and answers 401 for a missing, wrong or stale
+signature without touching the database. A declared body over 64 KiB is refused with
+413. Every event other than `user.deleted` is acknowledged with 200 `{ "ignored":
+true }`; a `user.deleted` event is answered with 200 `{ "received": true }` only after
+the database write succeeds. A payload without a Clerk `user_...` subject returns 400.
+The write is idempotent, so a retry or a repeat writes nothing. Database credential
+failures are 503, other database failures 502 and a timeout 504. The route changes no
+credentials and calls no provider; registering the endpoint in Clerk needs a public
+URL and is a deployment step.
+
+When the deleted account owns a group with other members, ownership passes to the
+member with the earliest join time, ties broken by subject. A member loses only the
+membership, the last member deletes the group, and the profile and username are
+released. See [ADR0005](../decisions/0005-provider-account-reconciliation.md).
+
 ### Groups
 
 All group operations require `/me`'s verified Clerk bearer and `/profile`'s exact

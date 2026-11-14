@@ -67,9 +67,28 @@ not a transient failure. `GET /me` stays identity-only, so clients must call
 
 Clerk keeps owning the sign-in account, so this route changes no credential and
 calls no provider. Deleting the account in Clerk instead, without calling this
-route, leaves an inaccessible profile whose username stays reserved; reconciling
-that is a separate, unauthorized decision recorded in
-[ADR0004](../decisions/0004-account-deletion.md).
+route, is reconciled by the provider webhook described below once that endpoint is
+registered.
+
+## Provider-side deletion
+
+`POST /webhooks/clerk` receives Clerk identity events. It reacts only to
+`user.deleted`; every other event type is acknowledged and ignored. The request must
+carry a signature that verifies against `CLERK_WEBHOOK_SIGNING_SECRET`, and the write
+uses `SUPABASE_SECRET_KEY`. Without both values the route answers `503` and changes
+nothing, so an unconfigured deployment never applies a half-configured deletion.
+
+The same retention rules apply, with one difference: an owner who can no longer sign
+in cannot transfer first. Ownership therefore passes immediately to the remaining
+member who has been in the group longest, ordered by join time and then by subject.
+The successor needs no acceptance step, and the group, its draft, its publications
+and its votes are untouched. A member loses only the membership, the last member
+deletes the group, and a repeated event writes nothing. The session route above keeps
+its `409` refusal, because a holder who can still sign in keeps the choice.
+
+Registering the endpoint and its signing secret in Clerk needs a public URL, which is
+a deployment step. Until that exists, a Clerk-only deletion in a live environment is
+not reconciled. See [ADR0005](../decisions/0005-provider-account-reconciliation.md).
 
 ## Database contract
 
