@@ -157,7 +157,7 @@ by this plan alone.
   resolved: a wholly present addition is satisfied without rewriting the draft, while a
   partial overlap stays a 409 that writes nothing. The new migration
   `20261113190000_vote_incorporation_satisfied.sql` carries that branch and was applied to
-  the selected hosted project. Evidence: pgTAP PASS with 217 tests, 97 signed-token
+  the selected hosted project. Evidence: pgTAP PASS with seven files and 218 tests, 97 signed-token
   PostgREST checks, 14 real concurrency checks, 165 Bun tests and 2962 assertions, and a
   41-check hosted live run with real Clerk sessions. See
   [doc13](../delivery/doc13-voting-obligations.md). This slice adds one incorporation

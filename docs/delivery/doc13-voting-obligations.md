@@ -39,13 +39,20 @@ contradicts the duty that approval creates.
   `incorporated_at` and returns the unchanged draft and revision; every other route,
   message and status is untouched. It was applied to the selected hosted project on
   2026-11-13 as the only pending migration.
-- [votes.test.sql](../../supabase/tests/database/votes.test.sql) gained 24 assertions:
+- [votes.test.sql](../../supabase/tests/database/votes.test.sql) gained 26 assertions:
   the obligation read after approval, a draft save that neither discharges it nor
   changes the electorate, two independent votes for one addition (append, stale
   revision, satisfied discharge, already-incorporated refusal), a partially present
   addition that writes nothing and is later discharged after the owner removes the
   overlap, and an ownership transfer where the previous owner is refused and the new
   owner discharges the obligation.
+- [votes-obligations.test.sql](../../supabase/tests/database/votes-obligations.test.sql) commits the
+  independent verifier's probes as a seventh database suite: a satisfied incorporation
+  writes no draft row and no publication row, a partial overlap writes nothing at all,
+  settings are checked before satisfaction, a pending obligation blocks no publication,
+  activation, membership or transfer, ordering across approved votes is the owner's
+  choice, a multi-element addition is satisfied in a different order, and the no-draft
+  path still creates revision 1.
 - [votes.test.ts](../../apps/api/tests/votes.test.ts) grew from 16 to 19 tests. The new
   cases pin the obligation read from the vote list, the satisfied success shape with an
   unchanged draft, and the whole incorporation refusal map, including the previous
@@ -76,8 +83,9 @@ one authorized hosted run on 2026-11-13.
 - Baseline before the change on this branch: `bun run db:test` PASS with six files and
   217 tests, `bun run db:test:postgrest` 73 checks, `bun run check` 161 tests and 2880
   assertions.
-- `bun run db:test`: PASS, six files and 217 tests, with the new assertions inside the
-  vote suite.
+- `bun run db:test`: PASS, six files and 217 tests with the new assertions inside the
+  vote suite, and seven files and 218 tests once the committed verification probes are
+  counted.
 - `bun run db:test:postgrest`: 97 of 97 checks passed.
 - `bun run db:test:concurrency`: 14 of 14 checks passed.
 - `bun run check`: both application typechecks exit 0, 165 Bun tests and 2962
@@ -116,6 +124,11 @@ one authorized hosted run on 2026-11-13.
 - Deadline expiry is still derived at read time and was proven in pgTAP only; a hosted
   expiry proof would need a one-hour wait or a database write. No notification
   scheduler exists and none was added.
+- The satisfaction is effect-idempotent, not call-idempotent: a second call for the
+  same vote returns 409 `Vote is already incorporated.` by design.
+- The hosted check writes `/tmp/opencode/m7-vote-session-fixtures.json` and its cleanup
+  statement instead of deleting profile rows, because no profile deletion endpoint exists;
+  a run therefore needs the printed cleanup before the database is empty.
 - No deployment, no publication and no merge are recorded by this document.
 
 ## Delivery state

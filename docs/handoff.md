@@ -402,8 +402,8 @@ untouched. The new migration `20261113190000_vote_incorporation_satisfied.sql` c
 that branch and was applied to the selected test project as the only pending migration.
 
 Proof on this branch: `bun run check` passes both typechecks with 165 tests and 2962
-assertions, up from 161 and 2880. The pgTAP vote suite gained 24 assertions and
-`bun run db:test` PASS with six files and 217 tests. The signed-token PostgREST suite grew
+assertions, up from 161 and 2880. The pgTAP vote suite gained 26 assertions, the independent verifier's probes became
+a seventh suite, and `bun run db:test` PASS with seven files and 218 tests. The signed-token PostgREST suite grew
 from 73 to 97 checks, and the real multi-session race suite from eight to fourteen,
 including two independent incorporations, a duplicate approved addition and one vote
 incorporated twice. Two mutations, one in the new SQL branch and one in the HTTP error

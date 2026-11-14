@@ -56,7 +56,7 @@ separate authorization.
 - T2 [S5] Make incorporation idempotent for an addition already present in full and pin
   the conflict matrix in pgTAP, including ownership transfer and an obligation that
   survives a draft save. Route: inline. Status: complete: new migration
-  `20261113190000_vote_incorporation_satisfied.sql`, 24 new pgTAP assertions,
+  `20261113190000_vote_incorporation_satisfied.sql`, 26 new pgTAP assertions,
   `bun run db:test` PASS with six files and 217 tests. RED shown by mutation: forcing
   the containment branch to false failed the satisfied-incorporation assertion, and
   `bun run db:reset` restored the schema. Risk: items 1, 2, 3 and 6.
@@ -81,7 +81,11 @@ separate authorization.
   Status: complete. Risk: none.
 - T8 [S1-S7] Independent read-only verification of the named high-risk items after the
   slice's own checks, then native assessment and review under its own consent.
-  Route: delegated verification. Status: pending. Risk: item 3.
+  Route: delegated verification (the installed `gentle-ai-verify` subagent).
+  Status: complete on `ffc9dd8`: no blocker, S1-S5 and S7 met, S6 verified locally with
+  the hosted leg recorded but not re-run, three advisories. Its probes were committed as
+  `supabase/tests/database/votes-obligations.test.sql`, taking `bun run db:test` to seven
+  files and 218 tests, and the assertion count was corrected to 26. Risk: item 3.
 
 ## Log
 

@@ -116,7 +116,9 @@ Several approved votes may therefore ask for additions that overlap:
 - **The whole addition is already present** with the same Minecraft version and
   loader. The group's decision is already satisfied, so the call records
   `incorporatedAt` and leaves the draft and its revision untouched. This happens when
-  another approved vote or a manual save put the same version in place first.
+  another approved vote or a manual save put the same version in place first. The
+  discharge is effect-idempotent, not call-idempotent: calling again for the same vote
+  returns 409 `Vote is already incorporated.`
 - **Only part of the addition is present.** The call returns 409 `A proposed version
   is already in the draft.` and writes nothing, because the API cannot tell which
   part of the proposal is already in effect.
