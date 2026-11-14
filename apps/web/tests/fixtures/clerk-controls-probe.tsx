@@ -7,9 +7,7 @@ let signedIn = false;
 mock.module("@clerk/nextjs", () => ({
   Show: ({ when, children }: { when: string; children: ReactNode }) =>
     (when === "signed-in") === signedIn ? children : null,
-  SignInButton: ({ children, mode }: { children: ReactNode; mode: string }) => {
-    assert.equal(mode, "modal"); return children;
-  },
+  // The home page links to the dedicated screen; it no longer opens a modal.
   SignUpButton: ({ children, mode }: { children: ReactNode; mode: string }) => {
     assert.equal(mode, "modal"); return children;
   },
@@ -28,7 +26,8 @@ process.env.CLERK_SECRET_KEY = "server-secret-sentinel";
 for (signedIn of [false, true]) {
   const html = renderToStaticMarkup(<Layout><Home /></Layout>);
   assert.ok(html.includes('data-testid="provider"'));
-  assert.equal(html.includes(">Sign in</button>"), !signedIn);
+  assert.equal(html.includes('href="/sign-in"'), !signedIn);
+  assert.equal(html.includes(">Sign in</a>"), !signedIn);
   assert.equal(html.includes(">Create account</button>"), !signedIn);
   assert.equal(html.includes('aria-label="Account settings"'), signedIn);
   assert.equal(html.includes('href="/api/me"'), signedIn);
