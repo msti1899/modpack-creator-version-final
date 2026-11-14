@@ -38,8 +38,10 @@ for (const line of status.stdout.toString().split("\n")) {
 const restUrl = settings.get("REST_URL");
 const apiKey = settings.get("PUBLISHABLE_KEY") ?? settings.get("ANON_KEY");
 const jwtSecret = settings.get("JWT_SECRET");
-if (!restUrl || !apiKey || !jwtSecret) {
-  console.error("The local stack did not report REST_URL, a publishable key and JWT_SECRET.");
+// The local stack's own service key, used only by the provider-reconciliation checks.
+const serviceKey = settings.get("SERVICE_ROLE_KEY");
+if (!restUrl || !apiKey || !jwtSecret || !serviceKey) {
+  console.error("The local stack did not report REST_URL, a publishable key, JWT_SECRET and SERVICE_ROLE_KEY.");
   process.exit(1);
 }
 
@@ -64,6 +66,9 @@ const subjects = {
   delVoter: "user_lcdelvoter",
   delSolo: "user_lcdelsolo",
   delReuse: "user_lcdelreuse",
+  recOwner: "user_lcrecowner",
+  recHeirA: "user_lcrecheira",
+  recHeirB: "user_lcrecheirb",
 } as const;
 const usernames: Record<string, string> = {
   [subjects.owner]: "LcOwner",
@@ -78,6 +83,9 @@ const usernames: Record<string, string> = {
   [subjects.delMember]: "LcDelMember",
   [subjects.delVoter]: "LcDelVoter",
   [subjects.delSolo]: "LcDelSolo",
+  [subjects.recOwner]: "LcRecOwner",
+  [subjects.recHeirA]: "LcRecHeirA",
+  [subjects.recHeirB]: "LcRecHeirB",
 };
 const subjectList = Object.values(subjects).map((value) => `'${value}'`).join(", ");
 
@@ -727,6 +735,44 @@ try {
     "The deleted solo group row is gone", "the group survived");
   expect(await psqlCount(`select count(*) from public.pack_drafts where group_id = '${soloGroupId}';`) === 0,
     "The solo draft is gone with the group", "the draft survived");
+
+  // Provider reconciliation on the real signed surface. The stack's own service key is a
+  // local disposable credential; it never leaves this machine and is not a hosted secret.
+  const recGroup = expectOverview(await rpc("create_group", tokens.recOwner,
+    { p_name: "Postgrest Reconcile", p_visibility: "public" }),
+  "A prospective provider-deleted owner creates a public group");
+  const recGroupId = recGroup?.id as string;
+  expectOverview(await rpc("join_public_group", tokens.recHeirA, { p_group_id: recGroupId }),
+    "The longest-standing heir joins first");
+  expectOverview(await rpc("join_public_group", tokens.recHeirB, { p_group_id: recGroupId }),
+    "A second heir joins later");
+  const refusedProviderCall = await rpc("delete_account_for", tokens.recHeirA,
+    { p_sub: subjects.recOwner });
+  expect([401, 403].includes(refusedProviderCall.status),
+    "An authenticated session cannot reconcile a provider deletion",
+    `status=${refusedProviderCall.status} body=${refusedProviderCall.body.slice(0, 160)}`);
+  const providerDeletion = await post("/rpc/delete_account_for", serviceKey,
+    { p_sub: subjects.recOwner });
+  const providerBody = readJson(providerDeletion);
+  expect(providerDeletion.status === 200 && providerBody?.deleted === true &&
+    providerBody?.groupDeleted === false && providerBody?.transferredTo === subjects.recHeirA,
+  "The service role reconciles the deletion and transfers to the longest-standing heir",
+  `status=${providerDeletion.status} body=${providerDeletion.body.slice(0, 240)}`);
+  expect(await psqlCount(`select count(*) from public.profiles where user_id = '${subjects.recOwner}';`) === 0,
+    "The provider-deleted profile is gone", "the profile survived");
+  expect(await psqlCount(`select count(*) from public.groups
+    where id = '${recGroupId}' and owner_id = '${subjects.recHeirA}';`) === 1,
+  "The surviving group belongs to the successor", "the stored owner did not change");
+  const heirView = expectOverview(await rpc("my_group", tokens.recHeirA),
+    "The successor reads the group back");
+  expect(heirView?.role === "owner" && heirView?.ownerId === subjects.recHeirA,
+    "The successor reads the owner role immediately",
+    `body=${JSON.stringify(heirView)?.slice(0, 200)}`);
+  const repeatedProvider = await post("/rpc/delete_account_for", serviceKey,
+    { p_sub: subjects.recOwner });
+  expect(repeatedProvider.status === 200 && readJson(repeatedProvider)?.deleted === false,
+    "A repeated provider event is idempotent",
+    `status=${repeatedProvider.status} body=${repeatedProvider.body.slice(0, 200)}`);
 } finally {
   const cleanup = await psql(`
     delete from public.groups where owner_id in (${subjectList});
