@@ -143,7 +143,14 @@ separate authorization.
 - L12: Merged to `main` through [PR #66](https://github.com/msti1899/modpack-creator-version-final/pull/66)
   as `e5246e0` on 2026-11-13 (UTC 2026-11-14), with the Backend checks passing on the
   branch head and on the merge commit. No deployment is recorded.
-- L13: Recorded limits: the live check depends on the public catalog for its candidates,
+- L13: The review advisories were then fixed instead of deferred: reads-only retries and an
+  abort-safe cleanup in the live check, the fixture-scoped discharge count, derived
+  revision expectations, a save-versus-incorporate race, per-case TAP results, honest test
+  names, a named Clerk JS version and the explained test code. `bun run db:test:concurrency`
+  is 16/16, `bun run db:test` is seven files and 228 tests, `bun run db:test:postgrest` is
+  97/97, `bun run check` is 165 tests and 2962 assertions, and the hosted check passed 42
+  checks twice. Only the pre-existing vote-existence oracle is left as recorded.
+- L14: Recorded limits: the live check depends on the public catalog for its candidates,
   the satisfaction branch is not proven for every possible pin shape, and deadline expiry
   stays a read-time derivation proven in pgTAP only. No deployment, publication or merge is
   recorded by this document.

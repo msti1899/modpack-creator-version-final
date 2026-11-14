@@ -83,11 +83,13 @@ one authorized hosted run on 2026-11-13.
 - Baseline before the change on this branch: `bun run db:test` PASS with six files and
   217 tests, `bun run db:test:postgrest` 73 checks, `bun run check` 161 tests and 2880
   assertions.
-- `bun run db:test`: PASS, six files and 217 tests with the new assertions inside the
-  vote suite, and seven files and 218 tests once the committed verification probes are
-  counted.
+- `bun run db:test`: PASS with seven files and 228 tests once the committed verification
+  probes are counted; that suite now plans one TAP result per case block instead of one
+  for all sixty probes.
 - `bun run db:test:postgrest`: 97 of 97 checks passed.
-- `bun run db:test:concurrency`: 14 of 14 checks passed.
+- `bun run db:test:concurrency`: 16 of 16 checks passed after the review fixes, up from
+  fourteen; the new race pits a draft save against an incorporation and every expected
+  revision is derived from a counter.
 - `bun run check`: both application typechecks exit 0, 165 Bun tests and 2962
   assertions pass.
 - `bun test apps/api/tests/votes.test.ts`: 19 tests and 257 assertions.
@@ -100,7 +102,12 @@ one authorized hosted run on 2026-11-13.
   `--live`, a live secret, a live publishable key and a local database URL are all
   rejected with exit 2.
 - Hosted live run: `bun scripts/test-vote-session.ts --live` passed 41 checks with three
-  real Clerk sessions through a locally running API against the selected test project.
+  real Clerk sessions through a locally running API against the selected test project. The
+  fixed script was then run twice more and passed 42 checks each time, adding the proposal
+  title assertion. The first post-review run failed one check and printed three cleanup
+  notes, exposing two defects in the script itself: the bulk retry edit had dropped an
+  expected value, and closing an already-closed group was counted as a failure. Both were
+  fixed and the run repeated.
   It covered a live catalog draft, a live concrete addition, ballot replacement, early
   approval, the pending obligation, a draft save that did not discharge it, a stale
   revision refusal, the incorporation, a second incorporation refusal, two approved
@@ -126,9 +133,10 @@ one authorized hosted run on 2026-11-13.
   scheduler exists and none was added.
 - The satisfaction is effect-idempotent, not call-idempotent: a second call for the
   same vote returns 409 `Vote is already incorporated.` by design.
-- The hosted check writes `/tmp/opencode/m7-vote-session-fixtures.json` and its cleanup
-  statement instead of deleting profile rows, because no profile deletion endpoint exists;
-  a run therefore needs the printed cleanup before the database is empty.
+- The hosted check retries only reads, closes its groups through the API in a cleanup
+  block that also runs after an abort, and prints a statement that removes groups by owner
+  id before profiles. It cannot delete profile rows because no deletion endpoint exists,
+  so the printed statement is still needed before the database is empty.
 - No deployment, no publication and no merge are recorded by this document.
 
 ## Native review
@@ -142,25 +150,31 @@ relaunch was admitted. The review approved the candidate and its acknowledgement
 the authority (`gentle-ai.review-acknowledged/v1`, action `acknowledged`). No correction
 round opened.
 
-Sixteen informational advisories are recorded as later work, never as a reason to
-re-review these bytes:
+Sixteen informational advisories were recorded. All but one were then fixed in a
+follow-up slice rather than left as debt:
 
-- Test determinism and scope: the concurrency observation counts every incorporated vote
-  in the database instead of the fixture's group, the independence race binds an unused
-  winner, the revision literals are unnamed, and no race pits a draft save against an
-  incorporation.
-- Live-check robustness: the 504 retry is passed to mutating calls, and a run that aborts
-  before its final steps leaves group, draft and vote rows that the printed cleanup does
-  not remove.
-- Test honesty: three case names claim coverage they do not pin (an HTTP "writes
-  nothing" case, a proposal-title case that compares version IDs, and a retry comment
-  that contradicts its callers).
-- Diagnostics and readability: the seventh SQL suite still plans one TAP result for
-  roughly sixty probes, the Clerk JS version is duplicated as a literal, the fixed test
-  OTP is unexplained, and the integer-maximum revision sentinel carries no reason.
-- Pre-existing and out of scope: the owner refusal map lets an authenticated caller
-  distinguish an absent vote from another group's vote, which is the documented contract
-  and predates this slice.
+- Test determinism and scope: the concurrency observation now counts only the fixture
+  group, the unused race winner is gone, every expected revision is derived from a
+  counter instead of a literal, and a new race pits a draft save against an
+  incorporation, which is the path the satisfaction branch depends on.
+- Live-check robustness: reads keep the single 504 retry while writes never retry, since
+  the server may have committed before timing out; a run that aborts now closes its
+  groups through the API in its cleanup block, and the cleanup statement it prints
+  removes groups by owner id before profiles, so it is not limited to a happy-path exit.
+- Test honesty: the HTTP cases are named for what they pin, the live check asserts the
+  proposal titles it claims to assert, and the retry comment matches its callers.
+- Diagnostics and readability: the seventh suite now plans one TAP result per case block
+  instead of one for sixty probes, the Clerk JS version is a named constant, and the
+  fixed test-address code is explained.
+- The only advisory kept is pre-existing and out of scope: the owner refusal map lets an
+  authenticated caller distinguish an absent vote from another group's vote, which is the
+  documented contract and predates this slice.
+
+Two implementation details the review asked to have written down: the revision guard
+rejects the integer maximum because an increment would overflow, and any future change to
+`incorporate_group_vote` must ship as a new migration instead of editing this one, because
+the hosted project already records this version as applied. Detect drift with
+`bunx supabase migration list --remote` plus a readback of the stored function body.
 
 ## Delivery state
 
