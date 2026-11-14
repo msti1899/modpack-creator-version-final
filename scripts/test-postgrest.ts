@@ -454,6 +454,128 @@ try {
     "A later draft edit rewrites neither the frozen selection nor the active version",
     `status=${edited.status} before=${beforeEdit.slice(0, 200)} after=${afterEdit.body.slice(0, 200)}`);
 
+  // Voting obligations on the same signed surface.
+  const proposal = (ids: string[]) => ids.map((id) => ({ versionId: id, projectId: `p-${id}`,
+    projectTitle: `Mod ${id}`, versionNumber: "1.0" }));
+  const openVote = (addition: string[], revision: number) => rpc("open_group_vote", tokens.owner2, {
+    p_group_id: privateGroup?.id, p_game_version: "1.21.1", p_loader: "fabric",
+    p_addition: addition, p_proposal: proposal(addition), p_duration_hours: 24,
+    p_expected_draft_revision: revision,
+  });
+  const approve = (token: string, id: string) => rpc("cast_group_vote", token, { p_vote_id: id, p_value: "approve" });
+  const openVoteBody = readJson(await openVote(["vote-a"], 2));
+  const voteId = openVoteBody?.id as string | undefined;
+  expect(openVoteBody?.status === "open" && openVoteBody?.electorateSize === 2,
+    "The owner opens a vote for a concrete addition with a frozen electorate",
+    `status=${openVoteBody?.status} electorate=${String(openVoteBody?.electorateSize)}`);
+
+  const oneApproval = readJson(await approve(tokens.requester, voteId!));
+  expect(oneApproval?.approveCount === 1 && oneApproval?.status === "open",
+    "One approval of two keeps the vote open",
+    `approve=${String(oneApproval?.approveCount)} status=${String(oneApproval?.status)}`);
+
+  expectRefused(await rpc("cancel_group_vote", tokens.requester, { p_vote_id: voteId }),
+    "A member cannot cancel an open vote", "Only the group owner may cancel votes.");
+
+  const majority = readJson(await approve(tokens.owner2, voteId!));
+  expect(majority?.status === "approved" && majority?.resolvedAt !== null,
+    "The absolute majority approves the vote immediately",
+    `status=${String(majority?.status)} resolvedAt=${String(majority?.resolvedAt)}`);
+
+  const pendingList = readJson(await rpc("my_group_votes", tokens.requester, { p_limit: 20, p_cursor: null }));
+  expect(((pendingList?.votes as Record<string, unknown>[] | undefined) ?? []).some((item) =>
+    item.id === voteId && item.status === "approved" && item.incorporatedAt === null),
+  "A pending obligation reads from the vote list",
+  `votes=${JSON.stringify(pendingList?.votes)?.slice(0, 200)}`);
+
+  const savedAfterApproval = await rpc("save_pack_draft", tokens.owner2, {
+    p_group_id: privateGroup?.id, p_game_version: "1.21.1", p_loader: "fabric",
+    p_version_ids: ["main-v"], p_expected_revision: 2,
+  });
+  expect(readJson(savedAfterApproval)?.draft?.revision === 3,
+    "The owner saves the draft while the obligation is pending",
+    `status=${savedAfterApproval.status} body=${savedAfterApproval.body.slice(0, 200)}`);
+  const stillPending = readJson(await rpc("my_group_votes", tokens.requester, { p_limit: 20, p_cursor: null }));
+  expect(((stillPending?.votes as Record<string, unknown>[] | undefined) ?? []).some((item) =>
+    item.id === voteId && item.incorporatedAt === null),
+  "A draft save does not discharge the obligation",
+  `votes=${JSON.stringify(stillPending?.votes)?.slice(0, 200)}`);
+
+  expectRefused(await rpc("incorporate_group_vote", tokens.owner2, {
+    p_vote_id: voteId, p_expected_draft_revision: 2 }),
+  "A stale revision is refused on the signed surface", "Draft revision conflict.");
+
+  const incorporatedBody = readJson(await rpc("incorporate_group_vote", tokens.owner2, {
+    p_vote_id: voteId, p_expected_draft_revision: 3 }));
+  expect((incorporatedBody?.draft as Record<string, unknown> | undefined)?.revision === 4 &&
+    JSON.stringify((incorporatedBody?.draft as Record<string, unknown> | undefined)?.versionIds) ===
+      JSON.stringify(["main-v", "vote-a"]),
+  "The current owner incorporates and the draft gains the pinned addition",
+  `body=${JSON.stringify(incorporatedBody)?.slice(0, 300)}`);
+
+  expectRefused(await rpc("incorporate_group_vote", tokens.owner2, {
+    p_vote_id: voteId, p_expected_draft_revision: 4 }),
+  "An incorporated vote cannot be incorporated twice", "Vote is already incorporated.");
+
+  // Two approved votes for one addition: the first appends it, the second is satisfied.
+  const duplicateOne = readJson(await openVote(["vote-b"], 4))?.id as string;
+  const duplicateTwo = readJson(await openVote(["vote-b"], 4))?.id as string;
+  expect(typeof duplicateOne === "string" && typeof duplicateTwo === "string" && duplicateOne !== duplicateTwo,
+    "Two independent votes may propose one addition at once",
+    `first=${String(duplicateOne)} second=${String(duplicateTwo)}`);
+  await approve(tokens.requester, duplicateOne);
+  await approve(tokens.requester, duplicateTwo);
+  await approve(tokens.owner2, duplicateOne);
+  await approve(tokens.owner2, duplicateTwo);
+  const appended = readJson(await rpc("incorporate_group_vote", tokens.owner2, {
+    p_vote_id: duplicateOne, p_expected_draft_revision: 4 }));
+  expect((appended?.draft as Record<string, unknown> | undefined)?.revision === 5,
+    "The first approved duplicate appends the addition",
+    `body=${JSON.stringify(appended)?.slice(0, 300)}`);
+  const satisfied = readJson(await rpc("incorporate_group_vote", tokens.owner2, {
+    p_vote_id: duplicateTwo, p_expected_draft_revision: 5 }));
+  expect((satisfied?.draft as Record<string, unknown> | undefined)?.revision === 5 &&
+    JSON.stringify((satisfied?.draft as Record<string, unknown> | undefined)?.versionIds) ===
+      JSON.stringify(["main-v", "vote-a", "vote-b"]) &&
+    (satisfied?.vote as Record<string, unknown> | undefined)?.incorporatedAt !== null,
+  "The second approved duplicate is satisfied without rewriting the draft",
+  `body=${JSON.stringify(satisfied)?.slice(0, 300)}`);
+
+  const cancellable = readJson(await openVote(["vote-c"], 5))?.id as string;
+  const cancelled = await rpc("cancel_group_vote", tokens.owner2, { p_vote_id: cancellable });
+  expect(readJson(cancelled)?.status === "cancelled",
+    "The owner cancels an open vote",
+    `status=${cancelled.status} body=${cancelled.body.slice(0, 200)}`);
+  expectRefused(await approve(tokens.requester, cancellable),
+    "A cancelled vote accepts no ballot", "This vote is already closed.");
+  expectRefused(await rpc("incorporate_group_vote", tokens.owner2, {
+    p_vote_id: cancellable, p_expected_draft_revision: 5 }),
+  "A cancelled vote is never incorporated", "Vote is not approved.");
+
+  // The obligation belongs to the group: the current owner discharges it.
+  const transferable = readJson(await openVote(["vote-d"], 5))?.id as string;
+  await approve(tokens.requester, transferable);
+  await approve(tokens.owner2, transferable);
+  const handedOver = expectOverview(await rpc("transfer_ownership", tokens.owner2,
+    { p_user_id: subjects.requester }), "The owner transfers the group with a pending obligation");
+  expect(handedOver?.ownerId === subjects.requester,
+    "The previous owner reads the member role immediately",
+    `body=${JSON.stringify(handedOver)?.slice(0, 200)}`);
+  expectRefused(await rpc("incorporate_group_vote", tokens.owner2, {
+    p_vote_id: transferable, p_expected_draft_revision: 5 }),
+  "A previous owner cannot discharge the obligation", "Only the group owner may incorporate votes.");
+  const transferredDischarge = readJson(await rpc("incorporate_group_vote", tokens.requester, {
+    p_vote_id: transferable, p_expected_draft_revision: 5 }));
+  expect((transferredDischarge?.draft as Record<string, unknown> | undefined)?.revision === 6 &&
+    (transferredDischarge?.vote as Record<string, unknown> | undefined)?.incorporatedAt !== null,
+  "The new owner discharges the transferred obligation",
+  `body=${JSON.stringify(transferredDischarge)?.slice(0, 300)}`);
+  const returned = expectOverview(await rpc("transfer_ownership", tokens.requester,
+    { p_user_id: subjects.owner2 }), "The group is transferred back to the original owner");
+  expect(returned?.ownerId === subjects.owner2,
+    "The original owner reads the owner role again",
+    `body=${JSON.stringify(returned)?.slice(0, 200)}`);
+
   const departed = await rpc("leave_group", tokens.requester);
   expect(readJson(departed)?.groupDeleted === false,
     "The member leaves a group that survives",
@@ -462,6 +584,10 @@ try {
     "A previous member cannot list publications", "Group required.");
   expectRefused(await rpc("my_pack_publication", tokens.requester, { p_publication_id: publicationId }),
     "A previous member cannot read a publication by id", "Group required.");
+  expectRefused(await rpc("my_group_votes", tokens.requester, { p_limit: 20, p_cursor: null }),
+    "A previous member cannot read the group votes", "Group required.");
+  expectRefused(await rpc("group_vote_ballots", tokens.requester, { p_vote_id: voteId }),
+    "A previous member cannot read a ballot page", "Vote not found.");
   expect((await rpc("my_pack_publication", tokens.owner2, { p_publication_id: publicationId })).status === 200,
     "The remaining owner still reads the publication",
     "the owner lost access after the member left");
@@ -483,7 +609,11 @@ try {
       + (select count(*) from public.pack_publications p join public.groups g on g.id = p.group_id
            where g.owner_id in (${subjectList}))
       + (select count(*) from public.pack_drafts d join public.groups g on g.id = d.group_id
-           where g.owner_id in (${subjectList}));
+           where g.owner_id in (${subjectList}))
+      + (select count(*) from public.group_votes v join public.groups g on g.id = v.group_id
+           where g.owner_id in (${subjectList}))
+      + (select count(*) from public.group_vote_ballots b join public.group_votes v on v.id = b.vote_id
+           join public.groups g on g.id = v.group_id where g.owner_id in (${subjectList}));
   `);
   expect(leftovers === 0, "No probe fixture survives cleanup", `${leftovers} leftover row(s)`);
 } catch (error) {
