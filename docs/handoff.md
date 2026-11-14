@@ -478,9 +478,11 @@ keeps account creation on the existing modal.
 Merges: #73 as `d1eb096`, #74 as `d4c7ea4`, #75 as `8bb9606`, #76 as `6c7aa4a`; the
 Backend checks passed on every branch head. `bun run check` now runs 172 Bun tests and
 15 Vitest tests, and the Playwright suite runs 4 browser cases including an axe scan
-of `/sign-in`. The CI job still runs only the Bun gate: adding `test:web` to the
-workflow needs a credential with the `workflow` scope. Authenticated journeys remain
-unverified because they need a provider-reachable environment. See
+of `/sign-in`. The CI gate also runs the Vitest suites through
+`tests/web-suites.test.ts`, which executes the same `test:web` command; a dedicated
+workflow step still needs a credential with the `workflow` scope, and the bridge
+should be removed with it. Authenticated journeys remain unverified because they need
+a provider-reachable environment. See
 [doc15](delivery/doc15-web-tooling-signin.md) and the
 [frontend tooling guide](guides/frontend-tooling.md).
 

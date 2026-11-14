@@ -57,14 +57,16 @@ Lighthouse run on the new shell.
 
 All four slices are merged to `main`: #73 as `d1eb096`, #74 as `d4c7ea4`, #75 as
 `8bb9606` and #76 as `6c7aa4a`. This record ships in its own pull request. No
-deployment is recorded, and the CI job still runs only the Bun gate.
+deployment is recorded. The CI gate runs the Vitest suites through
+`tests/web-suites.test.ts`; a dedicated workflow step still needs the `workflow`
+credential scope, and the bridge should be removed with it.
 
 ## Remaining work
 
 - Run the authenticated journeys with a real session, which needs a
   provider-reachable environment.
-- Add the Vitest step to the CI workflow; it needs a credential with the `workflow`
-  scope.
+- Replace the Bun bridge with a `test:web` workflow step when a credential with the
+  `workflow` scope is available.
 - Re-run Lighthouse on the new shell if the historical numbers matter.
 - Decide the fate of the unpublished `feat/frontend-tooling` branch, which now
   duplicates work already on `main`.
