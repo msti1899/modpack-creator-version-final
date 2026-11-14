@@ -33,6 +33,27 @@ Never post credentials or session tokens in chat, logs, issues, or Git.
    session or sign out. **Check API session** calls web `/api/me`, which gets
    the Clerk session token server-side and forwards it to Hono `/me`.
 
+### Provider reconciliation secrets
+
+`POST /webhooks/clerk` needs two values that no CLI can mint on its own:
+
+- `SUPABASE_SECRET_KEY`: the stack's service credential. Copy `SECRET_KEY` from
+  `supabase status -o env` for the local stack; use the hosted project's secret
+  key for a deployment. The session-authenticated routes never accept it.
+- `CLERK_WEBHOOK_SIGNING_SECRET`: the signing secret of one webhook endpoint in
+  the Clerk application. Clerk's Backend API exposes only the Svix app and its
+  dashboard link (`clerk api /webhooks/svix`, `clerk api /webhooks/svix_url`), so
+  the endpoint and its secret are created in the Dashboard or its Svix portal.
+
+`clerk webhooks listen --forward-to http://localhost:3001/webhooks/clerk` forwards
+real deliveries to a local handler and preserves the headers Clerk signed; it does
+not create an endpoint and does not sign anything itself. A delivery injected with
+`curl` into the relay URL therefore arrives unsigned and the API answers `401`.
+Register the relay URL as the endpoint so Clerk signs with the endpoint's secret.
+
+Without either value the route answers `503` and writes nothing, which is the
+intended state for a machine that must not reconcile provider deletions.
+
 The web route is only a transport adapter, not a second domain API. Catalog and
 pack behavior stays in Hono. Server-side forwarding requires no browser-to-API
 CORS or shared cross-domain cookies. Redirects from the API are rejected so

@@ -543,9 +543,17 @@ claimed a succession without a surviving group were acknowledged, and the body b
 a declared length so a streamed oversized body was buffered in full. Its probes are
 committed and the pgTAP suite gained the non-insertion-order succession case.
 
-Registering the Clerk endpoint and its signing secret needs a public URL, so it waits on a
-deployment decision; until then a Clerk-only deletion in a live environment is still not
-reconciled. The authored diff exceeds the 400-line planning heuristic, so publishing this
+The local environment is configured as of 2026-11-14: `apps/api/.env` (ignored) holds the
+local stack's publishable and secret keys plus the signing secret of one development webhook
+endpoint registered against the Clerk CLI relay. The running API answers 401 to an unsigned
+or forged delivery and 200 to a correctly signed one, and the same route deleted a real probe
+profile through the real PostgREST surface. A genuine delivery was then exercised on the same
+date: a disposable Clerk user with a local profile was deleted through the Backend API, the
+registered endpoint delivered `user.deleted` through the relay, and the profile disappeared
+within two seconds. The disposable user and its row were removed; the instance holds only the
+accounts that predate the check. Clerk's Backend API exposes only the Svix app and its
+dashboard link, so the endpoint secret comes from the Dashboard, and the local endpoint still
+points at the relay rather than a deployment. The authored diff exceeds the 400-line planning heuristic, so publishing this
 slice needs a delivery-chain decision when publication is authorized; the commits already
 separate decisions, database, HTTP surfaces, verification fix and evidence.
 

@@ -146,24 +146,24 @@ ADR0004 (S1-S10) and the provider reconciliation decided later in ADR0005 (S11-S
   advisories are the zero-byte-body contract and the not-yet-recorded commit state that this
   document now carries. Risk: items 1, 2 and 3.
 - T9 [S11, S12, S14] Record ADR0005 and add the shared routine plus the service-role-only
-  provider entry point. Route: inline. Status: complete in the provider work unit. RED was
+  provider entry point. Route: inline. Status: complete in `9b232ac` and `bd0eba8`. RED was
   shown by local mutation: replacing succession with a refusal and granting the provider
   routine to `authenticated` failed the privilege assertion and aborted the succession probe;
   `bun run db:reset` restored the schema. GREEN: `bun run db:test` PASS with nine files and
   250 tests. Risk: items 1, 2 and 3.
 - T10 [S13] Add `POST /webhooks/clerk`, the secret-key database configuration and the
-  environment documentation. Route: inline. Status: complete in the provider work unit. RED
+  environment documentation. Route: inline. Status: complete in `a86f5ec`. RED
   shown with the route registered on another path: 0 pass and 8 fail. GREEN: 8 tests and 86
   assertions. Risk: items 2, 3 and 6.
 - T11 [S15] Cover the provider surface on the signed-token PostgREST script with a real
   service-role call, an authenticated refusal and an idempotent repeat. Route: inline.
-  Status: complete: 136 of 136 checks, up from 126. Risk: items 1 and 6.
+  Status: complete in `a49e607`: 136 of 136 checks, up from 126. Risk: items 1 and 6.
 - T12 [S15, S16] Run the full local evidence set and record doc17, the reference, the guide,
-  the plan, the handoff and this log. Route: inline. Status: complete. `bun run check` 192
+  the plan, the handoff and this log. Route: inline. Status: complete in `6349c89`, `96c668f` and `73885ce`. `bun run check` 192
   tests and 3196 assertions; `bun run db:test` 9 files and 250 tests. No provider setting was
   configured. Risk: none.
 - T13 [S11-S16] Independent read-only verification of the provider range in a fresh context.
-  Route: delegated verification. Status: complete on 2026-11-14. No blocker: it re-ran all
+  Route: delegated verification. Status: complete on 2026-11-14 in `85890d6`. No blocker: it re-ran all
   three runners, re-derived the signature and grant REDs, and confirmed the grants, the
   succession rule (including a non-insertion-order case and a tie-break), the sealed refusals
   and the byte-identical `DELETE /profile` contract. Two advisories were fixed with new RED

@@ -78,11 +78,19 @@ Observed on 2026-11-14 against the local disposable stack, plus the stub-driven 
   scheme Clerk uses, and the database write runs against real PostgREST with the stack's own
   service key. No request came from Clerk, no provider endpoint is registered and no hosted
   project was touched.
+- A genuine provider delivery was exercised on 2026-11-14 against the development instance,
+  closing that gap: a disposable Clerk user was created, given a local profile row, and then
+  deleted through the Backend API. The registered endpoint delivered `user.deleted` to the
+  Clerk relay, the relay forwarded it to the running API, the API verified the real signature
+  and deleted the profile within two seconds. The disposable user and its row were removed
+  afterwards, and the instance again holds only the accounts that predate this check.
 
 ## Delivery state
 
-- Implementation and documentation: complete on `feat/account-deletion` as additional work
-  units on the M8 branch.
+- Implementation and documentation: complete on `feat/account-deletion` in six work units:
+  `9b232ac` (decision), `bd0eba8` (database), `a86f5ec` (route and configuration), `a49e607`
+  (signed-token checks), `6349c89`, `96c668f` and `73885ce` (records) and `85890d6` (the advisories this record
+  describes).
 - Review: one independent read-only verification pass over the provider range; no blocker,
   and its two advisories are fixed.
 - Publication, merge and deployment: not started. No pull request exists, no commit is
@@ -90,8 +98,17 @@ Observed on 2026-11-14 against the local disposable stack, plus the stub-driven 
 
 ## Remaining work
 
-- Registering the endpoint in Clerk needs a public URL, which needs a deployment decision.
-  Until then a Clerk-only deletion is still not reconciled in a live environment.
+- The local environment is configured as of 2026-11-14: `apps/api/.env` is ignored and
+  carries the local stack's publishable and secret keys plus the signing secret of one
+  development webhook endpoint registered against the Clerk CLI relay. The running API
+  answers `401` to an unsigned or forged delivery and `200 {received: true}` to a correctly
+  signed one, and the same route deleted a real probe profile through the real PostgREST
+  surface. The genuine delivery above is the live proof of that chain.
+- The configured endpoint points at the local relay, which exists only while
+  `clerk webhooks listen` runs, and its secret is not a production credential. A deployment
+  needs its own endpoint and secret; until then a Clerk-only deletion in a live environment
+  is still not reconciled. Clerk's Backend API exposes only the Svix app and its dashboard
+  link, so that secret comes from the Dashboard.
 - The webhook trusts the provider's delivery; it does not detect a missed event, so a failed
   delivery depends on Clerk's retry policy. No polling or backfill exists.
 - A signature replay is bounded only by the library's timestamp tolerance, and no event ID
