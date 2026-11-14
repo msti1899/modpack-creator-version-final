@@ -151,7 +151,9 @@ the authority (`gentle-ai.review-acknowledged/v1`, action `acknowledged`). No co
 round opened.
 
 Sixteen informational advisories were recorded. All but one were then fixed in a
-follow-up slice rather than left as debt:
+follow-up slice merged through
+[PR #68](https://github.com/msti1899/modpack-creator-version-final/pull/68) as `2c8636e`,
+rather than left as debt:
 
 - Test determinism and scope: the concurrency observation now counts only the fixture
   group, the unused race winner is gone, every expected revision is derived from a

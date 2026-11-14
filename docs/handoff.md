@@ -415,8 +415,10 @@ pre-existing `m4proof13` profile. See [doc13](delivery/doc13-voting-obligations.
 
 Native review ran the full four-lens pass at the owner's request and approved the
 candidate, burning its acknowledgement with no correction round. Fifteen of its sixteen
-informational advisories were fixed in a follow-up slice and the sixteenth is a
-pre-existing contract; [doc13](delivery/doc13-voting-obligations.md) records both.
+informational advisories were fixed in a follow-up slice
+([PR #68](https://github.com/msti1899/modpack-creator-version-final/pull/68), merge
+`2c8636e`) and the sixteenth is a pre-existing contract;
+[doc13](delivery/doc13-voting-obligations.md) records both.
 
 State: merged to `main` through
 [PR #66](https://github.com/msti1899/modpack-creator-version-final/pull/66) as `e5246e0`,
