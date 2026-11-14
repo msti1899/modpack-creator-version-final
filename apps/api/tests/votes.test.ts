@@ -214,6 +214,47 @@ test("incorporating an approved vote returns the updated draft under a revision 
   expect(calls).toEqual([{ name: "incorporate_group_vote", args: { p_vote_id: voteId, p_expected_draft_revision: 3 } }]);
 });
 
+test("a pending obligation and a discharged one are distinguishable in the vote list", async () => {
+  const pending = { ...voteFixture, status: "approved", resolvedAt: "2026-11-12T00:30:00Z", incorporatedAt: null };
+  const discharged = { ...voteFixture, id: "33333333-3333-4333-8333-333333333333", status: "approved",
+    resolvedAt: "2026-11-12T00:30:00Z", incorporatedAt: "2026-11-12T02:00:00Z" };
+  const { request, calls } = setup({ results: { my_group_votes: { votes: [pending, discharged], nextCursor: null } } });
+  const response = await request("GET", path);
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual({ votes: [pending, discharged], nextCursor: null });
+  expect(calls).toEqual([{ name: "my_group_votes", args: { p_cursor: null, p_limit: null } }]);
+});
+
+test("a satisfied incorporation discharges the vote without rewriting the draft", async () => {
+  const unchanged = { gameVersion: "1.21.1", loader: "fabric", versionIds: ["main-v", "dep-v", "add-v"],
+    revision: 3, updatedAt: "2026-11-12T00:00:00Z" };
+  const { request, calls } = setup({ results: { incorporate_group_vote: {
+    vote: { ...voteFixture, status: "approved", resolvedAt: "2026-11-12T00:30:00Z", incorporatedAt: "2026-11-12T02:00:00Z" },
+    draft: unchanged } } });
+  const response = await request("POST", `${path}/${voteId}/incorporate`, { expectedRevision: 3 });
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual({
+    vote: { ...voteFixture, status: "approved", resolvedAt: "2026-11-12T00:30:00Z", incorporatedAt: "2026-11-12T02:00:00Z" },
+    draft: unchanged });
+  expect(calls).toEqual([{ name: "incorporate_group_vote", args: { p_vote_id: voteId, p_expected_draft_revision: 3 } }]);
+});
+
+test("every incorporation refusal keeps its documented status and writes nothing", async () => {
+  const cases = [
+    ["Draft revision conflict.", 409], ["Vote does not match the draft settings.", 409],
+    ["A proposed version is already in the draft.", 409], ["Vote is not approved.", 409],
+    ["Vote is already incorporated.", 409], ["Only the group owner may incorporate votes.", 403],
+    ["Vote not found.", 404],
+  ] as const;
+  for (const [message, status] of cases) {
+    const { request, calls } = setup({ errors: { incorporate_group_vote: message } });
+    const response = await request("POST", `${path}/${voteId}/incorporate`, { expectedRevision: 3 });
+    expect(response.status).toBe(status);
+    expect(await response.json()).toEqual({ error: message });
+    expect(calls.map((call) => call.name)).toEqual(["incorporate_group_vote"]);
+  }
+});
+
 test("a ballot page is paginated by electorate member and never exposes raw columns", async () => {
   const { request, calls } = setup({ results: { group_vote_ballots: { ballots: [
     { userId: "user_aaa", username: "ana", ballot: "approve", castAt: "2026-11-12T00:00:00Z", updatedAt: "2026-11-12T00:00:00Z" },
