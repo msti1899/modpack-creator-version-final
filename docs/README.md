@@ -16,7 +16,7 @@ delivery changed, use the [numbered delivery records](delivery/README.md).
 | Reference | Look up contracts, parameters, errors, and limits | [Backend API](reference/backend-api.md) |
 | Architecture | Understand components, boundaries, and data flow | [Stateless Modrinth backend](architecture/modrinth-backend.md) |
 | Decisions | Understand accepted choices and their trade-offs | [Initial scope and stack](decisions/0001-project-baseline.md); [Clerk identity](decisions/0002-clerk-identity.md); [Clerk profile ownership](decisions/0003-clerk-profile-ownership.md) |
-| Plans | Follow approved outcomes, sequence, acceptance criteria, and pending decisions | [Backend roadmap](plans/backend-roadmap.md) |
+| Plans | Follow approved outcomes, sequence, acceptance criteria, and pending decisions | [Backend roadmap](plans/backend-roadmap.md); [Backend completion](plans/backend-completion.md); [Frontend roadmap](plans/frontend-roadmap.md) |
 | Handoff | Resume from the latest verified state and next action | [Current checkpoint](handoff.md) |
 | Delivery records | Read what changed, why, what was checked, and what remained at that time | [Numbered deliveries](delivery/README.md) |
 | Templates | Use a consistent structure for recurring records | [Decision template](templates/decision.md); [Plan template](templates/plan.md); [Delivery template](templates/delivery.md) |

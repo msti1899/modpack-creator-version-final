@@ -603,6 +603,24 @@ typechecks. The branch is merged and can be dropped. Next action: wire the pack 
 mod reaches a draft, decide where the Minecraft and loader settings come from, and decide the
 exact-version picker; publication of a hosted journey is still unproven.
 
+## Frontend plan (proposed)
+
+The [frontend roadmap](plans/frontend-roadmap.md) records what the API supports per
+journey, which surfaces exist and eight proposed screen milestones. It is proposed, not
+approved, and it authorizes no implementation.
+
+The mod browser is no longer unbuilt work in that proposal: direction A was approved,
+implemented and merged as `/mods` through
+[PR #82](https://github.com/msti1899/modpack-creator-version-final/pull/82) (merge
+`c99a98d`), with its record in [doc18](delivery/doc18-mod-browser.md). The screen consumes
+the eight catalog parameters the API already serves; facet totals do not exist upstream and
+were accepted as a difference. Two items remain open in that slice: connecting a selected
+mod to a pack draft, and deciding where the Minecraft and loader settings come from. The
+one-command local startup landed separately through
+[PR #85](https://github.com/msti1899/modpack-creator-version-final/pull/85).
+
+Next decision for this plan: which screen milestone becomes the next design round.
+
 ## Resume
 
 1. Verify the branch, commit and local changes against this snapshot. Preserve
