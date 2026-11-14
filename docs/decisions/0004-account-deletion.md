@@ -1,7 +1,8 @@
 # 0004: Account deletion and retention
 
 - Date: 2026-11-14
-- Status: Accepted for the application-owned surface; provider reconciliation deferred.
+- Status: Accepted for the application-owned surface; provider reconciliation decided in
+  [ADR0005](0005-provider-account-reconciliation.md).
 - Source: Completion-plan milestone M8, implemented on an isolated branch from `afea8bf`.
 - Relates to: D3 (accounts and usernames), D5 (owner permissions and departure), D7
   (voting), ADR0002 and ADR0003 (Clerk owns identity and profile ownership).
@@ -39,24 +40,23 @@ profile row and group membership rows are the only rows that carry a username an
 else stores one. A subject tombstone in a historical row can no longer resolve to a name;
 it identifies a participant only as a stable opaque identifier.
 
-Provider events. This phase consumes no provider event, so no provider event can write a
-partial or inconsistent record. The residual is a known limit, not a hidden behaviour: an
-account deleted only in Clerk, bypassing the API, leaves an inaccessible profile row whose
-username stays reserved. No client can act on that row because every read requires a valid
-token for that subject. Reconciling it needs three inputs that this decision does not
-grant: a webhook signing secret, a service-role credential for a signed-in-free write, and
-a rule for a group owner who no longer has a usable account while other members remain.
-That third rule is a product choice between deleting shared group data and transferring
-ownership without the owner, and it must be decided before any reconciliation code exists.
+Provider events. This phase consumes no provider event inside this decision, so no provider
+event can write a partial or inconsistent record. [ADR0005](0005-provider-account-reconciliation.md)
+now decides the reconciliation path that this record left open: a verified Clerk
+`user.deleted` event deletes the application account and, for an owner who can no longer act,
+transfers the group to its longest-standing remaining member. Until that endpoint is
+registered in Clerk, which needs a public URL, an account deleted only in Clerk still leaves
+an inaccessible profile row whose username stays reserved.
 
 Trade-offs accepted: historical rows keep opaque subject identifiers after the account is
-gone; a released username can be chosen by a different person; and a provider-side deletion
-stays unreconciled until a later, separately authorized decision. None of these changes a
-group's stored pack, publication, vote or ballot content.
+gone; a released username can be chosen by a different person. None of these changes a
+group's stored pack, publication, vote or ballot content. The provider-side gap this record
+accepted is closed by ADR0005 once its endpoint is registered.
 
 ## Boundaries
 
-No webhook, service-role credential, automatic ownership succession, administrator
-surface, new cascade, frontend, deployment or publication is authorized by this decision.
-Deleting a current account, applying this to a hosted project and publishing or merging the
-slice remain separate owner decisions.
+This decision itself authorizes no webhook, service-role credential, automatic ownership
+succession, administrator surface, new cascade, frontend, deployment or publication.
+ADR0005 separately decides the provider path and its inputs. Deleting a current account,
+applying this to a hosted project and publishing or merging the slice remain separate owner
+decisions.
