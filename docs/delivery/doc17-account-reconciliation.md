@@ -93,8 +93,14 @@ Observed on 2026-11-14 against the local disposable stack, plus the stub-driven 
   describes).
 - Review: one independent read-only verification pass over the provider range; no blocker,
   and its two advisories are fixed.
-- Publication, merge and deployment: not started. No pull request exists, no commit is
-  pushed, and no provider setting was changed.
+- Publication: published as
+  [PR #81](https://github.com/msti1899/modpack-creator-version-final/pull/81) on 2026-11-14.
+- Merge: merged to `main` as `c8bcaa4`, with the Backend checks passing in 55 seconds on
+  the merge commit.
+- Deployment: not started. The two migrations were applied to the hosted test project on
+  2026-11-14. One development webhook endpoint exists in the Clerk application and points
+  at the CLI relay; no production endpoint, provider credential or API deployment is
+  recorded.
 
 ## Remaining work
 

@@ -120,14 +120,17 @@ Observed on 2026-11-14 against the local disposable stack, plus the stub-driven 
   (signed-token checks) and the documentation commit that carries this record.
 - Review: one independent read-only verification pass; its blocker is fixed and its
   remaining advisories are recorded above. No native candidate review ran.
-- Publication: not started. No pull request exists and no commit is pushed.
-- Merge and deployment: not started. No hosted project, provider setting, migration or
-  fixture was touched, and no deployment is recorded.
+- Publication: published as
+  [PR #81](https://github.com/msti1899/modpack-creator-version-final/pull/81) on 2026-11-14
+  as seventeen work-unit commits, after the history was regrouped by artifact.
+- Merge: merged to `main` as `c8bcaa4`, with the Backend checks passing in 55 seconds on
+  the merge commit.
+- Deployment: not started. The two migrations were applied to the hosted test project on
+  2026-11-14 and its ledger shows 12 of 12; no API deployment is recorded.
 
-The authored diff is above the 400-line planning heuristic, so publishing this slice needs
-a delivery-chain decision when publication is authorized. The commits already separate the
-decision, the database contract, the HTTP surface, the verification fix and the evidence,
-so a chain can follow them.
+The authored diff is above the 400-line planning heuristic. It was published as one slice
+with the commits separated by artifact; a chain can still be cut from them without
+rewriting anything.
 
 ## Remaining work
 
@@ -141,8 +144,9 @@ so a chain can follow them.
   named conflict. No partial state is written, but the race was not exercised.
 - An explicit zero-length request body is refused as invalid input, while no body at all is
   accepted. Both are safe; the asymmetry is recorded rather than pinned as intended behavior.
-- The hosted project has not been migrated and no live Clerk session ran against this
-  branch. Deadlines, quotas and deployment remain outside this record.
+- No live Clerk session ran against this branch, and the hosted project carries the
+  migrations without any deployed API. Deadlines, quotas and deployment remain outside this
+  record.
 
 ## References
 

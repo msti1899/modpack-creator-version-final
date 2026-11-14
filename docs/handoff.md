@@ -18,7 +18,11 @@ merge `b9167c0`) the completion-plan M5 group lifecycle proof
 ([PR #64](https://github.com/msti1899/modpack-creator-version-final/pull/64), merge
 `717da47`), plus the completion-plan M7 voting-obligation slice
 ([PR #66](https://github.com/msti1899/modpack-creator-version-final/pull/66), merge
-`e5246e0`). Verify the branch and HEAD against this snapshot before resuming. This is a resume point, not a session history.
+`e5246e0`) and the completion-plan M8 account deletion and reconciliation slice
+([PR #81](https://github.com/msti1899/modpack-creator-version-final/pull/81), merge
+`c8bcaa4`), whose two migrations are applied to the hosted test project. Verify the branch
+and HEAD against this snapshot before resuming. This is a resume point, not a session
+history.
 
 ## Merged milestones
 
@@ -130,6 +134,11 @@ Still unproven after the local database work:
   [PR #62](https://github.com/msti1899/modpack-creator-version-final/pull/62) as
   `d970c39`, with the Backend checks passing in 42 seconds on the branch head after
   `main` was integrated. `main` runs 157 tests and 2699 assertions.
+- Account deletion and reconciliation (completion plan M8): merged to `main` through
+  [PR #81](https://github.com/msti1899/modpack-creator-version-final/pull/81) as `c8bcaa4`
+  on 2026-11-14, with the Backend checks passing in 55 seconds on the merge commit. The two
+  migrations are applied to the hosted test project and its ledger shows 12 of 12; no
+  deployment is recorded.
 - Published versions and sharing (completion plan M6): merged to `main` through
   [PR #64](https://github.com/msti1899/modpack-creator-version-final/pull/64) as
   `717da47`, with the Backend checks passing in 43 seconds on the branch head. `main`
@@ -497,10 +506,13 @@ exists, and replace the bridge with the workflow step when a credential with the
 `workflow` scope is available.
 ## Backend completion M8: account deletion and reconciliation (feat/account-deletion)
 
-The eighth milestone of the [completion plan](plans/backend-completion.md) is implemented
-on `feat/account-deletion`, cut from `origin/main` at `afea8bf` in its own worktree. It is
-not published, not merged, has no pull request and no native review, and touches no hosted
-project or provider setting.
+The eighth milestone of the [completion plan](plans/backend-completion.md) was implemented
+on `feat/account-deletion`, cut from `origin/main` at `afea8bf` in its own worktree, and
+merged to `main` through
+[PR #81](https://github.com/msti1899/modpack-creator-version-final/pull/81) as `c8bcaa4`
+on 2026-11-14, with the Backend checks passing in 55 seconds on the merge commit. The two
+migrations are applied to the hosted test project, and one development Clerk webhook
+endpoint exists. No deployment is recorded.
 
 [ADR0004](decisions/0004-account-deletion.md) records the first decision: deletion is in
 scope as the authenticated holder deleting their own application data through
@@ -557,8 +569,8 @@ points at the relay rather than a deployment. The authored diff exceeds the 400-
 slice needs a delivery-chain decision when publication is authorized; the commits already
 separate decisions, database, HTTP surfaces, verification fix and evidence.
 
-Next action: decide whether to publish and merge this branch, and register the webhook when
-a public URL exists.
+Next action: deploy the API and register a Clerk endpoint for its public URL; the local
+endpoint points at the CLI relay and its secret is not a production credential.
 
 ## Mod browser screen (feat/mod-browser)
 
