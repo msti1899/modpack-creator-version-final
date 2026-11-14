@@ -149,7 +149,9 @@ separate authorization.
   names, a named Clerk JS version and the explained test code. `bun run db:test:concurrency`
   is 16/16, `bun run db:test` is seven files and 228 tests, `bun run db:test:postgrest` is
   97/97, `bun run check` is 165 tests and 2962 assertions, and the hosted check passed 42
-  checks twice. Only the pre-existing vote-existence oracle is left as recorded.
+  checks twice. Only the pre-existing vote-existence oracle is left as recorded. The batch
+  merged through [PR #68](https://github.com/msti1899/modpack-creator-version-final/pull/68)
+  as `2c8636e`.
 - L14: Recorded limits: the live check depends on the public catalog for its candidates,
   the satisfaction branch is not proven for every possible pin shape, and deadline expiry
   stays a read-time derivation proven in pgTAP only. No deployment, publication or merge is
