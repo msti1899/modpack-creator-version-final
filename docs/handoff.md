@@ -495,6 +495,56 @@ older `feat/frontend-tooling` branch duplicates work already on `main` and can b
 dropped. Next action: run the authenticated journeys once a session environment
 exists, and replace the bridge with the workflow step when a credential with the
 `workflow` scope is available.
+## Backend completion M8: account deletion (feat/account-deletion)
+
+The eighth milestone of the [completion plan](plans/backend-completion.md) is implemented
+on `feat/account-deletion`, cut from `origin/main` at `afea8bf` in its own worktree. It is
+not published, not merged, has no pull request and no native review, and touches no hosted
+project or provider setting.
+
+[ADR0004](decisions/0004-account-deletion.md) records the decision: deletion is in scope
+only as the authenticated holder deleting their own application data through
+`DELETE /profile`, Clerk keeps owning the identity, and the slice installs no webhook and
+holds no service-role credential. Ownership and membership reuse D5, so an owner with other
+members is refused with the existing transfer message and nothing changes, while the last
+member's deletion removes the group, its draft, its publications and its votes. The profile
+row and its username are deleted and the name is immediately reusable. A surviving group
+keeps its votes, frozen electorates, cast ballots, invitation creators and request deciders
+with the Clerk subject as an opaque tombstone; the four foreign keys that made a deleted
+profile impossible are dropped, and `groups.owner_id` plus `group_members.user_id` remain.
+The call is idempotent and answers `200 { account: { deleted, group } }`.
+
+Observed on 2026-11-14 with the local disposable stack: `bun run check` passes both
+typechecks with 182 tests and 3090 assertions plus the web suite, `bun run db:test` is PASS
+with eight files and 239 tests, and `bun run db:test:postgrest` passes 126 of 126 checks, up
+from 97. RED was observed before the implementation by hiding the route and by two local
+database mutations that each made the new assertions fail; both were reverted with
+`bun run db:reset`. The only changed pre-existing expectation is the line in
+`apps/api/tests/profiles.test.ts` that asserted `DELETE /profile` was absent. See
+[doc16](delivery/doc16-account-deletion.md) and the
+[feature log](../odd/tasks/completion-m8-account-deletion.md).
+
+Independent read-only verification ran in a fresh context and found one blocker the slice
+caused: the ballot page required a 3–20 character username while the database returns
+`username: null` for a retained tombstone, so a surviving group's ballot page answered
+`502` after a member deleted their account. That combination was unreachable before
+deletion existed. It is fixed in `449c8aa`, with the verifier's probe committed as
+`apps/api/tests/vote-tombstones.test.ts`; its payload-combination advisory was fixed in the
+same pass, and a recheck limited to that blocker and advisory confirmed the blocker closed
+on 2026-11-14. The slice is six work-unit commits: `5e5c266`, `995f97b`, `b1bba3b`,
+`449c8aa`, `23c64c3` and the documentation commit.
+
+Provider reconciliation is deliberately absent and recorded as an open decision: an account
+deleted only in Clerk leaves an inaccessible profile whose username stays reserved, and
+reconciling it needs a webhook signing secret, a service-role credential and a rule for a
+group owner who can no longer act. The authored diff exceeds the 400-line planning
+heuristic, so publishing this slice needs a delivery-chain decision when publication is
+authorized; the commits already separate decision, database, HTTP surface, verification fix
+and evidence.
+
+Next action: decide whether to publish and merge this branch, and decide the provider
+reconciliation inputs before any code for it.
+
 ## Resume
 
 1. Verify the branch, commit and local changes against this snapshot. Preserve
