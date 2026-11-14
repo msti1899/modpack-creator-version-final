@@ -486,10 +486,15 @@ a provider-reachable environment. See
 [doc15](delivery/doc15-web-tooling-signin.md) and the
 [frontend tooling guide](guides/frontend-tooling.md).
 
-State: merged. The older `feat/frontend-tooling` branch now duplicates work already on
-`main` and can be dropped. Next action: run the authenticated journeys once a session
-environment exists, and decide whether the web suites join CI.
-
+State: merged. On 2026-11-14 the configured build was also opened in a real browser
+against the development Clerk instance: `/sign-in` answered `200` with the Clerk email
+field and the Google connection rendered, no fallback and no console error; signing in
+was not attempted. The CI gate now runs the Vitest suites through
+`tests/web-suites.test.ts`, so only the dedicated workflow step is still missing. The
+older `feat/frontend-tooling` branch duplicates work already on `main` and can be
+dropped. Next action: run the authenticated journeys once a session environment
+exists, and replace the bridge with the workflow step when a credential with the
+`workflow` scope is available.
 ## Resume
 
 1. Verify the branch, commit and local changes against this snapshot. Preserve
