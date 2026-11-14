@@ -170,7 +170,10 @@ test("profile credentials and owner filters cannot be supplied through request d
   expect((await app.request("/health")).status).toBe(200);
   expect((await app.request("/not-found")).status).toBe(404);
   expect((await app.request("/profile/not-found")).status).toBe(404);
-  expect((await app.request("/profile", { method: "DELETE" })).status).toBe(404);
+  // Account deletion is a deliberate contract change: the route exists and refuses an
+  // unauthenticated caller instead of being absent. Its full behavior is covered by
+  // account-deletion.test.ts.
+  expect((await app.request("/profile", { method: "DELETE" })).status).toBe(401);
 });
 
 test("profile database configuration is independent, guarded and never accepts privileged keys", async () => {

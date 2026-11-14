@@ -114,8 +114,8 @@ function ballotsPage(value: unknown) {
       if (typeof raw !== "string" || !Number.isFinite(Date.parse(raw))) throw new Error();
       return raw;
     };
-    return { userId: item.userId, username: text(item.username, 3, 20), ballot: item.ballot as string | null,
-      castAt: timestamp(item.castAt), updatedAt: timestamp(item.updatedAt) };
+    return { userId: item.userId, username: item.username === null ? null : text(item.username, 3, 20),
+      ballot: item.ballot as string | null, castAt: timestamp(item.castAt), updatedAt: timestamp(item.updatedAt) };
   });
   return { ballots: rows, nextCursor: value.nextCursor as string | null };
 }

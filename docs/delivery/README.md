@@ -27,6 +27,8 @@ For the latest state and next action, use the [current handoff](../handoff.md).
 | [doc13: Voting obligations and lifecycle](doc13-voting-obligations.md) | 2026-11-13 | Decide that binding is an owner obligation that blocks nothing, discharge an already-satisfied approved addition without rewriting the draft, and pin the conflict, transfer and concurrency behaviour on the pgTAP, HTTP, signed-token PostgREST, race and hosted live surfaces. |
 | [doc14: Clerk middleware proxy loop](doc14-clerk-proxy-loop.md) | 2026-11-14 | Diagnose the same-URL rewrite that made every routed response answer 500 after the 30 s proxy timeout when the bind host and the request host differ, fix it in the proxy wrapper, and pin the header-preserving conversion. |
 | [doc15: Web tooling and sign-in screen](doc15-web-tooling-signin.md) | 2026-11-14 | Publish the frontend stack, the two-runner test harness, the approved palette and the dedicated sign-in screen as four independent slices, and record the CI and authenticated-journey gaps. |
+| [doc16: Account deletion and retention](doc16-account-deletion.md) | 2026-11-14 | Decide the deletion scope and retention rules, delete the caller's own account through `DELETE /profile` while a surviving group keeps its votes, electorates, ballots, invitations and decisions, and record the provider-reconciliation gap. |
+| [doc17: Provider-side account deletion reconciliation](doc17-account-reconciliation.md) | 2026-11-14 | Decide and implement the verified Clerk `user.deleted` path: the provider event deletes the application account, a group whose owner can no longer act passes to its longest-standing member, and every missing input fails closed. |
 
 ## Add the next record
 

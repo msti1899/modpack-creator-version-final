@@ -50,6 +50,10 @@ and its memberships, invitations and join requests. This is not an archive and
 there is no recovery endpoint. No pack table exists yet; future pack-deletion
 behavior is not implemented or verified by this migration.
 
+`DELETE /profile` follows the same departure rule before it deletes the account,
+so the two refusals and the sole-owner deletion behave identically. See the
+[profile guide](account-profiles.md) for what a deletion retains.
+
 ## Database guarantees and limits
 
 PostgreSQL unique constraints enforce one membership per account; deferred

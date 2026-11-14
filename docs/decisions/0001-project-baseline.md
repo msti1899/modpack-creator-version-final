@@ -231,7 +231,9 @@ set. See the [backend architecture](../architecture/modrinth-backend.md) and
   versions/dependencies. No guarantee of detecting every runtime mod conflict.
 - Group expulsion does not exist in the current scope, so only voluntary
   departure affects an open vote and D7 now covers it.
-- Deletion confirmation/recovery semantics.
+- Deletion confirmation/recovery semantics. [ADR0004](0004-account-deletion.md) decides the
+  application-owned deletion and retention rules; confirmation UX and provider-side
+  reconciliation remain open.
 - Anonymous browsing and the visibility of pack contents to nonmembers.
 - Actual free-provider account eligibility and end-to-end email delivery.
 
