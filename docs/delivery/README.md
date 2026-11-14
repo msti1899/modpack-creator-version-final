@@ -29,6 +29,7 @@ For the latest state and next action, use the [current handoff](../handoff.md).
 | [doc15: Web tooling and sign-in screen](doc15-web-tooling-signin.md) | 2026-11-14 | Publish the frontend stack, the two-runner test harness, the approved palette and the dedicated sign-in screen as four independent slices, and record the CI and authenticated-journey gaps. |
 | [doc16: Account deletion and retention](doc16-account-deletion.md) | 2026-11-14 | Decide the deletion scope and retention rules, delete the caller's own account through `DELETE /profile` while a surviving group keeps its votes, electorates, ballots, invitations and decisions, and record the provider-reconciliation gap. |
 | [doc17: Provider-side account deletion reconciliation](doc17-account-reconciliation.md) | 2026-11-14 | Decide and implement the verified Clerk `user.deleted` path: the provider event deletes the application account, a group whose owner can no longer act passes to its longest-standing member, and every missing input fails closed. |
+| [doc18: Mod browser screen](doc18-mod-browser.md) | 2026-11-14 | Implement the approved catalog-ledger direction as `/mods`: a proxied Modrinth search with facets, paging, selection, light and dark themes, verified against the frozen mockup, with pack wiring and publication still open. |
 
 ## Add the next record
 
