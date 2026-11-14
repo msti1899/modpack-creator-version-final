@@ -3,8 +3,12 @@
 Branch: `feat/account-deletion`, cut from `origin/main` at `afea8bf`. Worktree:
 `/home/matias/projects/modpack-creator-version-final-worktrees/account-deletion`.
 Delivery: ask-on-risk. Forecast: 600-800 authored changed lines.
-Runners: `bun test apps/api/tests/account-deletion.test.ts`, `bun run check`,
-`bun run db:test`, `bun run db:test:postgrest`.
+Runners: `bun test apps/api/tests/account-deletion.test.ts`,
+`bun test apps/api/tests/account-webhook.test.ts`, `bun run check`, `bun run db:test`,
+`bun run db:test:postgrest`.
+
+This document covers two work units on one branch: the session-surfaced deletion decided in
+ADR0004 (S1-S10) and the provider reconciliation decided later in ADR0005 (S11-S16).
 
 ## Specs
 
@@ -65,7 +69,39 @@ Runners: `bun test apps/api/tests/account-deletion.test.ts`, `bun run check`,
   and a differential that shows every pre-existing route and response unchanged.
 - S10: Scope boundaries: no webhook, no service-role credential, no automatic ownership
   succession, no administrator route, no new cascade, no frontend, no deployment, no
-  publication and no merge. Publication and merge remain separate owner decisions.
+  publication and no merge. Publication and merge remain separate owner decisions. This
+  boundary applies to the session-surfaced slice only; S11-S16 record the later,
+  separately authorized provider path.
+- S11: The provider decision left open by ADR0004 is recorded on 2026-11-14 in
+  [ADR 0005](../../docs/decisions/0005-provider-account-reconciliation.md): a verified Clerk
+  `user.deleted` is authoritative for the identity; the app must neither keep an owner who
+  can never sign in nor destroy a group other people still use.
+- S12: Ownership succession: when the deleted account owns a group with other members,
+  ownership passes immediately to the remaining member with the earliest `joined_at`, ties
+  broken by `user_id`, with no acceptance step because D5 already makes transfers immediate.
+  A member loses only the membership; the last member deletes the group; every other rule is
+  ADR0004's. The session path keeps its `409` transfer-before-deletion refusal, because that
+  holder can still act.
+- S13: Transport contract for `POST /webhooks/clerk`: no bearer token; the signature
+  verified against `CLERK_WEBHOOK_SIGNING_SECRET` is the only authority. Missing signing
+  secret or `SUPABASE_SECRET_KEY` is `503`, a missing, wrong or stale signature is `401`, a
+  declared body over 64 KiB is `413`, every event other than `user.deleted` is `200
+  { ignored: true }`, a payload without a Clerk `user_...` subject is `400`, and a successful
+  write is `200 { received: true }`. Database credential failures are `503`, other database
+  failures `502` and a timeout `504`. The response never reports success for a payload the
+  database could not have produced.
+- S14: The database routine `delete_account_for` is executable by `service_role` only; the
+  shared `delete_account_as` helper is executable by no client role and no other entry point
+  takes a supplied subject. `delete_my_account` keeps its three-field response and its
+  session-only grant.
+- S15: Evidence obligations for the provider path: RED before each behavior; a stub-driven
+  HTTP suite that computes the standard-webhooks signature; pgTAP for the grants, both
+  succession shapes, the tie-break, both departure cases, idempotence and refusals that
+  write nothing; a signed-token PostgREST check with a real service-role call; `bun run
+  check`, `bun run db:test` and `bun run db:test:postgrest`.
+- S16: Provider scope boundaries: no endpoint registration, no secret committed, no
+  deployment, no event-ID store or backfill, no hosted check. Registering the endpoint needs
+  a public URL and remains a deployment decision.
 
 ## Tasks
 
@@ -109,6 +145,23 @@ Runners: `bun test apps/api/tests/account-deletion.test.ts`, `bun run check`,
   payloads are refused while the four legitimate shapes still answer 200. Its remaining
   advisories are the zero-byte-body contract and the not-yet-recorded commit state that this
   document now carries. Risk: items 1, 2 and 3.
+- T9 [S11, S12, S14] Record ADR0005 and add the shared routine plus the service-role-only
+  provider entry point. Route: inline. Status: complete in the provider work unit. RED was
+  shown by local mutation: replacing succession with a refusal and granting the provider
+  routine to `authenticated` failed the privilege assertion and aborted the succession probe;
+  `bun run db:reset` restored the schema. GREEN: `bun run db:test` PASS with nine files and
+  250 tests. Risk: items 1, 2 and 3.
+- T10 [S13] Add `POST /webhooks/clerk`, the secret-key database configuration and the
+  environment documentation. Route: inline. Status: complete in the provider work unit. RED
+  shown with the route registered on another path: 0 pass and 8 fail. GREEN: 8 tests and 86
+  assertions. Risk: items 2, 3 and 6.
+- T11 [S15] Cover the provider surface on the signed-token PostgREST script with a real
+  service-role call, an authenticated refusal and an idempotent repeat. Route: inline.
+  Status: complete: 136 of 136 checks, up from 126. Risk: items 1 and 6.
+- T12 [S15, S16] Run the full local evidence set and record doc17, the reference, the guide,
+  the plan, the handoff and this log. Route: inline. Status: complete. `bun run check` 190
+  tests and 3176 assertions; `bun run db:test` 9 files and 250 tests. No provider setting was
+  configured and no independent verification ran for the provider addition. Risk: none.
 
 ## Log
 
@@ -162,8 +215,29 @@ Runners: `bun test apps/api/tests/account-deletion.test.ts`, `bun run check`,
   zero-length body is refused as invalid input even though no body is accepted, and a
   profile deletion that races a fresh join can answer a generic 502 without writing partial
   state.
-- L10: Final local evidence after the fix: `bun run check` 182 tests and 3090 assertions
-  plus the web suite, `bun run db:test` PASS with eight files and 239 tests,
+- L10: Session half, final local evidence after the fix: `bun run check` 182 tests and 3090
+  assertions plus the web suite, `bun run db:test` PASS with eight files and 239 tests,
   `bun run db:test:postgrest` 126 of 126. The authored diff is 1241 insertions and 28
   deletions across 18 files, so publication needs a delivery-chain decision; nothing is
   pushed, published or merged, and no hosted project or provider setting was touched.
+- L11: 2026-11-14: The owner authorized the decision ADR0004 had left open. ADR0005 picks
+  the least destructive of the three candidate rules for a group whose owner can no longer
+  act: succession to the longest-standing member, decided deterministically by `joined_at`
+  then `user_id`. The alternatives were deleting shared group data, which destroys other
+  people's packs, and retaining an owner who can never sign in, which leaves a group nobody
+  can manage.
+- L12: T9 shares one routine between the two entry points so the retention rules cannot
+  drift, and exposes neither the helper nor the provider entry point to a client role.
+  `delete_my_account` projects only its three contractual fields so its response stays
+  byte-identical. The provider routine validates the subject before any write; an invalid
+  subject leaves a fingerprint of every affected table unchanged.
+- L13: T10 keeps the route independent of the session middleware. The signature is the only
+  authority, both secrets fail closed, and the handler validates the database answer before
+  reporting success. The HTTP suite computes the standard-webhooks signature the provider
+  uses, including a stale-timestamp and a wrong-secret refusal, and the oversized-body guard
+  is exercised with a 70 KiB payload.
+- L14: T11 proves the provider path on the real PostgREST surface with the local stack's own
+  service key: an authenticated token is refused, the service role succeeds, ownership moves
+  to the first heir, and a repeat deletes nothing. The endpoint is not registered in Clerk
+  and no hosted project was touched; that registration needs a public URL and stays a
+  deployment decision.
