@@ -59,6 +59,11 @@ const subjects = {
   owner2: "user_lcowner2",
   requester: "user_lcrequester",
   rejectee: "user_lcrejectee",
+  delOwner: "user_lcdelowner",
+  delMember: "user_lcdelmember",
+  delVoter: "user_lcdelvoter",
+  delSolo: "user_lcdelsolo",
+  delReuse: "user_lcdelreuse",
 } as const;
 const usernames: Record<string, string> = {
   [subjects.owner]: "LcOwner",
@@ -68,6 +73,11 @@ const usernames: Record<string, string> = {
   [subjects.owner2]: "LcOwner2",
   [subjects.requester]: "LcRequester",
   [subjects.rejectee]: "LcRejectee",
+  // delReuse intentionally starts without a profile: it claims the released name later.
+  [subjects.delOwner]: "LcDelOwner",
+  [subjects.delMember]: "LcDelMember",
+  [subjects.delVoter]: "LcDelVoter",
+  [subjects.delSolo]: "LcDelSolo",
 };
 const subjectList = Object.values(subjects).map((value) => `'${value}'`).join(", ");
 
@@ -591,6 +601,132 @@ try {
   expect((await rpc("my_pack_publication", tokens.owner2, { p_publication_id: publicationId })).status === 200,
     "The remaining owner still reads the publication",
     "the owner lost access after the member left");
+
+  // Account deletion and retention. The group intentionally keeps votes, ballots and a
+  // frozen electorate so the deletion path is exercised on real group records.
+  const delGroup = expectOverview(await rpc("create_group", tokens.delOwner,
+    { p_name: "Postgrest Deletion", p_visibility: "public" }),
+  "A prospective deleter creates a public group");
+  const delGroupId = delGroup?.id as string;
+  expectOverview(await rpc("join_public_group", tokens.delMember, { p_group_id: delGroupId }),
+    "The member who will delete joins the deletion group");
+  expectOverview(await rpc("join_public_group", tokens.delVoter, { p_group_id: delGroupId }),
+    "A second participant joins the deletion group");
+  const delDraft = readJson(await rpc("save_pack_draft", tokens.delOwner, {
+    p_group_id: delGroupId, p_game_version: "1.21.1", p_loader: "fabric",
+    p_version_ids: ["del-main"], p_expected_revision: 0,
+  }));
+  expect(delDraft?.draft?.revision === 1,
+    "The deletion group stores a draft", `body=${JSON.stringify(delDraft)?.slice(0, 200)}`);
+  const delProposal = ["del-vote"].map((id) => ({ versionId: id, projectId: `p-${id}`,
+    projectTitle: `Mod ${id}`, versionNumber: "1.0" }));
+  const delVote = readJson(await rpc("open_group_vote", tokens.delOwner, {
+    p_group_id: delGroupId, p_game_version: "1.21.1", p_loader: "fabric",
+    p_addition: ["del-vote"], p_proposal: delProposal, p_duration_hours: 24,
+    p_expected_draft_revision: 1,
+  }));
+  const delVoteId = delVote?.id as string;
+  expect(delVote?.electorateSize === 3,
+    "The deletion vote freezes three participants",
+    `body=${JSON.stringify(delVote)?.slice(0, 300)}`);
+  const delBallot = readJson(await rpc("cast_group_vote", tokens.delVoter, {
+    p_vote_id: delVoteId, p_value: "approve" }));
+  expect(delBallot?.approveCount === 1,
+    "A participant casts one approval before the deletion",
+    `body=${JSON.stringify(delBallot)?.slice(0, 300)}`);
+
+  expectRefused(await rpc("delete_my_account", tokens.delOwner),
+    "An owner with other members cannot delete the account",
+    "Transfers are required before leaving a group with other members.");
+  expect(await psqlCount(`select count(*) from public.profiles where user_id = '${subjects.delOwner}';`) === 1,
+    "The refused deletion keeps the owner profile", "the profile was deleted");
+
+  const memberDeletion = await rpc("delete_my_account", tokens.delMember);
+  const memberDeletionBody = readJson(memberDeletion);
+  expect(memberDeletion.status === 200 && memberDeletionBody?.deleted === true &&
+    memberDeletionBody?.groupDeleted === false && memberDeletionBody?.groupId === delGroupId,
+  "A member deletes the account and reports the surviving group",
+  `status=${memberDeletion.status} body=${memberDeletion.body.slice(0, 200)}`);
+  expect(await psqlCount(`select count(*) from public.profiles where user_id = '${subjects.delMember}';`) === 0,
+    "The deleted member's profile row is gone", "the profile survived");
+  expect(await psqlCount(`select count(*) from public.group_members
+    where group_id = '${delGroupId}' and user_id = '${subjects.delMember}';`) === 0,
+  "The deleted member's membership is gone", "the membership survived");
+  expect(await psqlCount(`select count(*) from public.groups where id = '${delGroupId}';`) === 1,
+    "The group survives a member deletion", "the group was deleted");
+  expect(await psqlCount(`select count(*) from public.pack_drafts where group_id = '${delGroupId}';`) === 1,
+    "The draft survives a member deletion", "the draft was deleted");
+  expect(await psqlCount(`select count(*) from public.group_vote_electorate
+    where vote_id = '${delVoteId}' and user_id = '${subjects.delMember}';`) === 1,
+  "The frozen electorate keeps the departed subject", "the electorate row was deleted");
+  expect(await psqlCount(`select count(*) from public.group_vote_ballots
+    where vote_id = '${delVoteId}' and user_id = '${subjects.delVoter}';`) === 1,
+  "A cast ballot survives another account deletion", "the ballot was deleted");
+  const keptVoteRead = readJson(await rpc("my_group_votes", tokens.delOwner, { p_limit: 20, p_cursor: null }));
+  const keptVote = ((keptVoteRead?.votes as Record<string, unknown>[] | undefined) ?? [])
+    .find((item) => item.id === delVoteId);
+  expect(keptVote?.electorateSize === 3 && keptVote?.approveCount === 1 && keptVote?.status === "open",
+    "The owner still reads the same electorate, ballot and vote state",
+    `vote=${JSON.stringify(keptVote)?.slice(0, 300)}`);
+  const ballotPage = readJson(await rpc("group_vote_ballots", tokens.delOwner,
+    { p_vote_id: delVoteId, p_cursor: null, p_limit: null }));
+  const ballotRows = (ballotPage?.ballots as Record<string, unknown>[] | undefined) ?? [];
+  const deletedRow = ballotRows.find((item) => item.userId === subjects.delMember);
+  const liveRow = ballotRows.find((item) => item.userId === subjects.delVoter);
+  expect(ballotRows.length === 3 && deletedRow?.username === null && deletedRow?.ballot === null &&
+    liveRow?.username === "LcDelVoter" && liveRow?.ballot === "approve",
+  "The ballot page keeps the deleted participant as an opaque tombstone",
+  `rows=${JSON.stringify(ballotRows)?.slice(0, 400)}`);
+  const memberAfter = await rpc("my_group", tokens.delMember);
+  expect(memberAfter.status === 200 && memberAfter.body === "null",
+    "A deleted member no longer reads a group", `status=${memberAfter.status} body=${memberAfter.body.slice(0, 160)}`);
+  const repeated = await rpc("delete_my_account", tokens.delMember);
+  expect(repeated.status === 200 && readJson(repeated)?.deleted === false,
+    "A repeated deletion is idempotent and writes nothing",
+    `status=${repeated.status} body=${repeated.body.slice(0, 200)}`);
+
+  const releasedName = await post("/profiles", tokens.delReuse,
+    { user_id: subjects.delReuse, username: "LcDelMember" });
+  expect(releasedName.status === 201,
+    "The deleted username is immediately reusable through the real profile path",
+    `status=${releasedName.status} body=${releasedName.body.slice(0, 200)}`);
+
+  expectOverview(await rpc("transfer_ownership", tokens.delOwner, { p_user_id: subjects.delVoter }),
+    "The owner transfers before deleting the account");
+  const ownerDeletion = await rpc("delete_my_account", tokens.delOwner);
+  const ownerDeletionBody = readJson(ownerDeletion);
+  expect(ownerDeletion.status === 200 && ownerDeletionBody?.deleted === true &&
+    ownerDeletionBody?.groupDeleted === false,
+  "A transferred owner deletes only the account",
+  `status=${ownerDeletion.status} body=${ownerDeletion.body.slice(0, 200)}`);
+  expect(await psqlCount(`select count(*) from public.group_votes
+    where id = '${delVoteId}' and created_by = '${subjects.delOwner}';`) === 1,
+  "The vote keeps the deleted creator as a subject tombstone", "the vote lost its creator");
+  const successorVotes = readJson(await rpc("my_group_votes", tokens.delVoter, { p_limit: 20, p_cursor: null }));
+  const successorVote = ((successorVotes?.votes as Record<string, unknown>[] | undefined) ?? [])
+    .find((item) => item.id === delVoteId);
+  expect(successorVote?.electorateSize === 3 && successorVote?.approveCount === 1,
+    "The successor owner reads the same frozen vote",
+    `vote=${JSON.stringify(successorVote)?.slice(0, 300)}`);
+
+  const soloGroup = expectOverview(await rpc("create_group", tokens.delSolo,
+    { p_name: "Postgrest Solo", p_visibility: "public" }),
+  "A last member creates their own group");
+  const soloGroupId = soloGroup?.id as string;
+  const soloDraft = readJson(await rpc("save_pack_draft", tokens.delSolo, {
+    p_group_id: soloGroupId, p_game_version: "1.21.1", p_loader: "fabric",
+    p_version_ids: ["solo-main"], p_expected_revision: 0,
+  }));
+  expect(soloDraft?.draft?.revision === 1,
+    "The last member stores a draft", `body=${JSON.stringify(soloDraft)?.slice(0, 200)}`);
+  const soloDeletion = readJson(await rpc("delete_my_account", tokens.delSolo));
+  expect(soloDeletion?.deleted === true && soloDeletion?.groupDeleted === true,
+    "The last member deletes the group with the account",
+    `body=${JSON.stringify(soloDeletion)?.slice(0, 200)}`);
+  expect(await psqlCount(`select count(*) from public.groups where id = '${soloGroupId}';`) === 0,
+    "The deleted solo group row is gone", "the group survived");
+  expect(await psqlCount(`select count(*) from public.pack_drafts where group_id = '${soloGroupId}';`) === 0,
+    "The solo draft is gone with the group", "the draft survived");
 } finally {
   const cleanup = await psql(`
     delete from public.groups where owner_id in (${subjectList});
