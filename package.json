@@ -15,7 +15,7 @@
     "dev:api": "bun run --filter @modpack/api dev",
     "typecheck": "bun run --filter '@modpack/*' typecheck",
     "test": "bun test",
-    "check": "bun run typecheck && bun run test",
+    "check": "bun run typecheck && bun run test && bun run test:web",
     "build": "bun run --filter @modpack/web build",
     "db:start": "bash scripts/db-local.sh start",
     "db:stop": "bash scripts/db-local.sh stop",
@@ -24,7 +24,9 @@
     "db:test": "bash scripts/db-local.sh test",
     "db:test:upgrade": "bun scripts/test-profile-upgrade.ts",
     "db:test:concurrency": "bun scripts/test-concurrency.ts",
-    "db:test:postgrest": "bun scripts/test-postgrest.ts"
+    "db:test:postgrest": "bun scripts/test-postgrest.ts",
+    "test:web": "bun run --filter @modpack/web test",
+    "test:e2e": "bun run --filter @modpack/web test:e2e"
   },
   "devDependencies": {
     "supabase": "3.0.0"
