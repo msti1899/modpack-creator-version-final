@@ -104,15 +104,29 @@ insert into public.pack_drafts (group_id, game_version, loader, version_ids, rev
   where owner_id in ('${publisher}', '${voteOwner}');
 
 insert into public.group_votes (group_id, created_by, game_version, loader, addition,
-  proposal, duration_hours, electorate_size, closes_at)
-  select g.id, '${voteOwner}', '1.21.1', 'fabric', array['race_version_b'],
-    '[{"versionId":"race_version_b","projectId":"race_project_b",
-       "projectTitle":"Race Project","versionNumber":"1.0.0"}]'::jsonb,
-    24, 3, now() + interval '24 hours'
-  from public.groups g where g.owner_id = '${voteOwner}';
+  proposal, duration_hours, electorate_size, closes_at, status, resolved_at)
+  select g.id, '${voteOwner}', '1.21.1', 'fabric', v.addition,
+    jsonb_build_array(jsonb_build_object('versionId', v.addition[1],
+      'projectId', 'race_project_' || v.addition[1], 'projectTitle', 'Race Project',
+      'versionNumber', '1.0.0')),
+    24, 3, now() + interval '24 hours', v.status, v.resolved
+  from public.groups g
+  cross join (values
+    (array['race_version_b']::text[], 'open', null::timestamptz),
+    (array['race_version_c']::text[], 'approved', now()),
+    (array['race_version_d']::text[], 'approved', now()),
+    (array['race_version_e']::text[], 'approved', now()),
+    (array['race_version_e']::text[], 'approved', now())
+  ) as v(addition, status, resolved)
+  where g.owner_id = '${voteOwner}';
 insert into public.group_vote_electorate (vote_id, user_id)
   select v.id, m.user_id from public.group_votes v
   join public.group_members m on m.group_id = v.group_id;
+-- Two independent approvals per ready vote, so the incorporation races start approved.
+insert into public.group_vote_ballots (vote_id, user_id, value)
+  select v.id, m.user_id, 'approve' from public.group_votes v
+  join (values ('${voterOne}'), ('${voterTwo}')) as m(user_id) on true
+  where v.status = 'approved';
 `;
 
 // Identifiers are resolved as the database owner so no fixture read depends on
@@ -121,7 +135,11 @@ const identifiers = `
 select json_build_object(
   'admissionOne', (select id from public.groups where owner_id = '${ownerOne}'),
   'admissionTwo', (select id from public.groups where owner_id = '${ownerTwo}'),
-  'vote', (select id from public.group_votes limit 1)
+  'ballotVote', (select id from public.group_votes where addition = array['race_version_b']),
+  'voteC', (select id from public.group_votes where addition = array['race_version_c']),
+  'voteD', (select id from public.group_votes where addition = array['race_version_d']),
+  'voteE1', (select id from public.group_votes where addition = array['race_version_e'] order by id limit 1),
+  'voteE2', (select id from public.group_votes where addition = array['race_version_e'] order by id offset 1 limit 1)
 )::text;
 `;
 
@@ -132,10 +150,17 @@ select json_build_object(
     from public.pack_publications p join public.groups g on g.id = p.group_id
     where g.owner_id = '${publisher}'),
   'activePublications', (select count(*) from public.pack_publications where is_active),
-  'ballots', (select count(*) from public.group_vote_ballots),
-  'approvedBallots', (select count(*) from public.group_vote_ballots where value = 'approve'),
-  'voteStatus', (select status from public.group_votes limit 1),
-  'resolvedAtSet', (select resolved_at is not null from public.group_votes limit 1)
+  'ballots', (select count(*) from public.group_vote_ballots b join public.group_votes v on v.id = b.vote_id
+    where v.addition = array['race_version_b']),
+  'approvedBallots', (select count(*) from public.group_vote_ballots b join public.group_votes v on v.id = b.vote_id
+    where v.addition = array['race_version_b'] and b.value = 'approve'),
+  'voteStatus', (select status from public.group_votes where addition = array['race_version_b']),
+  'resolvedAtSet', (select resolved_at is not null from public.group_votes where addition = array['race_version_b']),
+  'draftRevision', (select revision from public.pack_drafts d join public.groups g on g.id = d.group_id
+    where g.owner_id = '${voteOwner}'),
+  'draftVersions', (select to_json(version_ids) from public.pack_drafts d join public.groups g on g.id = d.group_id
+    where g.owner_id = '${voteOwner}'),
+  'incorporatedVotes', (select count(*) from public.group_votes where incorporated_at is not null)
 )::text;
 `;
 
@@ -151,7 +176,10 @@ try {
 
   const resolved = await psql(identifiers);
   if (resolved.code !== 0) throw new Error(`Identifier lookup failed: ${resolved.err}`);
-  const ids = JSON.parse(resolved.out) as { admissionOne: string; admissionTwo: string; vote: string };
+  const ids = JSON.parse(resolved.out) as {
+    admissionOne: string; admissionTwo: string; ballotVote: string;
+    voteC: string; voteD: string; voteE1: string; voteE2: string;
+  };
 
   const [admissionHolder, admissionContender] = await race(
     { subject: joiner, statement: `select public.join_public_group('${ids.admissionOne}'::uuid)` },
@@ -175,7 +203,7 @@ try {
     `first=${firstPublish.code} second=${secondPublish.code} ${firstPublish.err} ${secondPublish.err}`,
   );
 
-  const ballot = `select public.cast_group_vote('${ids.vote}'::uuid, 'approve')`;
+  const ballot = `select public.cast_group_vote('${ids.ballotVote}'::uuid, 'approve')`;
   const [firstBallot, secondBallot] = await race(
     { subject: voterOne, statement: ballot },
     { subject: voterTwo, statement: ballot },
@@ -184,6 +212,58 @@ try {
     firstBallot.code === 0 && secondBallot.code === 0,
     "concurrent ballots both complete",
     `first=${firstBallot.code} second=${secondBallot.code} ${firstBallot.err} ${secondBallot.err}`,
+  );
+
+  // Two independent approved votes incorporated at once: the group lock serializes
+  // them, so exactly one writes and the other is refused for the moved revision.
+  const incorporate = (id: string, revision: number) =>
+    `select public.incorporate_group_vote('${id}'::uuid, ${revision})`;
+  const run = async (subject: string, statement: string) =>
+    psql(session(subject, statement, 0));
+
+  const [firstIndependent, secondIndependent] = await race(
+    { subject: voteOwner, statement: incorporate(ids.voteC, 1) },
+    { subject: voteOwner, statement: incorporate(ids.voteD, 1) },
+  );
+  expect(
+    (firstIndependent.code === 0) !== (secondIndependent.code === 0) &&
+      (firstIndependent.err.includes("Draft revision conflict.") ||
+        secondIndependent.err.includes("Draft revision conflict.")),
+    "concurrent independent incorporations keep exactly one draft write",
+    `first=${firstIndependent.code} second=${secondIndependent.code} ${firstIndependent.err} ${secondIndependent.err}`,
+  );
+
+  const independentWinner = firstIndependent.code === 0 ? ids.voteC : ids.voteD;
+  const independentLoser = firstIndependent.code === 0 ? ids.voteD : ids.voteC;
+  const retried = await run(voteOwner, incorporate(independentLoser, 2));
+  expect(retried.code === 0,
+    "the refused independent incorporation succeeds against the new revision",
+    `code=${retried.code} ${retried.err}`);
+
+  // Two approved votes for one addition, incorporated at once, then the refused one
+  // incorporated twice: one discharge, one already-incorporated refusal, one copy.
+  const [firstDuplicate, secondDuplicate] = await race(
+    { subject: voteOwner, statement: incorporate(ids.voteE1, 3) },
+    { subject: voteOwner, statement: incorporate(ids.voteE2, 3) },
+  );
+  expect(
+    (firstDuplicate.code === 0) !== (secondDuplicate.code === 0) &&
+      (firstDuplicate.err.includes("Draft revision conflict.") ||
+        secondDuplicate.err.includes("Draft revision conflict.")),
+    "concurrent duplicate approvals keep exactly one draft write",
+    `first=${firstDuplicate.code} second=${secondDuplicate.code} ${firstDuplicate.err} ${secondDuplicate.err}`,
+  );
+
+  const duplicateLoser = firstDuplicate.code === 0 ? ids.voteE2 : ids.voteE1;
+  const [firstRetry, secondRetry] = await race(
+    { subject: voteOwner, statement: incorporate(duplicateLoser, 4) },
+    { subject: voteOwner, statement: incorporate(duplicateLoser, 4) },
+  );
+  expect(
+    firstRetry.code === 0 && secondRetry.code !== 0 &&
+      secondRetry.err.includes("Vote is already incorporated."),
+    "one vote incorporated twice is discharged once",
+    `first=${firstRetry.code} second=${secondRetry.code} ${secondRetry.err}`,
   );
 
   const snapshot = await psql(observation);
@@ -207,6 +287,17 @@ try {
   expect(observed.voteStatus === "approved" && observed.resolvedAtSet === true,
     "the majority closes the vote exactly once",
     `status=${String(observed.voteStatus)} resolvedAtSet=${String(observed.resolvedAtSet)}`);
+
+  const storedVersions = observed.draftVersions as string[];
+  expect(observed.draftRevision === 4 &&
+    storedVersions.filter((id) => id === "race_version_c").length === 1 &&
+    storedVersions.filter((id) => id === "race_version_d").length === 1 &&
+    storedVersions.filter((id) => id === "race_version_e").length === 1,
+  "the incorporation races store every addition exactly once",
+  `revision=${String(observed.draftRevision)} versions=${JSON.stringify(storedVersions)}`);
+  expect(observed.incorporatedVotes === 4,
+    "every approved vote is discharged exactly once",
+    `incorporatedVotes=${String(observed.incorporatedVotes)}`);
 } finally {
   const cleanup = await psql(`
     delete from public.groups where owner_id like 'user_race%';

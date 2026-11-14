@@ -24,6 +24,7 @@ For the latest state and next action, use the [current handoff](../handoff.md).
 | [doc10: Group lifecycle and access proof](doc10-groups-lifecycle-proof.md) | 2026-11-13 | Pin request-page cursors, page clamping and invalidated tokens in pgTAP, and exercise the whole group lifecycle with signed tokens on the local PostgREST surface, including immediate role changes and both departure paths. |
 | [doc11: Pack assembly and dependency approval](doc11-pack-assembly.md) | 2026-11-13 | Name every proposed mod and dependency in pack resolution, and pin the approve, cancel, removal, settings-change and atomic-rejection journey without adding an endpoint or a migration. |
 | [doc12: Published versions and sharing](doc12-published-sharing.md) | 2026-11-13 | Pin the member-only read and export contract, the unavailable-upstream export mapping and the immutability of frozen selections across draft edits, on the HTTP, pgTAP and signed-token PostgREST surfaces, and add the hosted live check that awaits authorization. |
+| [doc13: Voting obligations and lifecycle](doc13-voting-obligations.md) | 2026-11-13 | Decide that binding is an owner obligation that blocks nothing, discharge an already-satisfied approved addition without rewriting the draft, and pin the conflict, transfer and concurrency behaviour on the pgTAP, HTTP, signed-token PostgREST, race and hosted live surfaces. |
 
 ## Add the next record
 

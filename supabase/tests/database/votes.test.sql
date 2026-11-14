@@ -222,7 +222,90 @@ select pg_temp.expect_error(
   format($q$select public.incorporate_group_vote(%L,0)$q$, current_setting('test.vote_one')),
   'Only the group owner may incorporate votes.');
 
+-- An approved vote is a pending obligation read from the vote list, and a draft save
+-- neither discharges it nor changes its electorate.
+select set_config('request.jwt.claims', '{"sub":"user_voteowner","role":"authenticated"}', true);
+select pg_temp.assert(pg_temp.vote(current_setting('test.vote_four'))->>'status' = 'approved', 'approved vote reads as a pending obligation');
+select pg_temp.assert(pg_temp.vote(current_setting('test.vote_four'))->>'incorporatedAt' is null, 'a pending obligation has no incorporation timestamp');
+select public.save_pack_draft(current_setting('test.vote_group')::uuid, '1.21.1', 'fabric',
+  array['main-v', 'dep-v', 'add-v'], 2);
+select pg_temp.assert(public.my_pack_draft()->'draft'->>'revision' = '3', 'the draft save moved the revision');
+select pg_temp.assert(pg_temp.vote(current_setting('test.vote_four'))->>'incorporatedAt' is null, 'a draft save leaves the obligation pending');
+select pg_temp.assert(pg_temp.vote(current_setting('test.vote_four'))->>'electorateSize' = '3', 'a draft save keeps the frozen electorate');
+
+-- Two approved votes for the same addition: the first appends it, the second is
+-- satisfied without rewriting the draft, and a stale revision is still a conflict.
+select set_config('test.vote_six', public.open_group_vote(current_setting('test.vote_group')::uuid, '1.21.1', 'fabric',
+  array['dup-v'], pg_temp.vote_proposal(array['dup-v']), 24, 3)->>'id', true);
+select set_config('test.vote_seven', public.open_group_vote(current_setting('test.vote_group')::uuid, '1.21.1', 'fabric',
+  array['dup-v'], pg_temp.vote_proposal(array['dup-v']), 24, 3)->>'id', true);
+select set_config('request.jwt.claims', '{"sub":"user_votelate","role":"authenticated"}', true);
+select public.cast_group_vote(current_setting('test.vote_six')::uuid, 'approve');
+select public.cast_group_vote(current_setting('test.vote_seven')::uuid, 'approve');
+select set_config('request.jwt.claims', '{"sub":"user_voteowner","role":"authenticated"}', true);
+select public.cast_group_vote(current_setting('test.vote_six')::uuid, 'approve');
+select public.cast_group_vote(current_setting('test.vote_seven')::uuid, 'approve');
+select pg_temp.assert(pg_temp.vote(current_setting('test.vote_six'))->>'status' = 'approved', 'the first duplicate vote approves');
+select pg_temp.assert(pg_temp.vote(current_setting('test.vote_seven'))->>'status' = 'approved', 'a second vote for one addition approves independently');
+select pg_temp.expect_error(
+  format($q$select public.incorporate_group_vote(%L,2)$q$, current_setting('test.vote_six')),
+  'Draft revision conflict.');
+select public.incorporate_group_vote(current_setting('test.vote_six')::uuid, 3);
+select pg_temp.assert(public.my_pack_draft()->'draft'->'versionIds' = '["main-v","dep-v","add-v","dup-v"]'::jsonb, 'the first approved addition is appended');
+select pg_temp.assert(public.my_pack_draft()->'draft'->>'revision' = '4', 'the appended addition bumps the revision');
+select pg_temp.expect_error(
+  format($q$select public.incorporate_group_vote(%L,3)$q$, current_setting('test.vote_seven')),
+  'Draft revision conflict.');
+select public.incorporate_group_vote(current_setting('test.vote_seven')::uuid, 4);
+select pg_temp.assert(public.my_pack_draft()->'draft'->>'revision' = '4', 'a satisfied addition does not bump the revision');
+select pg_temp.assert(public.my_pack_draft()->'draft'->'versionIds' = '["main-v","dep-v","add-v","dup-v"]'::jsonb, 'a satisfied addition is not stored twice');
+select pg_temp.assert(pg_temp.vote(current_setting('test.vote_seven'))->>'incorporatedAt' is not null, 'a satisfied addition is discharged');
+select pg_temp.expect_error(
+  format($q$select public.incorporate_group_vote(%L,4)$q$, current_setting('test.vote_seven')),
+  'Vote is already incorporated.');
+
+-- A partially present addition is still a conflict that writes nothing, and the owner
+-- can discharge it after the draft no longer overlaps the vote.
+select set_config('test.vote_eight', public.open_group_vote(current_setting('test.vote_group')::uuid, '1.21.1', 'fabric',
+  array['partial-a', 'partial-b'], pg_temp.vote_proposal(array['partial-a', 'partial-b']), 24, 4)->>'id', true);
+select set_config('request.jwt.claims', '{"sub":"user_votelate","role":"authenticated"}', true);
+select public.cast_group_vote(current_setting('test.vote_eight')::uuid, 'approve');
+select set_config('request.jwt.claims', '{"sub":"user_voteowner","role":"authenticated"}', true);
+select public.cast_group_vote(current_setting('test.vote_eight')::uuid, 'approve');
+select public.save_pack_draft(current_setting('test.vote_group')::uuid, '1.21.1', 'fabric',
+  array['main-v', 'dep-v', 'add-v', 'dup-v', 'partial-a'], 4);
+select pg_temp.expect_error(
+  format($q$select public.incorporate_group_vote(%L,5)$q$, current_setting('test.vote_eight')),
+  'A proposed version is already in the draft.');
+select pg_temp.assert(public.my_pack_draft()->'draft'->>'revision' = '5', 'a partial overlap writes no draft revision');
+select pg_temp.assert(pg_temp.vote(current_setting('test.vote_eight'))->>'incorporatedAt' is null, 'a partial overlap leaves the vote pending');
+select public.save_pack_draft(current_setting('test.vote_group')::uuid, '1.21.1', 'fabric',
+  array['main-v', 'dep-v', 'add-v', 'dup-v'], 5);
+select public.incorporate_group_vote(current_setting('test.vote_eight')::uuid, 6);
+select pg_temp.assert(public.my_pack_draft()->'draft'->'versionIds' = '["main-v","dep-v","add-v","dup-v","partial-a","partial-b"]'::jsonb, 'the owner can discharge the vote once the draft no longer overlaps');
+select pg_temp.assert(pg_temp.vote(current_setting('test.vote_eight'))->>'incorporatedAt' is not null, 'the discharged vote records the incorporation');
+
+-- The obligation belongs to the group: a previous owner cannot discharge it.
+select set_config('test.vote_nine', public.open_group_vote(current_setting('test.vote_group')::uuid, '1.21.1', 'fabric',
+  array['owner-v'], pg_temp.vote_proposal(array['owner-v']), 24, 7)->>'id', true);
+select set_config('request.jwt.claims', '{"sub":"user_votelate","role":"authenticated"}', true);
+select public.cast_group_vote(current_setting('test.vote_nine')::uuid, 'approve');
+select set_config('request.jwt.claims', '{"sub":"user_voteowner","role":"authenticated"}', true);
+select public.cast_group_vote(current_setting('test.vote_nine')::uuid, 'approve');
+select public.transfer_ownership('user_votelate');
+select pg_temp.assert(pg_temp.vote(current_setting('test.vote_nine'))->>'status' = 'approved', 'a transfer leaves the approved vote approved');
+select pg_temp.assert(pg_temp.vote(current_setting('test.vote_nine'))->>'incorporatedAt' is null, 'a transfer leaves the obligation pending');
+select pg_temp.expect_error(
+  format($q$select public.incorporate_group_vote(%L,7)$q$, current_setting('test.vote_nine')),
+  'Only the group owner may incorporate votes.');
+select pg_temp.assert(public.my_pack_draft()->'draft'->>'revision' = '7', 'a refused incorporation writes nothing');
+select set_config('request.jwt.claims', '{"sub":"user_votelate","role":"authenticated"}', true);
+select public.incorporate_group_vote(current_setting('test.vote_nine')::uuid, 7);
+select pg_temp.assert(public.my_pack_draft()->'draft'->'versionIds' = '["main-v","dep-v","add-v","dup-v","partial-a","partial-b","owner-v"]'::jsonb, 'the current owner discharges the obligation');
+select pg_temp.assert(pg_temp.vote(current_setting('test.vote_nine'))->>'incorporatedAt' is not null, 'the transferred obligation records its incorporation');
+
 -- Keyset pagination over several votes, then cascade deletion with the group.
+select set_config('request.jwt.claims', '{"sub":"user_voteother","role":"authenticated"}', true);
 select public.open_group_vote(current_setting('test.other_group')::uuid, '1.21.1', 'fabric', array['one-v'], pg_temp.vote_proposal(array['one-v']), 24, 0);
 select public.open_group_vote(current_setting('test.other_group')::uuid, '1.21.1', 'fabric', array['two-v'], pg_temp.vote_proposal(array['two-v']), 24, 0);
 select public.open_group_vote(current_setting('test.other_group')::uuid, '1.21.1', 'fabric', array['three-v'], pg_temp.vote_proposal(array['three-v']), 24, 0);

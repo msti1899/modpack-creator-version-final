@@ -16,8 +16,9 @@ merge `b9167c0`) the completion-plan M5 group lifecycle proof
 ([PR #62](https://github.com/msti1899/modpack-creator-version-final/pull/62), merge
 `d970c39`) and the completion-plan M6 publication proof
 ([PR #64](https://github.com/msti1899/modpack-creator-version-final/pull/64), merge
-`717da47`). Verify the branch and HEAD against this snapshot before resuming.
-This is a resume point, not a session history.
+`717da47`), plus the completion-plan M7 voting-obligation slice on
+`feat/voting-obligations`. Verify the branch and HEAD against this snapshot before
+resuming. This is a resume point, not a session history.
 
 ## Merged milestones
 
@@ -87,11 +88,10 @@ Still unproven after the local database work:
 - Mutation testing of the lock discipline: the new race checks are designed so that
   removing a lock or the one-group index changes the observed result, but no mutation
   was run.
-- A real-session publication and voting flow. The group lifecycle is now proven both with
-  locally signed tokens and with real hosted Clerk sessions
-  ([doc10](delivery/doc10-groups-lifecycle-proof.md)). The publication and votes migrations
-  were applied with authorization on
-  2026-11-13; schema readback is not functional proof. The upgrade runner passes in its
+- Real-session publication and voting are now proven with hosted Clerk sessions
+  ([doc12](delivery/doc12-published-sharing.md), [doc13](delivery/doc13-voting-obligations.md)).
+  Deadline expiry stays a read-time derivation proven in pgTAP only, because a hosted
+  proof would need a one-hour wait or a database write. The upgrade runner passes in its
   disposable local container; it is not a hosted-data upgrade exercise. Additional
   hosted operations need bounded authorization.
 - Native candidate review for milestone 5, and closure of the milestone 3 review that
@@ -383,6 +383,45 @@ eleven commits, one coherent work unit each. Native risk assessment returned med
 `under_budget`, so no candidate review was due. No deployment is recorded. Next action:
 re-run the live check after any change to the publication routes or the token template.
 
+## Backend completion M7: voting obligations and lifecycle (feat/voting-obligations)
+
+The seventh milestone of the [completion plan](plans/backend-completion.md) is
+implemented on `feat/voting-obligations`, cut from `origin/main` at `ddd1b8f` in its own
+worktree. The vote feature itself shipped in roadmap milestone 6, so this slice adds the
+decision M7 requires and the evidence the plan asks for.
+
+D7 now records, dated 2026-11-13, that binding is an obligation rather than a gate: an
+`approved` vote with `incorporatedAt: null` is pending, it is read from the existing vote
+list, it blocks no draft save, publication, activation, membership change or ownership
+transfer, ordering across several approved votes is the owner's choice, and the current
+owner is the only incorporator after a transfer. A conflicting pending addition is
+resolved by the draft's atomic contract: a different revision, changed settings and a
+partial overlap are 409 refusals that write nothing, while an addition already present in
+full is satisfied, records `incorporatedAt` and leaves the draft and its revision
+untouched. The new migration `20261113190000_vote_incorporation_satisfied.sql` carries
+that branch and was applied to the selected test project as the only pending migration.
+
+Proof on this branch: `bun run check` passes both typechecks with 165 tests and 2962
+assertions, up from 161 and 2880. The pgTAP vote suite gained 26 assertions, the independent verifier's probes became
+a seventh suite, and `bun run db:test` PASS with seven files and 218 tests. The signed-token PostgREST suite grew
+from 73 to 97 checks, and the real multi-session race suite from eight to fourteen,
+including two independent incorporations, a duplicate approved addition and one vote
+incorporated twice. Two mutations, one in the new SQL branch and one in the HTTP error
+map, made the new assertions fail and were reverted. The hosted live check passed 41
+checks with three real Clerk sessions and a live Modrinth proposal, and hosted readback
+after cleanup shows zero rows in every fixture table except the pre-existing
+`m4proof13` profile. See [doc13](delivery/doc13-voting-obligations.md) and the
+[feature log](../odd/tasks/completion-m7-voting-obligations.md).
+
+Native review ran the full four-lens pass at the owner's request and approved the
+candidate, burning its acknowledgement with no correction round; sixteen informational
+advisories are recorded in [doc13](delivery/doc13-voting-obligations.md) as later work.
+
+State: published as [PR #66](https://github.com/msti1899/modpack-creator-version-final/pull/66)
+on 2026-11-13, with the Backend checks passing in 44 seconds on the branch head; merge is a
+separate decision. Next action: re-run the live check after any change to the vote routes,
+the incorporation function or the token template, or merge the slice.
+
 ## Resume
 
 1. Verify the branch, commit and local changes against this snapshot. Preserve
@@ -400,12 +439,12 @@ re-run the live check after any change to the publication routes or the token te
    controls and a Clerk instance that never loads. That artifact produced and later
    withdrew a false defect report in [doc08](delivery/doc08-account-session-proof.md); an
    unhydrated page is evidence about the harness first, not about the app.
-5. Hosted state moved on 2026-11-13: all nine repository migrations are now applied to
-   the selected test project, including the publication and votes migrations. The owner
-   authorized that application, the project was linked with the owner's CLI session, and
-   the schema was read back afterwards. Hosted functional proof of the publication and
-   voting flows is still unproven and needs a real signed session. Do not access ambient
-   CLI sessions or credentials beyond authorized test projects.
+5. Hosted state moved on 2026-11-13: all ten repository migrations are applied to the
+   selected test project, including the publication, votes and vote-satisfaction
+   migrations, and the publication and voting journeys have hosted real-session proof in
+   [doc12](delivery/doc12-published-sharing.md) and
+   [doc13](delivery/doc13-voting-obligations.md). Do not access ambient CLI sessions or
+   credentials beyond authorized test projects.
 5. Remaining unverified areas that need separate accounts or mailboxes are unchanged:
    full Google/Discord OAuth completion and real email delivery.
 

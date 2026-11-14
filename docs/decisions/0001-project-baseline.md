@@ -114,6 +114,29 @@ the original context. Unresolved items are listed separately.
   concrete mod addition (decided on 2026-11-12).
 - A vote that reaches its deadline without the required majority ends rejected.
   Expiry and rejection are terminal and never add the mod.
+- Binding is an obligation, not a gate (decided on 2026-11-13). An `approved`
+  vote whose `incorporatedAt` is null is a pending obligation of the group, read
+  from the existing vote list rather than from a new endpoint. It blocks no draft
+  save, publication, activation, membership change or ownership transfer, and the
+  approval of a second vote is never blocked by the first. Ordering across several
+  approved votes is the owner's choice: there is no queue, no automatic merge and
+  no batch incorporation.
+- The obligation belongs to the group, not to the person who opened the vote.
+  The current owner at incorporation time is the only one who may discharge it; a
+  previous owner is refused with `Only the group owner may incorporate votes.`
+  even for a vote they created. Transferring ownership neither dissolves an
+  approved vote nor changes its frozen electorate.
+- Conflicting pending additions are resolved by the draft's atomic contract, never
+  by merging or deleting votes (decided on 2026-11-13). Each incorporation
+  validates the current draft revision and settings. A different revision returns
+  409 `Draft revision conflict.`; draft settings that no longer match the vote
+  return 409 `Vote does not match the draft settings.`; an addition already present
+  in full, with matching settings, is satisfied, so the incorporation records
+  `incorporatedAt` and leaves the draft and its revision untouched; a partially
+  present addition returns 409 `A proposed version is already in the draft.` and
+  writes nothing. Every rejection leaves the draft, the vote and every ballot
+  unchanged. The owner can always reach a state where the addition is either
+  absent, and therefore appended, or fully present, and therefore discharged.
 
 ## Technical and operational decisions
 
