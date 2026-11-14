@@ -6,6 +6,7 @@ import { groupRoutes } from "./groups";
 import { packDraftRoutes } from "./pack-drafts";
 import { packPublicationRoutes } from "./pack-publications";
 import { voteRoutes } from "./votes";
+import { webhookRoutes, type WebhookOptions } from "./webhooks";
 import type { DatabaseOptions } from "./database";
 import { requireIdentity, type IdentityEnv, type IdentityOptions } from "./identity";
 
@@ -15,10 +16,14 @@ export function createApp(fetcher: Fetcher = fetch, identity: IdentityOptions = 
   authorizedParties: process.env.CLERK_AUTHORIZED_PARTIES?.split(",").map((value) => value.trim()),
 }, profileFetcher: ProfileFetcher = fetch, database: DatabaseOptions = {
   url: process.env.SUPABASE_URL, publishableKey: process.env.SUPABASE_PUBLISHABLE_KEY,
+}, webhooks: WebhookOptions = {
+  signingSecret: process.env.CLERK_WEBHOOK_SIGNING_SECRET,
+  secretKey: process.env.SUPABASE_SECRET_KEY,
 }) {
   const app = new Hono<IdentityEnv>();
   app.get("/health", (c) => c.json({ status: "ok", service: "modpack-api" }));
   app.get("/me", requireIdentity(identity), (c) => c.json({ user: c.get("identity") }));
+  app.route("/webhooks", webhookRoutes(webhooks, profileFetcher, database));
   app.route("/profile", profileRoutes(identity, profileFetcher, database));
   app.route("/groups", groupRoutes(identity, profileFetcher, database));
   const packRoutes = packDraftRoutes(identity, fetcher, profileFetcher, database);
