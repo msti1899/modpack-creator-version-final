@@ -220,6 +220,27 @@ test("an upstream failure offers a retry that recovers", async ({ page }) => {
   await expect(page.getByRole("list", { name: "Mod results" })).toBeVisible();
 });
 
+test("a failed reload drops the loaded rows and the error says so", async ({ page }) => {
+  let attempts = 0;
+  await page.route("**/api/mods?*", async (route) => {
+    attempts += 1;
+    if (attempts === 1) {
+      await route.fulfill({ json: pageOf(0) });
+      return;
+    }
+    await route.fulfill({ status: 502, json: { error: "Could not search the mod catalog." } });
+  });
+
+  await page.goto("/mods");
+  await expect(page.getByRole("list", { name: "Mod results" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Optimization", exact: true }).click();
+
+  const alert = page.getByRole("alert").filter({ hasText: "The mod catalog is unavailable." });
+  await expect(alert).toContainText("the request failed and the previous results are gone");
+  await expect(page.getByRole("list", { name: "Mod results" })).toHaveCount(0);
+});
+
 test("the end of the loaded page reports the total and loads the next page", async ({ page }) => {
   await openBrowser(page);
 
@@ -296,9 +317,13 @@ for (const state of [
 ]) {
   test(`axe finds no serious or critical violation at ${state.label}`, async ({ page }) => {
     await page.setViewportSize({ width: state.width, height: state.height });
+    // The themed and selected surfaces animate their colour for 150ms, so the
+    // snapshot waits for the transition to settle before axe reads contrast.
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await openBrowser(page);
     if (state.dark) await page.getByRole("button", { name: "Dark theme" }).click();
     if (state.open) await page.getByRole("button", { name: "Filters", exact: true }).click();
+    await page.waitForTimeout(250);
 
     const results = await new AxeBuilder({ page }).withTags(blockingTags).analyze();
     const blocking = results.violations.filter((violation) =>

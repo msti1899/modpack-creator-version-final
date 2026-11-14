@@ -517,7 +517,8 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
       </span>
       <h3 className="mb-1 text-[15px] font-semibold tracking-[-0.008em]">The mod catalog is unavailable.</h3>
       <p className="mb-3.5 max-w-[36ch] text-[12.5px] leading-relaxed">
-        The catalog response could not be read. The results you already have are unchanged.
+        The catalog response could not be read, so the request failed and the previous results are
+        gone. Try again to reload them.
       </p>
       <Button type="button" variant="secondary" onClick={onRetry} className={secondaryButton}>
         <RefreshCw className="size-3.5" aria-hidden="true" />
