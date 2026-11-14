@@ -162,11 +162,13 @@ plan alone beyond what its records name.
   no longer act passes to the longest-standing remaining member, and every other case reuses
   ADR0004. The shared routine is provider-neutral, `delete_account_for` is executable by
   `service_role` only, and the route fails closed without its signing secret or secret key.
-  Local evidence: `bun run check` 190 tests and 3176 assertions, `bun run db:test` PASS with
-  nine files and 250 tests, and 136 signed-token PostgREST checks, up from 126. The endpoint
-  is not registered in Clerk because that needs a public URL; no hosted project or provider
-  setting was touched. See [doc17](../delivery/doc17-account-reconciliation.md). Not
-  published, not merged.
+  Local evidence: `bun run check` 192 tests and 3196 assertions, `bun run db:test` PASS with
+  nine files and 250 tests, and 136 signed-token PostgREST checks, up from 126. An
+  independent read-only pass found no blocker and two advisories, both fixed: impossible
+  payloads that claimed a succession without a surviving group, and a body bound that trusted
+  a declared length. The endpoint is not registered in Clerk because that needs a public URL;
+  no hosted project or provider setting was touched. See
+  [doc17](../delivery/doc17-account-reconciliation.md). Not published, not merged.
 
 - 2026-11-14: M8, account deletion and exceptional lifecycle, was implemented on
   `feat/account-deletion` from `origin/main` at `afea8bf`. ADR0004 decides that deletion is

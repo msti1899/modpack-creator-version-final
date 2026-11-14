@@ -29,6 +29,28 @@ async function json(stream: ReadableStream<Uint8Array> | null, limit: number): P
   return JSON.parse(Buffer.concat(chunks).toString("utf8"));
 }
 
+// The signed payload must be read here anyway: verification hashes the exact bytes, and the
+// size must be bounded before an unauthenticated caller can make the process buffer it.
+async function body(stream: ReadableStream<Uint8Array> | null, limit: number): Promise<Uint8Array> {
+  const reader = stream?.getReader();
+  if (!reader) return new Uint8Array();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > limit) { await reader.cancel(); throw new WebhookFailure(413, "Webhook body is too large."); }
+      chunks.push(value);
+    }
+  } finally { reader.releaseLock(); }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return bytes;
+}
+
 // Clerk delivers identity events here. Only `user.deleted` writes anything, the signature is
 // the only authority, and every missing input fails closed instead of partially applying.
 export function webhookRoutes(options: WebhookOptions, fetcher: WebhookFetcher, database: DatabaseOptions) {
@@ -41,9 +63,13 @@ export function webhookRoutes(options: WebhookOptions, fetcher: WebhookFetcher, 
         throw new WebhookFailure(413, "Webhook body is too large.");
       }
       if (!options.signingSecret) throw new WebhookFailure(503, "Webhook verification is not configured.");
+      const bytes = await body(c.req.raw.body, maxBody);
       let event: { type?: unknown; data?: { id?: unknown } };
       try {
-        event = await verifyWebhook(c.req.raw, { signingSecret: options.signingSecret }) as typeof event;
+        // A bounded body is re-wrapped so verification still hashes the exact signed bytes.
+        const request = new Request(c.req.raw.url,
+          { method: "POST", headers: c.req.raw.headers, body: bytes.buffer as ArrayBuffer });
+        event = await verifyWebhook(request, { signingSecret: options.signingSecret }) as typeof event;
       } catch {
         // Missing headers and a wrong secret are the same refusal: the caller is not Clerk.
         throw new WebhookFailure(401, "Invalid webhook signature.");
@@ -68,11 +94,13 @@ export function webhookRoutes(options: WebhookOptions, fetcher: WebhookFetcher, 
       if (response.status !== 200 || !value || typeof value !== "object" || Array.isArray(value)) throw new Error();
       const stored = value as { deleted?: unknown; groupId?: unknown; groupDeleted?: unknown; transferredTo?: unknown };
       const groupId = typeof stored.groupId === "string" && uuid.test(stored.groupId) ? stored.groupId : null;
+      // Succession can only exist on a surviving group the deleted account owned, so a
+      // payload that claims a successor in any other shape is refused instead of reported.
+      const successor = stored.transferredTo !== null && (typeof stored.transferredTo !== "string" ||
+        !subject.test(stored.transferredTo) || groupId === null || stored.groupDeleted !== false);
       if (typeof stored.deleted !== "boolean" || typeof stored.groupDeleted !== "boolean" ||
         (stored.groupId !== null && groupId === null) || (groupId === null && stored.groupDeleted) ||
-        (stored.deleted === false && groupId !== null) ||
-        (stored.transferredTo !== null &&
-          (typeof stored.transferredTo !== "string" || !subject.test(stored.transferredTo)))) throw new Error();
+        (stored.deleted === false && groupId !== null) || successor) throw new Error();
       return c.json({ received: true });
     } catch (error) {
       const fault = error instanceof WebhookFailure ? error

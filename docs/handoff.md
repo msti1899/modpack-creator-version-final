@@ -523,7 +523,7 @@ without `CLERK_WEBHOOK_SIGNING_SECRET` or `SUPABASE_SECRET_KEY`, ignores every o
 type, and writes through a `service_role`-only routine that no client role can reach.
 
 Observed on 2026-11-14 with the local disposable stack: `bun run check` passes both
-typechecks with 190 tests and 3176 assertions plus the web suite, `bun run db:test` is PASS
+typechecks with 192 tests and 3196 assertions plus the web suite, `bun run db:test` is PASS
 with nine files and 250 tests, and `bun run db:test:postgrest` passes 136 of 136 checks, up
 from 97 before the milestone. RED was observed before the implementation by hiding each
 route and by local database mutations that each made the new assertions fail; all were
@@ -532,15 +532,16 @@ reverted with `bun run db:reset`. The only changed pre-existing expectation is t
 [doc16](delivery/doc16-account-deletion.md), [doc17](delivery/doc17-account-reconciliation.md)
 and the [feature log](../odd/tasks/completion-m8-account-deletion.md).
 
-Independent read-only verification ran in a fresh context and found one blocker the slice
-caused: the ballot page required a 3–20 character username while the database returns
-`username: null` for a retained tombstone, so a surviving group's ballot page answered
-`502` after a member deleted their account. That combination was unreachable before
-deletion existed. It is fixed in `449c8aa`, with the verifier's probe committed as
-`apps/api/tests/vote-tombstones.test.ts`; its payload-combination advisory was fixed in the
-same pass, and a recheck limited to that blocker and advisory confirmed the blocker closed
-on 2026-11-14. The provider addition has its own stub-driven suite and database probes; it
-has not been independently verified.
+Independent read-only verification ran twice in fresh contexts. The first pass found one
+blocker the session slice caused: the ballot page required a 3–20 character username while
+the database returns `username: null` for a retained tombstone, so a surviving group's
+ballot page answered `502` after a member deleted their account. That combination was
+unreachable before deletion existed. It is fixed in `449c8aa`, with the verifier's probe
+committed as `apps/api/tests/vote-tombstones.test.ts`; a recheck confirmed it closed. The
+provider pass found no blocker and two advisories, both fixed: impossible payloads that
+claimed a succession without a surviving group were acknowledged, and the body bound trusted
+a declared length so a streamed oversized body was buffered in full. Its probes are
+committed and the pgTAP suite gained the non-insertion-order succession case.
 
 Registering the Clerk endpoint and its signing secret needs a public URL, so it waits on a
 deployment decision; until then a Clerk-only deletion in a live environment is still not

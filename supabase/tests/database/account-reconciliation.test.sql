@@ -204,5 +204,25 @@ select throws_ok($$select public.delete_account_for('user_recheir')$$, '42501', 
 select throws_ok($$select public.delete_account_as('user_recheir', true)$$, '42501', null,
   'An authenticated session cannot reach the shared helper');
 
+-- Case A2: the successor is chosen by joined_at, not by the order rows were inserted.
+reset role;
+insert into public.profiles (user_id, username) values
+  ('user_recorder', 'RecOrder'), ('user_recorderlate', 'RecOrderLate'), ('user_recorderearl', 'RecOrderEarl');
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"user_recorder","role":"authenticated"}', true);
+select public.create_group('Reconcile Order', 'public');
+select set_config('probe.order', public.my_group()->>'id', true);
+reset role;
+insert into public.group_members (group_id, user_id, joined_at) values
+  (current_setting('probe.order')::uuid, 'user_recorderlate', '2026-01-02'),
+  (current_setting('probe.order')::uuid, 'user_recorderearl', '2026-01-01');
+set local role service_role;
+select set_config('probe.result', public.delete_account_for('user_recorder')::text, true);
+reset role;
+select pg_temp.assert(current_setting('probe.result')::jsonb->>'transferredTo' = 'user_recorderearl',
+  'The earliest joined_at wins even when its row was inserted second');
+select pg_temp.assert(pg_temp.group_owner(current_setting('probe.order')::uuid) = 'user_recorderearl',
+  'The non-insertion-order successor is stored');
+
 select * from finish();
 rollback;

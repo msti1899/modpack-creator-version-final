@@ -159,9 +159,18 @@ ADR0004 (S1-S10) and the provider reconciliation decided later in ADR0005 (S11-S
   service-role call, an authenticated refusal and an idempotent repeat. Route: inline.
   Status: complete: 136 of 136 checks, up from 126. Risk: items 1 and 6.
 - T12 [S15, S16] Run the full local evidence set and record doc17, the reference, the guide,
-  the plan, the handoff and this log. Route: inline. Status: complete. `bun run check` 190
-  tests and 3176 assertions; `bun run db:test` 9 files and 250 tests. No provider setting was
-  configured and no independent verification ran for the provider addition. Risk: none.
+  the plan, the handoff and this log. Route: inline. Status: complete. `bun run check` 192
+  tests and 3196 assertions; `bun run db:test` 9 files and 250 tests. No provider setting was
+  configured. Risk: none.
+- T13 [S11-S16] Independent read-only verification of the provider range in a fresh context.
+  Route: delegated verification. Status: complete on 2026-11-14. No blocker: it re-ran all
+  three runners, re-derived the signature and grant REDs, and confirmed the grants, the
+  succession rule (including a non-insertion-order case and a tie-break), the sealed refusals
+  and the byte-identical `DELETE /profile` contract. Two advisories were fixed with new RED
+  evidence: three impossible payloads that claimed a succession without a surviving group
+  were acknowledged as success, and the 64 KiB bound trusted a declared length so a streamed
+  oversized body was buffered in full. Its probes are committed, and the pgTAP suite gained
+  the non-insertion-order succession case. Risk: items 1, 2 and 3.
 
 ## Log
 

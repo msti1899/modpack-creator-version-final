@@ -34,11 +34,12 @@ and a rule for an owner who can no longer act. The owner authorized that decisio
   or the shared helper.
 - New `apps/api/src/webhooks.ts` serves `POST /webhooks/clerk`. It fails closed with `503`
   when `CLERK_WEBHOOK_SIGNING_SECRET` is absent, answers `401` for a missing, wrong or stale
-  signature, refuses a declared body over 64 KiB with `413`, acknowledges every event other
-  than `user.deleted` with `200`, refuses a payload without a Clerk subject with `400`, and
-  writes through `SUPABASE_SECRET_KEY`. A refusal from the database is `503` when the
-  credential is wrong and `502` otherwise; the response never reports success for a payload
-  the database could not have produced.
+  signature, refuses a body over 64 KiB with `413` before verification — including a streamed
+  body that declares no length — acknowledges every event other than `user.deleted` with
+  `200`, refuses a payload without a Clerk subject with `400`, and writes through
+  `SUPABASE_SECRET_KEY`. A refusal from the database is `503` when the credential is wrong
+  and `502` otherwise; the response never reports success for a payload the database could
+  not have produced, including a claimed succession without a surviving group.
 - `database.ts` extracts the URL guard and adds the secret-key configuration, which accepts a
   current `sb_secret_` key or a legacy service-role JWT and rejects a publishable or
   wrongly-roled credential. `createApp` gains an optional webhook configuration, defaulting
@@ -56,14 +57,23 @@ Observed on 2026-11-14 against the local disposable stack, plus the stub-driven 
   probe, and `bun run db:test:postgrest` failed five checks starting at
   "An authenticated session cannot reconcile a provider deletion". Both mutations were local
   only and `bun run db:reset` restored the schema; both suites returned to PASS.
-- `bun run check` passes both typechecks, 190 Bun tests and 3176 assertions across 28 files
-  (up from 182 and 3090), plus the web suite's 15 tests. The new webhook suite is 8 tests and
-  86 assertions.
+- `bun run check` passes both typechecks, 192 Bun tests and 3196 assertions across 28 files
+  (up from 182 and 3090), plus the web suite's 15 tests. The new webhook suite is 10 tests
+  and 106 assertions.
 - `bun run db:test` PASS with nine files and 250 tests, up from eight and 239. The new file
-  contributes 11 TAP assertions and 20 internal probes.
+  contributes 11 TAP assertions and 22 internal probes.
 - `bun run db:test:postgrest` passes 136 of 136 checks, up from 126, including a real
   service-role reconciliation that transfers ownership to the longest-standing member, a
   refusal for an authenticated token and an idempotent repeat.
+- Independent read-only verification ran on 2026-11-14 in a fresh context over the provider
+  range and found no blocker. It re-ran all three runners, re-derived the signature and
+  grant REDs in a scratch copy, and confirmed the grants, the succession rule including a
+  non-insertion-order case and a tie-break, the sealed refusals and the byte-identical
+  `DELETE /profile` contract. Two advisories were fixed: three impossible database payloads
+  that claimed a succession without a surviving group were acknowledged, and the body bound
+  trusted a declared length so a streamed oversized body was fully buffered. Both now have
+  RED evidence and a committed regression test; the pgTAP suite gained the
+  non-insertion-order succession case.
 - Scope of the proof: the signature is computed in the test with the same standard-webhooks
   scheme Clerk uses, and the database write runs against real PostgREST with the stack's own
   service key. No request came from Clerk, no provider endpoint is registered and no hosted
@@ -73,7 +83,8 @@ Observed on 2026-11-14 against the local disposable stack, plus the stub-driven 
 
 - Implementation and documentation: complete on `feat/account-deletion` as additional work
   units on the M8 branch.
-- Review: not requested for this addition; doc16's independent verification ran before it.
+- Review: one independent read-only verification pass over the provider range; no blocker,
+  and its two advisories are fixed.
 - Publication, merge and deployment: not started. No pull request exists, no commit is
   pushed, and no provider setting was changed.
 

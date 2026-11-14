@@ -111,7 +111,44 @@ test("an oversized delivery is refused without verification", async () => {
   const response = await deliver(app, body, { ...signed(body), "content-length": String(body.length) });
   expect(response.status).toBe(413);
   expect(await response.json()).toEqual({ error: "Webhook body is too large." });
+  // A streamed request sends no length, so the bound has to hold in the read path.
+  const streamed = new Request("http://api.test/webhooks/clerk", { method: "POST",
+    headers: signed(body), body: new ReadableStream<Uint8Array>({
+      start(controller) { controller.enqueue(new TextEncoder().encode(body)); controller.close(); },
+    }), duplex: "half" } as RequestInit);
+  const streamedResponse = await app.fetch(streamed);
+  expect(streamedResponse.status).toBe(413);
+  expect(await streamedResponse.json()).toEqual({ error: "Webhook body is too large." });
   expect(calls).toBe(0);
+});
+
+test("a payload the routine cannot produce is never acknowledged", async () => {
+  for (const impossible of [
+    { deleted: true, groupId: "11111111-1111-4111-8111-111111111111", groupDeleted: true, transferredTo: "user_heir" },
+    { deleted: false, groupId: null, groupDeleted: false, transferredTo: "user_heir" },
+    { deleted: true, groupId: null, groupDeleted: false, transferredTo: "user_heir" },
+    { deleted: true, groupId: null, groupDeleted: false },
+  ]) {
+    const app = setup(async () => Response.json(impossible));
+    const response = await deliver(app, deleted);
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({ error: "Account service unavailable." });
+  }
+});
+
+test("every payload the routine can produce is still acknowledged", async () => {
+  for (const legitimate of [
+    { deleted: false, groupId: null, groupDeleted: false, transferredTo: null },
+    { deleted: true, groupId: null, groupDeleted: false, transferredTo: null },
+    { deleted: true, groupId: "11111111-1111-4111-8111-111111111111", groupDeleted: false, transferredTo: null },
+    { deleted: true, groupId: "11111111-1111-4111-8111-111111111111", groupDeleted: false, transferredTo: "user_heir" },
+    { deleted: true, groupId: "11111111-1111-4111-8111-111111111111", groupDeleted: true, transferredTo: null },
+  ]) {
+    const app = setup(async () => Response.json(legitimate));
+    const response = await deliver(app, deleted);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ received: true });
+  }
 });
 
 test("service failures stay distinct and never report success", async () => {
