@@ -1,0 +1,89 @@
+name: Frontend CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Web checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      CI: "true"
+    steps:
+      - name: Check out code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Install Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+      - name: Install frozen workspace dependencies
+        run: bun install --frozen-lockfile
+      - name: Lint web source
+        run: bun run lint
+      - name: Typecheck web
+        run: bun run --filter @modpack/web typecheck
+      - name: Test web with Vitest
+        run: bun run test:web
+      - name: Build web without provider credentials
+        run: bun run --filter @modpack/web build:public
+
+  browser:
+    name: Browser journeys
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      CI: "true"
+    steps:
+      - name: Check out code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Install Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+      - name: Install frozen workspace dependencies
+        run: bun install --frozen-lockfile
+      - name: Install Chromium for Playwright
+        run: bunx playwright install --with-deps chromium
+      - name: Run browser journeys with axe scans
+        run: bun run test:e2e
+
+  lighthouse:
+    name: Lighthouse
+    # Accessibility is asserted as an error and performance figures move between
+    # runs, so the audit gates main instead of every pull request. The per-PR
+    # accessibility gate is the axe scan in the browser job.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CI: "true"
+    steps:
+      - name: Check out code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Install Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+      - name: Install frozen workspace dependencies
+        run: bun install --frozen-lockfile
+      - name: Install Chromium for Lighthouse
+        run: bunx playwright install --with-deps chromium
+      - name: Audit the public page
+        run: bun run --filter @modpack/web audit
