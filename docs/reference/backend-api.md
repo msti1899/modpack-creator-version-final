@@ -390,6 +390,28 @@ project supports no version for returns 200 with an empty list, not an error. A 
 upstream entry fails the whole response with 502 rather than shortening the list. The route
 is a read: it writes nothing and never chooses a version for the caller.
 
+### GET /loader-builds
+
+Query parameters `loader` and `gameVersion` are both required, each once; the loader is
+`fabric`, `forge`, `neoforge` or `quilt`.
+
+Returns `{ recommended, builds: [{ build, stable }] }`, newest first and capped at the newest
+100 builds. `build` is the exact loader version a pack declares as `loaderVersion`.
+`recommended` names the newest build the source marks stable, or `null` when it marks none.
+
+The four loaders publish differently, so the mapping is explicit: Fabric and Quilt answer
+for one game version, Forge promotes a `recommended` and a `latest` build per game version,
+and NeoForge lists every artifact in one Maven metadata file where the artifact version
+starts with the game version minus a leading `1.` (`1.21.1` matches `21.1.*`). Quilt and
+NeoForge publish no stability flag; a build without a prerelease suffix is reported stable,
+and ordering never depends on it.
+
+A pair the loader publishes nothing for returns 200 with an empty list and a null
+recommendation. Upstream failure is 502, a timeout 504, and malformed or oversized data 502;
+no build is ever invented. The answer is cached in the API process for one hour per loader and
+game version, and a failed refresh serves the last good answer for that pair. Manual entry of a
+loader version remains valid in export and publication.
+
 ### GET /mods/:idOrSlug
 
 Returns one `ModSummary` for a project ID or slug. The route accepts no query
