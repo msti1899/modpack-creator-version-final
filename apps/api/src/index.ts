@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
-import { exportPack, modDetail, PackError, resolve, search, type Fetcher } from "./modrinth";
+import { exportPack, modDetail, PackError, projectVersions, resolve, search, type Fetcher } from "./modrinth";
 import { createMinecraftVersions } from "./selector";
 import { profileRoutes, type ProfileFetcher } from "./profiles";
 import { groupRoutes } from "./groups";
@@ -38,6 +38,8 @@ export function createApp(fetcher: Fetcher = fetch, identity: IdentityOptions = 
   const minecraftVersions = createMinecraftVersions(fetcher);
   app.get("/minecraft-versions", async (c) => c.json({ versions: await minecraftVersions() }));
   app.get("/mods", async (c) => c.json(await search(fetcher, new URL(c.req.url).searchParams)));
+  app.get("/mods/:idOrSlug/versions", async (c) =>
+    c.json(await projectVersions(fetcher, c.req.param("idOrSlug"), new URL(c.req.url).searchParams)));
   app.get("/mods/:idOrSlug", async (c) => {
     if ([...new URL(c.req.url).searchParams.keys()].length) throw new PackError("Invalid query parameter.", 400);
     return c.json(await modDetail(fetcher, c.req.param("idOrSlug")));
