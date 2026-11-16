@@ -373,6 +373,23 @@ An upstream failure serves the last successful list from the same process when o
 With nothing cached the route returns 502 (or 504 on timeout) with the error envelope; it
 never answers an empty list to hide a failure. The response is capped at 200 entries.
 
+### GET /mods/:idOrSlug/versions
+
+Query parameters `gameVersion` and `loader` are both required, each once; the loader is
+`fabric`, `forge`, `neoforge` or `quilt`. Any other parameter returns 400
+`Invalid query parameter.`, and an invalid value returns 400 before any upstream request.
+
+Returns `{ versions: [{ id, projectId, name, versionNumber, releaseType, publishedAt }] }`
+with only the versions of that project that support the selected pair, newest first, capped
+at the newest 100. `releaseType` passes the upstream `release`, `beta` or `alpha` value
+through unchanged, so the caller can mark prereleases; it is not filtered and does not
+affect ordering.
+
+An unknown project, or one that is not a mod, returns 404 `Mod not found.` A pair the
+project supports no version for returns 200 with an empty list, not an error. A malformed
+upstream entry fails the whole response with 502 rather than shortening the list. The route
+is a read: it writes nothing and never chooses a version for the caller.
+
 ### GET /mods/:idOrSlug
 
 Returns one `ModSummary` for a project ID or slug. The route accepts no query

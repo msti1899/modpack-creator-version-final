@@ -34,6 +34,7 @@ For the latest state and next action, use the [current handoff](../handoff.md).
 | [doc20: Dedicated CI step for the web suites](doc20-ci-web-suites.md) | 2026-11-16 | Run the Vitest suites in their own workflow step and remove the Bun bridge test that spawned the same command, so each runner executes once and a component failure names its step. |
 | [doc21: Frontend CI workflow and the web linter](doc21-ci-frontend-workflow.md) | 2026-11-16 | Split the gate into a frontend workflow that owns `apps/web` and a backend workflow scoped to the API, add Playwright with axe on every pull request and Lighthouse on `main`, and introduce the first repository linter with documented suppressions instead of a reformat. |
 | [doc22: Minecraft release selector data](doc22-minecraft-versions.md) | 2026-11-16 | Serve the Minecraft release list the web must read instead of a hardcoded version, releases only and newest first, with one shared process cache, stale serving after a failed refresh and no silent empty list. |
+| [doc23: Per-project versions for the mod picker](doc23-project-versions.md) | 2026-11-16 | Serve one mod's versions that support a chosen Minecraft version and loader, newest first and capped, pass the release type through so a caller can mark prereleases, and keep an unknown project a 404 rather than an empty list. |
 
 ## Add the next record
 

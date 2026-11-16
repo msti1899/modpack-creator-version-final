@@ -234,6 +234,52 @@ export async function modDetail(fetcher: Fetcher, value: string) {
   if (project.project_type !== "mod") throw new PackError("Mod not found.", 404);
   return modSummary(project, project.id);
 }
+function upstreamText(value: unknown, limit: number): string {
+  if (typeof value !== "string" || !value.trim() || value.length > limit || /[\x00-\x1f\x7f]/.test(value)) throw new PackError("Modrinth returned invalid version metadata.", 502);
+  return value.trim();
+}
+function versionSummary(value: RecordValue, projectId: string) {
+  const id = upstreamText(value.id, 100);
+  if (!identifier.test(id) || upstreamText(value.project_id, 100) !== projectId) throw new PackError("Modrinth returned invalid version metadata.", 502);
+  return {
+    id,
+    projectId,
+    name: upstreamText(value.name, 100),
+    versionNumber: upstreamText(value.version_number, 100),
+    releaseType: upstreamText(value.version_type, 20),
+    publishedAt: upstreamText(value.date_published, 40),
+  };
+}
+/**
+ * One project's versions that support the selected pair, newest first, for an explicit
+ * picker. The cap bounds the response; the newest hundred is the useful half.
+ */
+export async function projectVersions(fetcher: Fetcher, value: string, params: URLSearchParams) {
+  for (const key of params.keys()) if (key !== "gameVersion" && key !== "loader") throw new PackError("Invalid query parameter.", 400);
+  if (params.getAll("gameVersion").length !== 1 || params.getAll("loader").length !== 1) throw new PackError("Invalid query parameter.", 400);
+  const gameVersion = params.get("gameVersion")!;
+  if (!/^[A-Za-z0-9_.+-]{1,50}$/.test(gameVersion)) throw new PackError("Invalid Minecraft version.", 400);
+  const loader = params.get("loader")!;
+  if (!Object.hasOwn(loaders, loader)) throw new PackError("Unsupported mod loader.", 400);
+  if (!/^[A-Za-z0-9_-]{1,64}$/.test(value)) throw new PackError("Invalid Modrinth identifier.", 400);
+
+  const catalog = new Catalog(fetcher);
+  const project = await catalog.get(`/project/${value}`, false, true);
+  if (!object(project) || typeof project.project_type !== "string") throw new PackError("Modrinth returned an invalid project.", 502);
+  const projectId = project.id;
+  if (typeof projectId !== "string") throw new PackError("Modrinth returned an invalid project.", 502);
+  if (project.project_type !== "mod") throw new PackError("Mod not found.", 404);
+
+  const query = new URLSearchParams({ loaders: JSON.stringify([loader]), game_versions: JSON.stringify([gameVersion]) });
+  const values = await catalog.get(`/project/${id(projectId)}/version?${query}`, false);
+  if (!Array.isArray(values)) throw new PackError("Modrinth returned invalid project versions.", 502);
+  const versions = values
+    .filter((entry) => object(entry) && Array.isArray(entry.game_versions) && entry.game_versions.includes(gameVersion) && Array.isArray(entry.loaders) && entry.loaders.includes(loader))
+    .map((entry) => versionSummary(entry as RecordValue, projectId))
+    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt) || a.id.localeCompare(b.id))
+    .slice(0, 100);
+  return { versions };
+}
 function selectedProject(selection: Selection, projectId: string): Project {
   const project = selection.projects.get(projectId);
   if (!project) throw new PackError("Modrinth returned an unexpected version.", 502);
