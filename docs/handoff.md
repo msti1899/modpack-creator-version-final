@@ -674,9 +674,11 @@ data and the exact-version picker behind #100: the Minecraft version list is pro
 Modrinth releases and cached for one hour, a mod's exact version is chosen on the detail
 surface, and the loader build is discovered from each loader's own metadata with manual
 entry kept as the override. It adds three read contracts and no write path, and it
-authorizes no screen. None of the three slices is implemented, so the mod detail surface
-and pack assembly still cannot start: the detail surface has no design round and the read
-contracts it needs do not exist yet.
+authorizes no screen. The Minecraft release list is delivered
+([doc22](delivery/doc22-minecraft-versions.md), merged as `bfedf74`); the per-project version
+list and the loader-build discovery are not, so the mod detail surface and pack assembly
+still cannot start: the detail surface has no design round and the two remaining read
+contracts do not exist yet.
 
 Next decision for this plan: which screen milestone becomes the next design round.
 

@@ -3,6 +3,9 @@
 - Date: 2026-11-16
 - Scope: the first read slice decided by
   [ADR0006](../decisions/0006-selector-data-and-versions.md), board item #119.
+- State: merged to `main` through
+  [PR #123](https://github.com/msti1899/modpack-creator-version-final/pull/123) as
+  `bfedf74`, after Backend checks, Web checks and Browser journeys passed.
 - Outcome: the API serves the Minecraft release list the web must read instead of a
   hardcoded version, cached in process for one hour.
 
