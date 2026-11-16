@@ -261,16 +261,17 @@ change only by the added payload keys and an upstream `index=relevance` paramete
 advisories were corrected in `ced57f8`; the rest are recorded limits in
 [doc09](delivery/doc09-catalog-discovery.md).
 
-Remaining: selector data for Minecraft and loader options and an exact-version picker
-are still undecided; no web client consumes the new fields; no real-upstream, hosted or
-deployed check ran. Native review approved the slice on 2026-11-13 over three lenses and
-burned its acknowledgement; its eight informational advisories are recorded in
+Remaining: selector data and the exact-version picker were decided later, on 2026-11-16
+([ADR0006](decisions/0006-selector-data-and-versions.md)); no web client consumes the new
+fields; no real-upstream, hosted or deployed check ran. Native review approved the slice on
+2026-11-13 over three lenses and burned its acknowledgement; its eight informational
+advisories are recorded in
 [doc09](delivery/doc09-catalog-discovery.md) as later work, including the missing cap on
 distinct `category` values and the lack of per-hit degradation on upstream schema drift.
 
 Next action: the slice is merged; the review advisories in
-[doc09](delivery/doc09-catalog-discovery.md) are the next optional work, and selector data
-and the exact-version picker still need a product decision.
+[doc09](delivery/doc09-catalog-discovery.md) are the next optional work, and the selector
+read slices decided by ADR0006 are queued on the board.
 
 ## Backend completion M4: pack assembly (feat/pack-assembly)
 
@@ -643,8 +644,9 @@ as `c99a98d`, with the Backend checks passing in 58 seconds on the branch head. 
 merge the branch integrated `main` at `c8bcaa4` (account deletion), which renumbered this
 record from doc16 to doc18; the merged tree runs 192 Bun tests and 81 Vitest tests with both
 typechecks. The branch is merged and can be dropped. Next action: wire the pack so a selected
-mod reaches a draft, decide where the Minecraft and loader settings come from, and decide the
-exact-version picker; publication of a hosted journey is still unproven.
+mod reaches a draft. The Minecraft and loader settings and the exact-version picker were
+decided on 2026-11-16 ([ADR0006](decisions/0006-selector-data-and-versions.md)); their read
+slices are queued and unimplemented, and publication of a hosted journey is still unproven.
 
 ## Frontend plan (proposed)
 
@@ -664,12 +666,17 @@ one-command local startup landed separately through
 
 On 2026-11-16 the dependency confirmation interaction (D-F4, #99) was decided: one modal
 dialog opened by the action that adds a mod, listing the newly required dependencies, with
-cancelling adding nothing and no partial acceptance. The record is the decisions section of
-the roadmap. That clears the interaction precondition for the mod detail surface and the
-pack screen without making either startable: the detail surface still has no design round,
-and #100 still owes where Minecraft versions and loaders come from and what the
-exact-version picker is. The decision lives in the roadmap document; no screen implements
-it yet.
+cancelling adding nothing and no partial acceptance. That clears the interaction
+precondition for the mod detail surface and the pack screen.
+
+The same day, [ADR0006](decisions/0006-selector-data-and-versions.md) decided the selector
+data and the exact-version picker behind #100: the Minecraft version list is proxied from
+Modrinth releases and cached for one hour, a mod's exact version is chosen on the detail
+surface, and the loader build is discovered from each loader's own metadata with manual
+entry kept as the override. It adds three read contracts and no write path, and it
+authorizes no screen. None of the three slices is implemented, so the mod detail surface
+and pack assembly still cannot start: the detail surface has no design round and the read
+contracts it needs do not exist yet.
 
 Next decision for this plan: which screen milestone becomes the next design round.
 

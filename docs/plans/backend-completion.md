@@ -100,7 +100,7 @@ runner exists. Existing behavior sharing changed code must remain pinned.
 | --- | --- | --- |
 | M1. Account and session journey | Email/password registration, sign-in, sign-out and expired-session behavior have recorded results. Google/Discord linking and recovery follow D3. Distinguish API-auth rejection, browser logout and copied-token revocation. | Reuse Clerk; inspect configuration before proposing auth endpoints. Provider access and test accounts need bounded authorization. Immediate revocation remains an explicit decision. |
 | M2. Profile completion contract | A client can determine whether an authenticated account needs a profile, create one, resolve a username collision and rename under the existing cooldown/casing rules. Group creation without a profile remains predictably rejected. | Preserve `/me` unless a contract change is deliberately approved; prefer the existing profile interface. Record frontend onboarding as integration, not backend completion. Depends on M1 identity. |
-| M3. Complete catalog discovery contract | Document/test existing query/version/loader/offset filters, empty results and pagination. The approved filter scope is category, sort order, client/server environment and author on `GET /mods`, an exact project lookup route, and an enriched hit payload. Multi-select category is a union, and the environment filter means "runs on that side" using required or optional support, not "exclusive to that side". Selector data and an exact-version picker remain undecided. | Basic filters already implemented. Delivery order: first pin the existing behavior (empty results, offset bounds, the fixed page size, today's unknown-parameter behavior and upstream 429/5xx/timeout mapping) without adding behavior; then one filter per delivery with its contract tests, cheapest first; then the exact project lookup route, distinguishing not-found from upstream failure; then the enriched hit payload, measuring response size against the M9 concern. Reject malformed or unknown input and pin existing requests. No implementation is authorized by the scope decision alone. Independent of authenticated group work. |
+| M3. Complete catalog discovery contract | Document/test existing query/version/loader/offset filters, empty results and pagination. The approved filter scope is category, sort order, client/server environment and author on `GET /mods`, an exact project lookup route, and an enriched hit payload. Multi-select category is a union, and the environment filter means "runs on that side" using required or optional support, not "exclusive to that side". Selector data and an exact-version picker were decided on 2026-11-16 ([ADR0006](../decisions/0006-selector-data-and-versions.md)) and are delivered as their own read slices, not inside M3. | Basic filters already implemented. Delivery order: first pin the existing behavior (empty results, offset bounds, the fixed page size, today's unknown-parameter behavior and upstream 429/5xx/timeout mapping) without adding behavior; then one filter per delivery with its contract tests, cheapest first; then the exact project lookup route, distinguishing not-found from upstream failure; then the enriched hit payload, measuring response size against the M9 concern. Reject malformed or unknown input and pin existing requests. No implementation is authorized by the scope decision alone. Independent of authenticated group work. |
 | M4. Pack assembly and dependency approval | A client can propose a mod, inspect required dependencies, accept or cancel, remove a selection, change compatible settings and save. Rejection or stale revision cannot partially change stored selections. | Reuse resolver, explicit-selection validation and draft replacement. Depends on M2/M3 for the complete journey, not for existing API functionality. No silent upgrades. |
 | M5. Group lifecycle and access | Tests cover public direct admission, private invite/request/approval, revocation, pages, transfer and departure; the caller's role/access changes immediately as defined by D4-D5. | Existing endpoints are the starting point. Directory/discovery and expulsion are not silently added. Independent of advanced catalog filters. |
 | M6. Published versions and sharing | Publish/list/read/activate/export work with real signed sessions; a nonmember/previous member cannot read or export. Draft changes do not rewrite historical selections or activation. Unavailable upstream versions fail predictably. | Depends on M4/M5. Hosted schema application is recorded already; it is not a pending migration step. Stronger file-manifest persistence is a separate decision. |
@@ -125,8 +125,12 @@ These are planning items, not a request to answer every question at once:
 
 - Mod discovery scope for M3 is decided: category (union within the group), sort order,
   client/server environment, author, exact project lookup by id or slug, and an enriched
-  hit payload. Still open: selector data for Minecraft and loader options, and an explicit
-  version picker. Selector data also needs a defined source and cache policy if exposed.
+  hit payload. Selector data and the exact version picker were decided on 2026-11-16 by
+  [ADR0006](../decisions/0006-selector-data-and-versions.md): the Minecraft version list is
+  proxied from Modrinth releases and cached for one hour, a project's compatible versions
+  are listed for an explicit picker, and the loader build is discovered from each loader's
+  own metadata with manual entry kept as the override. The three read slices are queued on
+  the board; none of them authorizes a screen.
 - Does logout require browser/session sign-out only, or immediate invalidation of a
   previously copied token? The latter changes verification/revocation trade-offs.
 - What precise enforcement makes a vote binding, and what happens when several approved
@@ -150,9 +154,11 @@ M1-M8 have their evidence recorded. M8 decided both deletion surfaces: the sessi
 the verified provider path, including ownership succession when an owner can no longer act.
 Registering the Clerk endpoint needs a public URL, so it waits on a deployment decision.
 M9/M10 are hardening and CI work that support the implemented slices, and M11 needs
-deployment consent. Selector data and the exact-version picker still need a product
-decision. No implementation, provider configuration or publication is authorized by this
-plan alone beyond what its records name.
+deployment consent. Selector data and the exact-version picker were decided on 2026-11-16
+([ADR0006](../decisions/0006-selector-data-and-versions.md)); their three read slices are
+queued on the board and none of them is implemented. No implementation, provider
+configuration or publication is authorized by this plan alone beyond what its records
+name.
 
 ## Change log
 
@@ -281,3 +287,10 @@ plan alone beyond what its records name.
   existing resolver, selection validation and replacement write. Independent
   verification met S1–S7 with no blocker and its three advisories were corrected.
   Not published, not merged. See [doc11](../delivery/doc11-pack-assembly.md).
+
+- 2026-11-16: [ADR0006](../decisions/0006-selector-data-and-versions.md) decides the three
+  selector questions that were open: a Modrinth-proxied Minecraft release list cached for
+  one hour, an explicit per-project version list for the mod detail surface, and loader
+  builds discovered from each loader's own metadata with manual entry kept as the override.
+  The decision adds three read contracts and no write path, and it authorizes no screen.
+  Its slices are queued on the board and remain unimplemented.
