@@ -93,6 +93,11 @@ Not observed: a GitHub Actions run of either workflow. GitHub executes workflow 
 only on a push or a pull request, so the first run of this branch provides that
 evidence and this record does not claim it.
 
+Observed on pull request #115, 2026-11-16, after the run-and-fix cycle recorded under
+Correction below: `Frontend CI` green with `Web checks` in 33 s and `Browser journeys`
+in 93 s, and `Backend CI` green in 34 s. The `Lighthouse` job is skipped there by
+design, so its first real execution is still owed by the next push to `main`.
+
 ## Accepted differences and advisories
 
 - The browser and Lighthouse jobs each install Chromium and install the workspace
