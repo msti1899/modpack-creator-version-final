@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { exportPack, modDetail, PackError, projectVersions, resolve, search, type Fetcher } from "./modrinth";
+import { createLoaderBuilds, loaderBuildQuery } from "./loader-builds";
 import { createMinecraftVersions } from "./selector";
 import { profileRoutes, type ProfileFetcher } from "./profiles";
 import { groupRoutes } from "./groups";
@@ -36,7 +37,12 @@ export function createApp(fetcher: Fetcher = fetch, identity: IdentityOptions = 
   app.use("/packs/*", bodyLimit({ maxSize: 16_384, onError: (c) => c.json({ error: "Request body is too large." }, 400) }));
   // The release list is process-cached and shared by every caller; see ADR0006.
   const minecraftVersions = createMinecraftVersions(fetcher);
+  const loaderBuilds = createLoaderBuilds(fetcher);
   app.get("/minecraft-versions", async (c) => c.json({ versions: await minecraftVersions() }));
+  app.get("/loader-builds", async (c) => {
+    const query = loaderBuildQuery(new URL(c.req.url).searchParams);
+    return c.json(await loaderBuilds(query.loader, query.gameVersion));
+  });
   app.get("/mods", async (c) => c.json(await search(fetcher, new URL(c.req.url).searchParams)));
   app.get("/mods/:idOrSlug/versions", async (c) =>
     c.json(await projectVersions(fetcher, c.req.param("idOrSlug"), new URL(c.req.url).searchParams)));
