@@ -2,7 +2,9 @@
 
 - Date: 2026-11-16
 - Scope: completion-plan milestone M10, board item #101.
-- State: implemented on `feat/tap-diagnostics`; merge pending at the time of writing.
+- State: merged to `main` through
+  [PR #132](https://github.com/msti1899/modpack-creator-version-final/pull/132) as the
+  completion of #101, after all four checks passed.
 - Outcome: CI runs the database checks that previously ran only by hand, a race that never
   overlapped fails instead of passing, and the three suites that reported one result now
   report one per check.
