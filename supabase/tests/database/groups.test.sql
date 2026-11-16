@@ -422,5 +422,38 @@ select set_config('request.jwt.claims', '{"sub":"user_unicode","role":"authentic
 select lives_ok($$select public.create_group('Café 🎮', 'private')$$, 'Unicode group names are preserved');
 select is(public.my_group()->>'name', 'Café 🎮', 'Group names retain accents and supplementary characters');
 
+-- D-F2: a public join link names its group, a private one stays invisible to outsiders.
+-- Fresh fixtures: earlier cases delete Alpha, so these checks own their groups.
+reset role;
+insert into public.profiles (user_id, username) values
+  ('user_linkowner', 'LinkOwner'), ('user_linkprivate', 'LinkPrivate'),
+  ('user_linkoutsider', 'LinkOutsider');
+set local role authenticated;
+
+select set_config('request.jwt.claims', '{"sub":"user_linkowner","role":"authenticated"}', true);
+select lives_ok($$select public.create_group('Linkable', 'public')$$, 'A public group is created for link discovery');
+select set_config('request.jwt.claims', '{"sub":"user_linkprivate","role":"authenticated"}', true);
+select lives_ok($$select public.create_group('Hidden', 'private')$$, 'A private group is created for link discovery');
+
+reset role;
+select set_config('test.link', (select id::text from public.groups where name = 'Linkable'), true);
+select set_config('test.hidden', (select id::text from public.groups where name = 'Hidden'), true);
+set local role authenticated;
+
+select set_config('request.jwt.claims', '{"sub":"user_linkoutsider","role":"authenticated"}', true);
+select is(public.group_summary(current_setting('test.link')::uuid)->>'name', 'Linkable',
+  'A signed-in caller can name a public group from a link');
+select is(public.group_summary(current_setting('test.link')::uuid)->>'ownerUsername', 'LinkOwner',
+  'The summary names the owner');
+select is(public.group_summary(current_setting('test.link')::uuid)->'members', null::jsonb,
+  'The summary exposes no member list');
+select is(public.group_summary(current_setting('test.hidden')::uuid), null::jsonb,
+  'A private group is invisible to an outsider');
+select set_config('request.jwt.claims', '{"sub":"user_linkprivate","role":"authenticated"}', true);
+select is(public.group_summary(current_setting('test.hidden')::uuid)->>'membership', 'member',
+  'A private group member reads its summary');
+select ok(not has_function_privilege('anon', 'public.group_summary(uuid)', 'EXECUTE'),
+  'Anonymous callers cannot read group summaries');
+
 select * from finish();
 rollback;

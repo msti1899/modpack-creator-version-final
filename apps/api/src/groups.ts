@@ -98,6 +98,21 @@ function group(value: unknown, caller: string): Record<string, unknown> | null {
     requests, requestsNextCursor,
     invitation: value.role === "owner" && value.visibility === "private" && value.invitation !== null ? invitation(value.invitation) : null };
 }
+/** The link-only join screen gets identity and counts, never a member list. */
+function summary(value: unknown) {
+  if (value === null) return null;
+  if (!object(value)) throw new Error();
+  const storedName = groupName(value.name);
+  const ownerUsername = value.ownerUsername;
+  const membership = value.membership;
+  if (!uuid(value.id) || storedName === null || storedName !== value.name ||
+    !["public", "private"].includes(String(value.visibility)) ||
+    typeof ownerUsername !== "string" || !/^[A-Za-z0-9_]{3,20}$/.test(ownerUsername) ||
+    !Number.isSafeInteger(value.memberCount) || (value.memberCount as number) < 1 ||
+    (membership !== null && membership !== "member" && membership !== "requested")) throw new Error();
+  return { id: value.id, name: storedName, visibility: value.visibility,
+    ownerUsername, memberCount: value.memberCount, membership };
+}
 function membersPage(value: unknown) {
   if (!object(value) || !Array.isArray(value.members) || value.members.length > 100) throw new Error();
   return { members: value.members.map((item: unknown) => member(item)), nextCursor: pageCursor(value.nextCursor) };
@@ -158,7 +173,7 @@ export function groupRoutes(options: IdentityOptions, fetcher: ProfileFetcher, d
   }
 
   function endpoint(method: "GET" | "POST" | "DELETE", path: string, operation: string,
-    kind: "group" | "invitation" | "request" | "leave" | "revoke" | "resolve" | "reject",
+    kind: "group" | "invitation" | "request" | "leave" | "revoke" | "resolve" | "reject" | "summary",
     parameter?: "groupId" | "token" | "userId", status: 200 | 201 = 200) {
     app.on(method, path, requireIdentity(options), async (c) => {
       try {
@@ -183,6 +198,10 @@ export function groupRoutes(options: IdentityOptions, fetcher: ProfileFetcher, d
           const resultGroup = group(value, c.get("identity").id);
           if (value === null && operation !== "my_group") throw new Error();
           return c.json({ group: resultGroup }, status);
+        }
+        if (kind === "summary") {
+          if (value === null) throw new GroupFailure(404, "Group not found.");
+          return c.json({ group: summary(value) });
         }
         if (kind === "invitation") return c.json({ invitation: invitation(value) }, status);
         if (!object(value)) throw new Error();
@@ -212,6 +231,7 @@ export function groupRoutes(options: IdentityOptions, fetcher: ProfileFetcher, d
     });
   }
   endpoint("GET", "/me", "my_group", "group");
+  endpoint("GET", "/:groupId/summary", "group_summary", "summary", "groupId");
   endpoint("POST", "/:groupId/join", "join_public_group", "group", "groupId");
   endpoint("POST", "/me/invitation", "create_invitation", "invitation", undefined, 201);
   endpoint("DELETE", "/me/invitation", "revoke_invitation", "revoke");
