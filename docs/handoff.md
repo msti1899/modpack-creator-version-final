@@ -143,6 +143,12 @@ Still unproven after the local database work:
   [PR #64](https://github.com/msti1899/modpack-creator-version-final/pull/64) as
   `717da47`, with the Backend checks passing in 43 seconds on the branch head. `main`
   runs 161 tests and 2880 assertions.
+- Web-to-API transport guide: merged to `main` through
+  [PR #87](https://github.com/msti1899/modpack-creator-version-final/pull/87) as
+  `7fe16d2` on 2026-11-15, with the Backend checks passing in 56 seconds on the branch
+  head. It adds documentation only; `main` still runs 197 tests and 81 web tests. See
+  [doc19](delivery/doc19-web-api-transport.md) and the
+  [transport guide](guides/web-api-transport.md).
 
 ## Proposed next backend phase
 
