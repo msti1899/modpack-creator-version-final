@@ -32,7 +32,11 @@ module.exports = {
       numberOfRuns: 1,
       settings: {
         preset: "desktop",
-        chromeFlags: ["--headless", "--no-sandbox", "--disable-dev-shm-usage"],
+        // LHCI hands this to Lighthouse as a string and appends `--headless=new`
+        // itself. An array is stringified with commas, which turns every flag into
+        // one unusable token: Chrome then starts with its sandbox enabled and a
+        // runner without unprivileged user namespaces aborts before the audit.
+        chromeFlags: "--no-sandbox --disable-dev-shm-usage",
       },
     },
     assert: {

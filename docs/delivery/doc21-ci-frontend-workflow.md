@@ -123,6 +123,15 @@ locally only because 1254 was already in this machine's browser cache.
 Both jobs now call `./node_modules/.bin/playwright` from `apps/web`, so the browser
 revision always matches the pinned runner and no step can drift from `bun.lock`.
 
+The first `Lighthouse` run on `main`, after this pull request merged, aborted before the
+audit with `FATAL:zygote_host_impl_linux.cc] No usable sandbox!`. `@lhci/cli` forwards
+`collect.settings.chromeFlags` to Lighthouse as a string and appends `--headless=new`
+itself, so the array declared in `apps/web/lighthouserc.cjs` was stringified with commas
+and Chrome received one unusable token instead of three flags. The audit had passed
+locally because this machine allows the sandbox, so the flags were dropped without a
+symptom. The flags are now a space-separated string, and the job was proven with a
+manual `workflow_dispatch`, which is the only trigger that runs it outside `main`.
+
 ## Remaining work
 
 - Observe one pull-request run of `Frontend CI` and one `main` run of its Lighthouse
