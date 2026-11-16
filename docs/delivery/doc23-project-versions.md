@@ -3,7 +3,9 @@
 - Date: 2026-11-16
 - Scope: the second read slice decided by
   [ADR0006](../decisions/0006-selector-data-and-versions.md), board item #120.
-- State: implemented on `feat/project-versions`; merge pending at the time of writing.
+- State: merged to `main` through
+  [PR #125](https://github.com/msti1899/modpack-creator-version-final/pull/125) as
+  `be643e2`, after Backend checks, Web checks and Browser journeys passed.
 - Outcome: the API lists one mod's versions that support a chosen Minecraft version and
   loader, newest first, so a screen can offer an exact version instead of accepting whichever
   build resolution happened to pick.
