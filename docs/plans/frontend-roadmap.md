@@ -129,9 +129,27 @@ Resolve a choice before implementing behavior that depends on it.
   or authorize a directory. F3 is implementable either way; the navigation depends on it.
 - **D-F3. Account deletion.** Undecided at the product level and involving destructive
   data. Settings must not present it until it is decided.
-- **D-F4. Dependency confirmation interaction.** D2 requires explicit owner confirmation
-  before a required dependency is added. Decide where that confirmation appears and what
-  cancelling does to the selection. F4 and F5 both need it.
+- **D-F4. Dependency confirmation interaction.** Resolved on 2026-11-16. D2 requires
+  explicit owner confirmation before a required dependency is added; the confirmation is
+  one modal dialog opened by the action that adds a mod, and it is the only confirmation
+  point in the journey.
+  - It opens only when the resolver returns newly required dependencies for that mod. A
+    mod with no new required dependency is added directly, without a dialog.
+  - It lists the mod being added first, then each required dependency by project title and
+    version number, with the number of entries the addition would make.
+  - Confirming adds the mod and every listed dependency as one save. Cancelling adds
+    nothing: no request that stores anything is made, and the stored draft, the selection
+    state and the draft revision stay exactly as they were. Choosing the mod again asks
+    again; an approval is not remembered for a later addition.
+  - Required dependencies are accepted together or not at all. Accepting a subset is not
+    offered, because the save and the export both reject a selection whose required
+    dependencies are incomplete.
+  - A failed resolution shows the failure as a sentence naming what failed, offers a retry
+    and adds nothing, including on the upstream-failure and timeout paths.
+  - There is no second confirmation at save time; the save submits exactly the version IDs
+    the dialog approved.
+  - The dialog is keyboard reachable, keeps focus inside while open, closes on Escape
+    without adding, and passes axe-core like every other surface.
 - **D-F5. Authenticated test account.** Playwright runs with provider credentials cleared
   because no test account exists, so no authenticated journey is covered today. A
   configured test instance and a dedicated account are prerequisites for F2 onward being
@@ -142,11 +160,12 @@ Resolve a choice before implementing behavior that depends on it.
 
 ## Next action
 
-The mod browser gate is closed: its task document and its screen exist. Two pieces of
-open work remain on that path, and neither is a documentation gap: F4's detail surface,
-which has no design round, and D-F4, the dependency-confirmation interaction that F4 and
-F5 both need. F2 needs no open decision, and F3 is implementable whichever way D-F2
-resolves.
+The mod browser gate is closed: its task document and its screen exist. D-F4 was resolved
+on 2026-11-16, so the dependency confirmation no longer blocks F4 or F5. What still blocks
+that path is not a documentation gap: F4's detail surface has no design round, and #100 has
+not fixed where Minecraft versions and loaders come from or what the exact-version picker
+is, which F4 and F5 both need. F2 needs no open decision, and F3 is implementable whichever
+way D-F2 resolves.
 
 ## Change log
 
@@ -159,3 +178,6 @@ resolves.
   premises were wrong: catalog discovery had already shipped sort, category, environment
   and author, and D-F1 no longer blocks F4. The initial inspection point `afea8bf` is kept
   as written.
+- 2026-11-16: Resolved D-F4 in favour of one modal confirmation dialog opened by the add
+  action. Records the trigger, contents, cancel semantics, all-or-nothing acceptance, the
+  failure path and the accessibility expectation. F4 and F5 no longer depend on it.
