@@ -544,9 +544,10 @@ Lighthouse flags were an array that LHCI stringifies with commas, so Chrome star
 with its sandbox enabled and aborted before the audit. Local runs passed in both cases
 because this machine already had the right revision cached and allows the sandbox.
 
-Next action: decide whether these jobs become required status checks, and whether the
-pgTAP, concurrency and signed-token PostgREST suites join CI by starting the Supabase
-stack, which costs roughly five minutes per run.
+Next action: decide whether these jobs become required status checks. The pgTAP,
+concurrency and signed-token PostgREST suites now run in `Database CI`, which starts the
+disposable Supabase stack on every pull request and on `main`; its first run passed in
+1m31s ([doc25](delivery/doc25-database-ci.md)).
 
 ## Backend completion M8: account deletion and reconciliation (feat/account-deletion)
 
