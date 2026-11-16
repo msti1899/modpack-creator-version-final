@@ -48,3 +48,4 @@ Source: [Backend completion plan, M10](../../docs/plans/backend-completion.md), 
   declare their real plans: votes 91, pack-drafts 30, pack-publications 71. `bun run db:test`
   passes 439 TAP results across 9 files, up from 250, and a deliberate mutation of one check
   reported `Failed test 1: "RLS enabled"` while the remaining 29 checks still ran.
+- 2026-11-16: #101 closed after PR #132; `Database checks` passed on the pull request in 1m39s.
