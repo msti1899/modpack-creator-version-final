@@ -3,7 +3,9 @@
 - Date: 2026-11-16
 - Scope: the third read slice decided by
   [ADR0006](../decisions/0006-selector-data-and-versions.md), board item #121.
-- State: implemented on `feat/loader-builds`; merge pending at the time of writing.
+- State: merged to `main` through
+  [PR #127](https://github.com/msti1899/modpack-creator-version-final/pull/127) as
+  `af7822b`, after Backend checks, Web checks and Browser journeys passed.
 - Outcome: the API discovers the loader build a pack has to declare, so exporting or
   publishing no longer requires a person to know a version like `0.20.1` from outside the
   product. Manual entry stays valid and remains the fallback.
