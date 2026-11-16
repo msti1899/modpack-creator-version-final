@@ -46,6 +46,11 @@ Local, on the branch, 2026-11-16:
   bridge test that no longer exists; no other suite changed.
 - `.github/workflows/backend-ci.yml` was read back to confirm the step order and that
   the file stays valid YAML with the same indentation and permissions.
+- Independent verification of the same commit reproduced every claim above and added
+  three it had not made: `Bun.YAML.parse` parses the workflow with the new step as the
+  eighth of nine in the `backend` job; restoring the deleted bridge in a scratch copy
+  yields 197 Bun tests in 29 files, so the delta is exactly that test; and an injected
+  failing component test makes `bun run test:web` exit 1 instead of passing silently.
 
 Not observed: a GitHub Actions run of the new workflow. The workflow file is only
 executed by GitHub on a push or pull request, so CI evidence arrives with the first
@@ -53,9 +58,17 @@ run of this branch or its merge, and this record cannot claim it.
 
 ## Delivery state
 
-Implementation and documentation are committed together on `chore/ci-web-suites`.
-Not pushed, not reviewed and not merged; publication is a separate owner decision.
-No deployment is recorded.
+Implementation and documentation are committed together on `chore/ci-web-suites` as
+`2ceac19`. Native candidate review ran over the committed range `d6a68fb..2ceac19`
+with the readability and reliability lenses at the high tier, then approved and burned
+its acknowledgement on 2026-11-16 (lineage `review-9c307855c5b39bda`).
+
+Recorded gap, not a clean pass: the readability lens was interrupted by a runtime
+restart and the fresh status did not re-offer that slot, so the receipt records one
+admitted lens, not two.
+
+Not pushed and not merged: publication is a separate owner decision. No deployment is
+recorded.
 
 ## Remaining work
 
