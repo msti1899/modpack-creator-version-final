@@ -102,10 +102,21 @@ evidence and this record does not claim it.
 - The Playwright job builds the app for its own server and the Lighthouse job builds
   again. Reusing one build across jobs would need an artifact upload, which is the
   same unpinned-action trade-off.
-- `lint:fix` exists for local use and is never run in CI.
-- Biome 2.6.8 reports `useSemanticElements` and `noArrayIndexKey` as errors; both are
+- `lint:fix` exists for local use and is never run in CI.- Biome 2.6.8 reports `useSemanticElements` and `noArrayIndexKey` as errors; both are
   suppressed inline with the reason, so a reader meets the decision at the line rather
   than in a config file.
+
+## Correction, 2026-11-16
+
+The first GitHub Actions run failed in `Browser journeys` with `Executable doesn't
+exist at .../chromium_headless_shell-1254/...`. The install step called `bunx
+playwright`, which resolves the latest published Playwright instead of the version the
+workspace pins: it downloaded the browser for 1.65.1 (`chromium-headless-shell v1255`),
+while the pinned `@playwright/test` 1.65.0 asks for revision 1254. The suite passed
+locally only because 1254 was already in this machine's browser cache.
+
+Both jobs now call `./node_modules/.bin/playwright` from `apps/web`, so the browser
+revision always matches the pinned runner and no step can drift from `bun.lock`.
 
 ## Remaining work
 
