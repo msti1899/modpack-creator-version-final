@@ -41,3 +41,10 @@ Source: [Backend completion plan, M10](../../docs/plans/backend-completion.md), 
   failure. All 16 concurrency checks pass with the overlap barrier in place, and the pgTAP
   and PostgREST suites still pass. T3 (per-check TAP diagnostics in the three `plan(1)`
   suites) is not implemented yet, so #101 stays open.
+- 2026-11-16: T1 and T2 merged through PR #131 as `5ae7080`. The new `Database checks` job
+  ran on that pull request and passed in 1m31s, so the workflow is observed rather than
+  assumed.
+- 2026-11-16: T3 done. The three `plan(1)` suites now call `ok` and `throws_ok` directly and
+  declare their real plans: votes 91, pack-drafts 30, pack-publications 71. `bun run db:test`
+  passes 439 TAP results across 9 files, up from 250, and a deliberate mutation of one check
+  reported `Failed test 1: "RLS enabled"` while the remaining 29 checks still ran.

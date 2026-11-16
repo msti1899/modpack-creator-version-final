@@ -107,7 +107,7 @@ runner exists. Existing behavior sharing changed code must remain pinned.
 | M7. Voting obligations and lifecycle | Open/change/cancel/expire/approve/incorporate are exercised, including fixed electorate and concurrent independent proposals. An explicit decision explains what “binding” requires and how conflicting pending additions are handled. | Depends on M4/M5. Do not automatically edit/publish/activate or block unrelated operations without approval. Deadline read semantics and notification scheduling are different concerns. Done on 2026-11-13: D7 records the obligation and conflict rules, and the lifecycle is pinned in pgTAP, HTTP, signed-token PostgREST, real multi-session races and a hosted live check. See [doc13](../delivery/doc13-voting-obligations.md). |
 | M8. Account deletion and exceptional lifecycle | First decide whether deletion is in this scope and define ownership, membership, historical ballots and profile/username retention. If approved, rejected actions preserve data and provider events cannot strand inconsistent records. | Conditional product scope and destructive-data/security review. Not a request to delete current accounts or install a webhook. Depends on M1/M2/M5/M7 rules. Done on 2026-11-14: ADR0004 decides the application-owned surface and retention rules, `DELETE /profile` deletes the caller's own account while a surviving group keeps its votes, ballots, electorates, invitations and decisions, and ADR0005 adds the verified Clerk `user.deleted` reconciliation with ownership succession. Registering the provider endpoint needs a public URL. See [doc16](../delivery/doc16-account-deletion.md) and [doc17](../delivery/doc17-account-reconciliation.md). Merged as `c8bcaa4`; the two migrations are applied to the hosted project. |
 | M9. Abuse limits and failure handling | Measure then bound catalog response bytes, expensive public work and request duration; exercise upstream 401/429, timeout and malformed responses. Errors distinguish the failing subsystem and never leak secrets. | Hardening proposal, not a reproduced exploit. Inventory existing per-route body limits before adding a shared limiter. Rate-limit identity/storage and HTTP status contracts require a design decision. |
-| M10. Trustworthy database/integration CI | CI executes relevant pgTAP, upgrade, real-session/concurrency and PostgREST checks against disposable isolated state. Races prove actual overlap, fail on an appropriate mutation and touch only unique fixtures. Cleanup failure makes a runner fail. | Current CI runs app checks/build and upgrade, but not all new database runners. Current race uses timed sleeps and broad cleanup prefixes; strengthen before CI reuse. Three SQL suites emit one TAP result despite many internal checks; improve diagnostics. |
+| M10. Trustworthy database/integration CI | CI executes relevant pgTAP, upgrade, real-session/concurrency and PostgREST checks against disposable isolated state. Races prove actual overlap, fail on an appropriate mutation and touch only unique fixtures. Cleanup failure makes a runner fail. | Delivered on 2026-11-16 ([doc25](../delivery/doc25-database-ci.md)): `Database CI` runs the pgTAP, concurrency and PostgREST suites against a disposable stack, a race is accepted only after two transactions were open at once, every fixture carries a per-run token, cleanup leftovers fail the run, and the three suites report one TAP result per check. |
 | M11. Operations for the selected Vercel architecture | Validate both independent projects, environment origins/token configuration, key rotation, readiness/logging without secrets, quotas and rollback. Record a smoke result and the environment actually tested. | D9 already selects Vercel; a Docker image, owned domain and platform-choice interview are not prerequisites. Do not infer deployed behavior from loopback-only `dev.ts`. Deployment/CD remains separately authorized. |
 | M12. Evidence and handoff reconciliation | Inventory statuses agree with observed code, tests, hosted application and delivery. Old reviews have their actual terminal status recorded without invented approval. Each planned journey has a demonstrable outcome or a concrete blocker. | Runs alongside M1-M11, not as a substitute for functionality. Historical records stay dated; current handoff owns present state. Publishing/merge remains a separate decision. |
 
@@ -153,8 +153,8 @@ These are planning items, not a request to answer every question at once:
 M1-M8 have their evidence recorded. M8 decided both deletion surfaces: the session path and
 the verified provider path, including ownership succession when an owner can no longer act.
 Registering the Clerk endpoint needs a public URL, so it waits on a deployment decision.
-M9/M10 are hardening and CI work that support the implemented slices, and M11 needs
-deployment consent. Selector data and the exact-version picker were decided on 2026-11-16
+M10 is delivered ([doc25](../delivery/doc25-database-ci.md)); M9 hardening remains, and M11
+needs deployment consent. Selector data and the exact-version picker were decided on 2026-11-16
 ([ADR0006](../decisions/0006-selector-data-and-versions.md)); their three read slices are
 queued on the board and none of them is implemented. No implementation, provider
 configuration or publication is authorized by this plan alone beyond what its records
@@ -294,3 +294,10 @@ name.
   builds discovered from each loader's own metadata with manual entry kept as the override.
   The decision adds three read contracts and no write path, and it authorizes no screen.
   Its slices are queued on the board and remain unimplemented.
+
+- 2026-11-16: M10 delivered. CI now starts the disposable Supabase stack and runs pgTAP,
+  multi-session concurrency and signed-token PostgREST checks; the concurrency harness records
+  that two transactions were open at once before accepting an outcome and fails when a race
+  never overlapped; fixtures use a per-run token and cleanup leftovers fail the run. The three
+  `plan(1)` suites now report one TAP result per check, 439 in total. See
+  [doc25](../delivery/doc25-database-ci.md).
