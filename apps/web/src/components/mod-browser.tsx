@@ -169,6 +169,7 @@ function Facets({
 
       {withHead ? (
         chips.length > 0 ? (
+          // biome-ignore lint/a11y/useSemanticElements: a fieldset would add its own border and min-width to the approved filter bar; role=group keeps the grouping the layout already renders.
           <div role="group" aria-label="Active filters" className="flex flex-wrap gap-1.5 px-1 pb-2.5">
             {chips}
           </div>
@@ -345,7 +346,7 @@ function ModIcon({ mod }: { mod: ModSummary }) {
   return (
     // The catalog serves remote icons; a plain image keeps next/image remote
     // patterns out of the config, and the fallback covers a failed load.
-    // eslint-disable-next-line @next/next/no-img-element
+    // biome-ignore lint/performance/noImgElement: the catalog serves remote icons, so next/image would need a remote pattern for every upstream host.
     <img
       src={mod.iconUrl}
       alt=""
@@ -471,8 +472,8 @@ function Skeleton() {
       <p className="sr-only">Loading mods…</p>
       <div aria-hidden="true" className="flex flex-col">
         {Array.from({ length: 5 }, (_, index) => (
-          <div
-            key={index}
+          // biome-ignore lint/suspicious/noArrayIndexKey: the placeholder rows are a fixed-length skeleton with no identity and no reordering.
+          <div key={index}
             className="grid h-[52px] grid-cols-[32px_120px_minmax(0,1fr)_54px_64px] items-center gap-3 border-b border-border"
           >
             <span className="size-8 rounded-md bg-secondary" />
@@ -570,6 +571,7 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
   );
   const requestKey = useMemo(() => serializeModSearch(search).toString(), [search]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: retryToken is a trigger rather than a value the effect reads; a retry must refetch the same request.
   useEffect(() => {
     const controller = new AbortController();
     setState("loading");
@@ -733,11 +735,8 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
             </p>
           </div>
 
-          <div
-            role="group"
-            aria-label="Locked search context"
-            className="hidden items-center gap-1.5 lg:flex"
-          >
+          {/* biome-ignore lint/a11y/useSemanticElements: a fieldset would add its own border and min-width inside the approved header row; role=group keeps the grouping the layout already renders. */}
+          <div role="group" aria-label="Locked search context" className="hidden items-center gap-1.5 lg:flex">
             <span className={chipClass}>
               <Lock className="size-[11px] shrink-0" aria-hidden="true" />
               Minecraft {gameVersion}

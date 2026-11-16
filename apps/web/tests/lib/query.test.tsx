@@ -1,3 +1,4 @@
+// biome-ignore-all lint/correctness/noComponentHookFactories: each case defines the component it renders so the assertion stays beside the hook under test.
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import { expect, test, vi } from "vitest";

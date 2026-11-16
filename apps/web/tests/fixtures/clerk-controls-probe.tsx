@@ -1,4 +1,5 @@
 // Run in a fresh subprocess so SDK mocks cannot contaminate other tests.
+// biome-ignore-all lint/correctness/noComponentHookFactories: the stubs stand in for the Clerk module inside `mock.module`, so they must be defined inside that factory.
 import { mock } from "bun:test";
 import { strict as assert } from "node:assert";
 import type { ReactNode } from "react";
@@ -11,7 +12,7 @@ mock.module("@clerk/nextjs", () => ({
   SignUpButton: ({ children, mode }: { children: ReactNode; mode: string }) => {
     assert.equal(mode, "modal"); return children;
   },
-  UserButton: () => <button aria-label="Account settings">Account settings</button>,
+  UserButton: () => <button type="button" aria-label="Account settings">Account settings</button>,
   ClerkProvider: ({ children, ...options }: { children: ReactNode; [key: string]: unknown }) => {
     assert.equal(options.afterSignOutUrl, "/");
     assert.equal(options.signInFallbackRedirectUrl, "/");

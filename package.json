@@ -14,8 +14,10 @@
     "dev:web": "bun run --filter @modpack/web dev",
     "dev:api": "bun run --filter @modpack/api dev",
     "typecheck": "bun run --filter '@modpack/*' typecheck",
+    "lint": "biome lint",
+    "lint:fix": "biome lint --write",
     "test": "bun test",
-    "check": "bun run typecheck && bun run test && bun run test:web",
+    "check": "bun run typecheck && bun run lint && bun run test && bun run test:web",
     "build": "bun run --filter @modpack/web build",
     "db:start": "bash scripts/db-local.sh start",
     "db:stop": "bash scripts/db-local.sh stop",
@@ -29,6 +31,7 @@
     "test:e2e": "bun run --filter @modpack/web test:e2e"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.6.8",
     "supabase": "3.0.0"
   }
 }

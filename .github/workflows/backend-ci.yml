@@ -33,13 +33,16 @@ jobs:
         run: python3 --version
       - name: Install frozen workspace dependencies
         run: bun install --frozen-lockfile
-      - name: Typecheck workspace
-        run: bun run typecheck
-      - name: Test workspace
+      - name: Typecheck API
+        run: bun run --filter @modpack/api typecheck
+      # Bun is one runner across the whole repository, so every Bun suite stays
+      # in this job, including the `apps/web/tests/*.test.ts(x)` cases that need
+      # Bun-native globals. Web tooling that needs its own runner — lint, the web
+      # typecheck, Vitest, the build and the browser journeys — belongs to
+      # Frontend CI, which owns `apps/web`.
+      - name: Test Bun suites
         env:
           TMPDIR: ${{ runner.temp }}
         run: bun test
-      - name: Build web without provider credentials
-        run: bun run build
       - name: Test legacy profile upgrade in disposable PostgreSQL
         run: bun run db:test:upgrade

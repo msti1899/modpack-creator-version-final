@@ -86,6 +86,7 @@ const ALLOWED_PARAMETERS = new Set<string>([...SINGLE_VALUE_PARAMETERS, "categor
 const GAME_VERSION = /^[A-Za-z0-9_.+-]{1,50}$/;
 const CATEGORY = /^[a-z0-9-]{1,64}$/;
 const AUTHOR = /^[A-Za-z0-9_-]{1,64}$/;
+// biome-ignore lint/suspicious/noControlCharactersInRegex: control characters are exactly what this pattern has to reject before any upstream call.
 const CONTROL_CHARACTERS = /[\x00-\x1f\x7f]/;
 
 const failure = (error: string): ModSearchResult => ({ ok: false, error });

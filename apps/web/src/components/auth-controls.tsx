@@ -12,7 +12,7 @@ export function AuthControls({ enabled }: { enabled: boolean }) {
         >
           Sign in
         </Link>
-        <SignUpButton mode="modal"><button className="rounded bg-primary px-4 py-2 text-primary-foreground">Create account</button></SignUpButton>
+        <SignUpButton mode="modal"><button type="button" className="rounded bg-primary px-4 py-2 text-primary-foreground">Create account</button></SignUpButton>
       </Show>
       <Show when="signed-in">
         <UserButton />
