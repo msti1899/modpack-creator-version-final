@@ -681,6 +681,11 @@ authorizes no screen. All three read contracts are delivered: the Minecraft rele
 from the API now; what remains for F4, F5 and F6 is their design rounds and their
 implementation.
 
+D-F2 was resolved on 2026-11-16 in favour of link-only group access: no directory and no
+search by name. A public group shares a join link; a private one keeps its invitation and
+approval. That needs one read queued as #129, a group's public-safe summary by identifier, and
+F3 otherwise waits only on its design round.
+
 Next decision for this plan: which screen milestone becomes the next design round.
 
 ## Resume

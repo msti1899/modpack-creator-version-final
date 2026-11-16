@@ -124,9 +124,22 @@ Resolve a choice before implementing behavior that depends on it.
   ([doc09](../delivery/doc09-catalog-discovery.md)), and the mod browser shipped with the
   approved facet layout on top of them. What stays open is whether that resolved scope is
   recorded as a decision in its own right. It no longer blocks F4.
-- **D-F2. Group discovery.** There is no public group directory, and its absence was
-  recorded as a scope choice, not a defect. Decide invite link and known identifier only,
-  or authorize a directory. F3 is implementable either way; the navigation depends on it.
+- **D-F2. Group discovery.** Resolved on 2026-11-16: groups are reached by link only. There
+  is no directory, no search by name and no known-identifier lookup, so a group is never
+  discoverable by someone who was not handed a way in.
+  - A public group shares a join link containing its identifier. Opening it while signed in
+    shows the group's name, owner, member count and visibility before the person joins
+    directly, which is the admission rule D4 already fixes.
+  - A private group keeps its invitation link and owner approval; possessing either link
+    still grants no membership by itself.
+  - This needs one read the API does not serve today: a signed-in caller can fetch a group's
+    public-safe summary by identifier. A private group the caller neither belongs to nor
+    requested returns not-found rather than confirming that it exists, and no read exposes
+    the member list.
+  - The navigation therefore offers three entries: create a group, open a link, and the
+    caller's own group. Nothing lists or ranks groups.
+  - Group names stay non-unique and free-form; the choice removes the reason to make them
+    unique.
 - **D-F3. Account deletion.** Undecided at the product level and involving destructive
   data. Settings must not present it until it is decided.
 - **D-F4. Dependency confirmation interaction.** Resolved on 2026-11-16. D2 requires
@@ -167,8 +180,8 @@ exact-version picker the same day. F4 now includes a version list inside the det
 and F5 reads its settings from the delivered list rather than from a hardcoded default. What
 still blocks that path is not a documentation gap: the detail surface and the pack screen
 have no design round. All three read contracts ADR0006 names are merged, so the API no longer
-blocks F4, F5 or F6. F2 needs no open decision, and F3 is implementable whichever way D-F2
-resolves.
+blocks F4, F5 or F6. F2 needs no open decision, and F3 now waits only on its design round
+and on the group-summary read that D-F2 requires.
 
 ## Change log
 
@@ -190,3 +203,7 @@ resolves.
   loader build is discovered from each loader's metadata. F4 therefore gains a version list
   and F5 no longer hardcodes its defaults; the three backend read slices are still
   unimplemented, so the design round stays the remaining frontend blocker.
+- 2026-11-16: Resolved D-F2 in favour of link-only access: no directory, no search by name
+  and no known-identifier lookup. Records the public join link, the approval rule that stays,
+  the group-summary read the choice needs and the three navigation entries. Group names stay
+  non-unique.
