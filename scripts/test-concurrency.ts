@@ -54,32 +54,59 @@ function session(subject: string, statement: string, holdMilliseconds: number): 
   ].filter(Boolean).join("\n");
 }
 
+// A race that never overlapped proves nothing about the rule it claims to test, so the
+// contender is observed waiting on a lock before the run accepts the outcome. A timing
+// accident becomes a failure with a clear message instead of a silent pass.
+async function waitForOpenTransactions(timeoutMilliseconds: number): Promise<boolean> {
+  const deadline = Date.now() + timeoutMilliseconds;
+  while (Date.now() < deadline) {
+    // Two transactions open at the same instant is what makes this a race, whether the
+    // second one blocks on a lock or meets a constraint evaluated at commit.
+    const probe = await psql(`
+      select count(*) from pg_stat_activity
+      where state = 'active' and xact_start is not null and pid <> pg_backend_pid();
+    `);
+    if (probe.code === 0 && Number(probe.out) >= 2) return true;
+    await Bun.sleep(20);
+  }
+  return false;
+}
+
 // The first session keeps its transaction open after taking the lock the second one
 // needs, so the second arrives while the first is still uncommitted.
 async function race(
   first: { subject: string; statement: string },
   second: { subject: string; statement: string },
-  delayMilliseconds = 250,
+  options: { delayMilliseconds?: number; holdMilliseconds?: number } = {},
 ): Promise<[SessionResult, SessionResult]> {
-  const holder = psql(session(first.subject, first.statement, 900));
-  await Bun.sleep(delayMilliseconds);
+  const holdMilliseconds = options.holdMilliseconds ?? 2_500;
+  const holder = psql(session(first.subject, first.statement, holdMilliseconds));
+  await Bun.sleep(options.delayMilliseconds ?? 300);
   const contender = psql(session(second.subject, second.statement, 0));
-  return Promise.all([holder, contender]);
+  const overlapped = await waitForOpenTransactions(holdMilliseconds + 2_000);
+  const results = await Promise.all([holder, contender]);
+  if (!overlapped) throw new Error("the race never overlapped: two transactions were never open at once");
+  return results;
 }
 
-const ownerOne = "user_raceownerone";
-const ownerTwo = "user_raceownertwo";
-const joiner = "user_racejoiner";
-const publisher = "user_racepub";
-const voteOwner = "user_racevote";
-const voterOne = "user_racev1";
-const voterTwo = "user_racev2";
+// Every run owns its rows: a leftover from an earlier run, or two runners at once, cannot
+// satisfy or poison these checks. The token is short because usernames cap at 20 characters.
+const runId = crypto.randomUUID().replace(/-/g, "").slice(0, 10);
+// Clerk subjects allow only alphanumerics after the `user_` prefix, so the token joins the
+// suffix instead of adding another underscore.
+const ownerOne = `user_race${runId}o1`;
+const ownerTwo = `user_race${runId}o2`;
+const joiner = `user_race${runId}j`;
+const publisher = `user_race${runId}p`;
+const voteOwner = `user_race${runId}v`;
+const voterOne = `user_race${runId}v1`;
+const voterTwo = `user_race${runId}v2`;
 
 const fixtures = `
 insert into public.profiles (user_id, username) values
-  ('${ownerOne}', 'RaceOwnerOne'), ('${ownerTwo}', 'RaceOwnerTwo'), ('${joiner}', 'RaceJoiner'),
-  ('${publisher}', 'RacePublisher'), ('${voteOwner}', 'RaceVoteOwner'),
-  ('${voterOne}', 'RaceVoterOne'), ('${voterTwo}', 'RaceVoterTwo');
+  ('${ownerOne}', 'RaceO1_${runId}'), ('${ownerTwo}', 'RaceO2_${runId}'), ('${joiner}', 'RaceJ_${runId}'),
+  ('${publisher}', 'RaceP_${runId}'), ('${voteOwner}', 'RaceV_${runId}'),
+  ('${voterOne}', 'RaceV1_${runId}'), ('${voterTwo}', 'RaceV2_${runId}');
 
 with created as (
   insert into public.groups (name, visibility, owner_id) values
@@ -332,10 +359,17 @@ try {
     `incorporatedVotes=${String(observed.incorporatedVotes)}`);
 } finally {
   const cleanup = await psql(`
-    delete from public.groups where owner_id like 'user_race%';
-    delete from public.profiles where user_id like 'user_race%';
+    delete from public.groups where owner_id like 'user_race${runId}%';
+    delete from public.profiles where user_id like 'user_race${runId}%';
   `);
-  if (cleanup.code !== 0) console.error(`Cleanup failed: ${cleanup.err}`);
+  if (cleanup.code !== 0) failures.push(`cleanup failed — ${cleanup.err}`);
+  const leftovers = await psql(`
+    select (select count(*) from public.profiles where user_id like 'user_race${runId}%')
+         + (select count(*) from public.groups where owner_id like 'user_race${runId}%');
+  `);
+  if (leftovers.code !== 0 || leftovers.out.trim() !== "0") {
+    failures.push(`cleanup left fixtures behind — ${leftovers.code !== 0 ? leftovers.err : leftovers.out.trim()}`);
+  }
 }
 
 if (failures.length > 0) {
