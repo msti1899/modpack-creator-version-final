@@ -526,11 +526,27 @@ without a formatter, and five findings carry an inline reason instead of a confi
 switch, two of them because a `<fieldset>` would alter the mod browser layout an
 approved design round froze.
 
-Evidence is local only: exit code 0 for `bun run lint` with no diagnostics, both
-typechecks, 196 Bun tests with 3216 assertions, 81 Vitest tests, the credential-free
-build, 29 Playwright cases and the Lighthouse audit (performance 100, accessibility
-100, best practices 96, SEO 100). Not observed: a GitHub Actions run of either
-workflow, which arrives with the first push of the branch.
+Evidence is local and then from CI. Locally on 2026-11-16: exit code 0 for
+`bun run lint` with no diagnostics, both typechecks, 196 Bun tests with 3216
+assertions, 81 Vitest tests, the credential-free build, 29 Playwright cases and the
+Lighthouse audit (performance 100, accessibility 100, best practices 96, SEO 100).
+Merged through [PR #115](https://github.com/msti1899/modpack-creator-version-final/pull/115)
+as `33bb697` and [PR #116](https://github.com/msti1899/modpack-creator-version-final/pull/116)
+as `967f661`; `main` at `967f661` runs all three frontend jobs green, including
+`Lighthouse`.
+
+Two defects were visible only once CI executed the workflow, and both are recorded in
+[doc21](delivery/doc21-ci-frontend-workflow.md). The browser install used `bunx
+playwright`, which resolves the latest published Playwright instead of the pin in
+`bun.lock`, so the runner downloaded a browser revision the tests did not ask for. The
+Lighthouse flags were an array that LHCI stringifies with commas, so Chrome started
+with its sandbox enabled and aborted before the audit. Local runs passed in both cases
+because this machine already had the right revision cached and allows the sandbox.
+
+Next action: decide whether these jobs become required status checks, and whether the
+pgTAP, concurrency and signed-token PostgREST suites join CI by starting the Supabase
+stack, which costs roughly five minutes per run.
+
 ## Backend completion M8: account deletion and reconciliation (feat/account-deletion)
 
 The eighth milestone of the [completion plan](plans/backend-completion.md) was implemented
@@ -645,6 +661,14 @@ were accepted as a difference. Two items remain open in that slice: connecting a
 mod to a pack draft, and deciding where the Minecraft and loader settings come from. The
 one-command local startup landed separately through
 [PR #85](https://github.com/msti1899/modpack-creator-version-final/pull/85).
+
+On 2026-11-16 the dependency confirmation interaction (D-F4, #99) was decided: one modal
+dialog opened by the action that adds a mod, listing the newly required dependencies, with
+cancelling adding nothing and no partial acceptance. The record is the decisions section of
+the roadmap. That clears the interaction precondition for the mod detail surface and the
+pack screen without making either startable: the detail surface still has no design round,
+and #100 still owes where Minecraft versions and loaders come from and what the
+exact-version picker is. The roadmap change is local and unmerged.
 
 Next decision for this plan: which screen milestone becomes the next design round.
 
