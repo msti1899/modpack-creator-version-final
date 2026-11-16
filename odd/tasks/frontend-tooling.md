@@ -35,6 +35,13 @@ the unpublished branch they originally lived on.
   their own step through `bun run test:web`, and the bridge test that spawned that
   command from inside the Bun gate is removed, so Vitest does not run twice per CI
   run and a component failure reports its own step.
+- **S9 — Each app owns its CI, and the web is linted.** A frontend workflow runs the
+  web lint, the web typecheck, Vitest, the credential-free build and the Playwright
+  journeys with their axe scans on every pull request, plus the Lighthouse audit on
+  `main`; the backend workflow keeps the API, the Bun suites and the disposable
+  PostgreSQL upgrade test. No command runs in both. `bun run lint` is the first
+  repository linter, the formatter stays disabled, and every intentional finding
+  carries an inline suppression with its reason rather than a reformat.
 
 ## Tasks
 
@@ -46,6 +53,7 @@ the unpublished branch they originally lived on.
 | T4 | S5 | inline | Done in PR #76, merge `6c7aa4a` |
 | T5 | S6, S7 | inline | Done in the delivery-record pull request |
 | T6 | S8 | inline | Done on `chore/ci-web-suites`; publication pending |
+| T7 | S9 | inline | Done in the frontend-CI slice; publication pending |
 
 ## Log
 
@@ -68,3 +76,14 @@ the unpublished branch they originally lived on.
   suites moved into their own CI step and `tests/web-suites.test.ts` was removed with
   it. Keeping both would run Vitest twice per CI run, and the Bun gate would keep
   reporting a component failure under the wrong step.
+- **L6, 2026-11-16.** An audit of the gate found the browser checks and the audit
+  never ran in CI, and that no linter existed. The gate was split per app instead of
+  growing one job: `apps/web` owns the lint, its typecheck, Vitest, the build, the
+  Playwright journeys and the Lighthouse audit, while the backend job keeps the API,
+  the Bun suites and the upgrade test. `bun test` stayed whole because a path list
+  that goes stale would silently stop running a new test file. Lighthouse gates `main`
+  only, since performance moves between runs and accessibility is already covered per
+  pull request by the axe scans. Biome entered without its formatter so the lint gate
+  arrived without a repository-wide rewrite; the two `<fieldset>` suggestions stay
+  suppressed because the approved mod-browser layout is frozen and an element swap
+  would change it.

@@ -514,6 +514,23 @@ was not attempted. The dedicated workflow step landed on 2026-11-16
 observed. The older `feat/frontend-tooling` branch duplicates work already on `main`
 and can be dropped. Next action: run the authenticated journeys once a session
 environment exists.
+
+The gate was then split by app and widened on 2026-11-16
+([doc21](delivery/doc21-ci-frontend-workflow.md)). `Frontend CI` owns `apps/web`: its
+`Web checks` job runs the new Biome lint, the web typecheck, Vitest and the
+credential-free build; its `Browser journeys` job runs the Playwright suite with its
+axe scans on every pull request; its `Lighthouse` job audits the public page on `main`
+and on manual dispatch. `Backend CI` keeps the API typecheck, every Bun suite and the
+disposable-PostgreSQL upgrade test, and no longer builds the web app. The lint arrived
+without a formatter, and five findings carry an inline reason instead of a config
+switch, two of them because a `<fieldset>` would alter the mod browser layout an
+approved design round froze.
+
+Evidence is local only: exit code 0 for `bun run lint` with no diagnostics, both
+typechecks, 196 Bun tests with 3216 assertions, 81 Vitest tests, the credential-free
+build, 29 Playwright cases and the Lighthouse audit (performance 100, accessibility
+100, best practices 96, SEO 100). Not observed: a GitHub Actions run of either
+workflow, which arrives with the first push of the branch.
 ## Backend completion M8: account deletion and reconciliation (feat/account-deletion)
 
 The eighth milestone of the [completion plan](plans/backend-completion.md) was implemented

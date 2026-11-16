@@ -32,6 +32,7 @@ For the latest state and next action, use the [current handoff](../handoff.md).
 | [doc18: Mod browser screen](doc18-mod-browser.md) | 2026-11-14 | Implement the approved catalog-ledger direction as `/mods`: a proxied Modrinth search with facets, paging, selection, light and dark themes, verified against the frozen mockup, with pack wiring and publication still open. |
 | [doc19: Web-to-API transport guide](doc19-web-api-transport.md) | 2026-11-15 | Document the transport the web app already uses: two server-only handlers, the five-second deadline and byte-capped reads they share, and the reads-only shape that leaves browser mutations without a path. |
 | [doc20: Dedicated CI step for the web suites](doc20-ci-web-suites.md) | 2026-11-16 | Run the Vitest suites in their own workflow step and remove the Bun bridge test that spawned the same command, so each runner executes once and a component failure names its step. |
+| [doc21: Frontend CI workflow and the web linter](doc21-ci-frontend-workflow.md) | 2026-11-16 | Split the gate into a frontend workflow that owns `apps/web` and a backend workflow scoped to the API, add Playwright with axe on every pull request and Lighthouse on `main`, and introduce the first repository linter with documented suppressions instead of a reformat. |
 
 ## Add the next record
 

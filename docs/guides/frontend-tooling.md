@@ -65,10 +65,50 @@ owns only `tests/ui/` and `tests/lib/`.
 `[test] pathIgnorePatterns`. Bun's runner therefore keeps running every Bun suite,
 including the web ones, without tripping over files that import another runner.
 
-`bun run check` runs both typechecks, every Bun suite and the Vitest suites. The CI
-job runs one step per runner: `bun test` for the Bun suites and `bun run test:web` for
-the Vitest suites. Each runner therefore executes once, and a failing component test
-names its own step instead of hiding inside the Bun gate.
+`bun run check` runs both typechecks, the lint, every Bun suite and the Vitest
+suites. Each runner executes once per CI run: `bun test` for the Bun suites and
+`bun run test:web` for the Vitest suites, so a failing component test names its own
+step instead of hiding inside the Bun gate.
+
+## CI workflows
+
+Two workflows split the gate by the app each one owns. Neither repeats the other's
+commands, so a pull request pays for every check once.
+
+| Workflow | Job | Commands | Trigger |
+| --- | --- | --- | --- |
+| `Frontend CI` | Web checks | `bun run lint`, the web typecheck, `bun run test:web`, `build:public` | every pull request and push to `main` |
+| `Frontend CI` | Browser journeys | `bunx playwright install --with-deps chromium`, `bun run test:e2e` | every pull request and push to `main` |
+| `Frontend CI` | Lighthouse | `bun run --filter @modpack/web audit` | push to `main` and manual dispatch |
+| `Backend CI` | Backend checks | API typecheck, `bun test`, `db:test:upgrade` | every pull request and push to `main` |
+
+`bun test` stays in `Backend CI` because Bun is one runner across the repository: it
+also executes the `apps/web/tests/*.test.ts(x)` cases that need Bun-native globals.
+Splitting that command by path would make a new test file easy to forget, so the
+shared runner reports under a broader name instead.
+
+Lighthouse gates `main` rather than pull requests. Accessibility is an error-level
+assertion and the per-pull-request accessibility gate is the axe scan inside the
+browser journeys; performance varies between runs, so gating every pull request on it
+would fail on noise.
+
+## Lint
+
+`bun run lint` runs Biome over `apps/web`: one development dependency, no plugin graph
+and no formatter, so the gate arrived without a repository-wide rewrite.
+`bun run lint:fix` applies the automatic fixes locally and never runs in CI.
+
+`biome.json` scopes the linter to `apps/web/src`, `apps/web/tests` and `apps/web/e2e`
+and skips CSS, because Biome's CSS parser rejects Tailwind 4 directives such as
+`@theme` and `globals.css` belongs to the PostCSS build. `apps/api` is outside the
+linter and needs its own slice.
+
+A rule that fires on purpose carries an inline
+`// biome-ignore lint/<group>/<rule>: <reason>` at the line instead of a switch in the
+config. The two `role="group"` containers in the mod browser keep their element
+because a `<fieldset>` would add a border and a minimum width to a layout an approved
+design round froze, and the control-character pattern in `src/lib/mods.ts` exists to
+reject exactly those characters.
 
 ## Playwright
 
@@ -84,7 +124,9 @@ no test account or session is available to this environment. Authenticated journ
 still need a Clerk test instance and are not covered by e2e yet.
 
 Chromium was installed once with `bunx playwright install chromium` into the
-Playwright browser cache. No system Chrome is installed.
+Playwright browser cache. No system Chrome is installed. In CI the browser job installs
+it on every run with `bunx playwright install --with-deps chromium`, so the journeys and
+their axe scans execute on each pull request.
 
 ## Lighthouse CI
 
@@ -93,15 +135,20 @@ accessibility as an error and performance, best practices and SEO as warnings. I
 resolves `CHROME_PATH` from the Playwright browser cache when the variable is not
 set, and clears the provider credentials because no test session is available.
 
-Observed categories on the public page on 2026-11-13: performance 100, accessibility
-100, best practices 96, SEO 100. The shell has changed since then, so treat the
-numbers as historical.
+The audit runs in the `Lighthouse` job on pushes to `main` and on manual dispatch, not
+on pull requests; the per-pull-request accessibility gate is the axe scan inside the
+browser journeys.
+
+Observed categories on the public page on 2026-11-16, with Bun 1.4.4: performance 100,
+accessibility 100, best practices 96, SEO 100.
 
 ## Commands
 
 | Command | Effect |
 | --- | --- |
-| `bun run check` | Typechecks plus every Bun and Vitest suite |
+| `bun run check` | Typechecks, lint, and every Bun and Vitest suite |
+| `bun run lint` | Biome over `apps/web` |
+| `bun run lint:fix` | Biome with the automatic fixes applied, local use only |
 | `bun run test` | Bun suites only |
 | `bun run test:web` | Vitest suites only |
 | `bun run test:e2e` | Playwright plus axe-core, from `apps/web` |
