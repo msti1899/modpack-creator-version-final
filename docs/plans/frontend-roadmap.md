@@ -161,11 +161,13 @@ Resolve a choice before implementing behavior that depends on it.
 ## Next action
 
 The mod browser gate is closed: its task document and its screen exist. D-F4 was resolved
-on 2026-11-16, so the dependency confirmation no longer blocks F4 or F5. What still blocks
-that path is not a documentation gap: F4's detail surface has no design round, and #100 has
-not fixed where Minecraft versions and loaders come from or what the exact-version picker
-is, which F4 and F5 both need. F2 needs no open decision, and F3 is implementable whichever
-way D-F2 resolves.
+on 2026-11-16, so the dependency confirmation no longer blocks F4 or F5, and
+[ADR0006](../decisions/0006-selector-data-and-versions.md) decided the selector data and the
+exact-version picker the same day. F4 now includes a version list inside the detail surface
+and F5 reads its settings from the delivered list rather than from a hardcoded default. What
+still blocks that path is not a documentation gap: the detail surface has no design round,
+and the three backend read slices ADR0006 names are unimplemented. F2 needs no open
+decision, and F3 is implementable whichever way D-F2 resolves.
 
 ## Change log
 
@@ -181,3 +183,9 @@ way D-F2 resolves.
 - 2026-11-16: Resolved D-F4 in favour of one modal confirmation dialog opened by the add
   action. Records the trigger, contents, cancel semantics, all-or-nothing acceptance, the
   failure path and the accessibility expectation. F4 and F5 no longer depend on it.
+- 2026-11-16: On the same day as D-F4, [ADR0006](../decisions/0006-selector-data-and-versions.md)
+  decided the selector data and the exact-version picker: the Minecraft version list comes
+  from Modrinth releases, a mod's exact version is chosen on the detail surface, and the
+  loader build is discovered from each loader's metadata. F4 therefore gains a version list
+  and F5 no longer hardcodes its defaults; the three backend read slices are still
+  unimplemented, so the design round stays the remaining frontend blocker.
