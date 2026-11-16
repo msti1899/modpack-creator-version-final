@@ -166,8 +166,9 @@ on 2026-11-16, so the dependency confirmation no longer blocks F4 or F5, and
 exact-version picker the same day. F4 now includes a version list inside the detail surface
 and F5 reads its settings from the delivered list rather than from a hardcoded default. What
 still blocks that path is not a documentation gap: the detail surface has no design round,
-and two of the three backend read slices ADR0006 names are unimplemented. F2 needs no open
-decision, and F3 is implementable whichever way D-F2 resolves.
+and only the loader-build slice ADR0006 names is unimplemented; the release list and the
+per-project version list are merged. F2 needs no open decision, and F3 is implementable
+whichever way D-F2 resolves.
 
 ## Change log
 
