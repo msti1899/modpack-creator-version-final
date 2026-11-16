@@ -668,7 +668,8 @@ cancelling adding nothing and no partial acceptance. The record is the decisions
 the roadmap. That clears the interaction precondition for the mod detail surface and the
 pack screen without making either startable: the detail surface still has no design round,
 and #100 still owes where Minecraft versions and loaders come from and what the
-exact-version picker is. The roadmap change is local and unmerged.
+exact-version picker is. The decision lives in the roadmap document; no screen implements
+it yet.
 
 Next decision for this plan: which screen milestone becomes the next design round.
 
