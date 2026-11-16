@@ -31,6 +31,7 @@ For the latest state and next action, use the [current handoff](../handoff.md).
 | [doc17: Provider-side account deletion reconciliation](doc17-account-reconciliation.md) | 2026-11-14 | Decide and implement the verified Clerk `user.deleted` path: the provider event deletes the application account, a group whose owner can no longer act passes to its longest-standing member, and every missing input fails closed. |
 | [doc18: Mod browser screen](doc18-mod-browser.md) | 2026-11-14 | Implement the approved catalog-ledger direction as `/mods`: a proxied Modrinth search with facets, paging, selection, light and dark themes, verified against the frozen mockup, with pack wiring and publication still open. |
 | [doc19: Web-to-API transport guide](doc19-web-api-transport.md) | 2026-11-15 | Document the transport the web app already uses: two server-only handlers, the five-second deadline and byte-capped reads they share, and the reads-only shape that leaves browser mutations without a path. |
+| [doc20: Dedicated CI step for the web suites](doc20-ci-web-suites.md) | 2026-11-16 | Run the Vitest suites in their own workflow step and remove the Bun bridge test that spawned the same command, so each runner executes once and a component failure names its step. |
 
 ## Add the next record
 

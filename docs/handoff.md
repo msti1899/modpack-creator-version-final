@@ -149,6 +149,11 @@ Still unproven after the local database work:
   head. It adds documentation only; `main` still runs 197 tests and 81 web tests. See
   [doc19](delivery/doc19-web-api-transport.md) and the
   [transport guide](guides/web-api-transport.md).
+- CI web suites (issue #103): the Vitest suites moved into their own `bun run test:web`
+  workflow step and `tests/web-suites.test.ts` was removed with it. Committed on
+  `chore/ci-web-suites`, with `bun run check` passing 196 Bun tests and 81 web tests;
+  not pushed, reviewed or merged, and no GitHub Actions run observed yet. See
+  [doc20](delivery/doc20-ci-web-suites.md).
 
 ## Proposed next backend phase
 
@@ -491,25 +496,24 @@ adds `/sign-in` and `/sso-callback`, links the home account controls to the scre
 keeps account creation on the existing modal.
 
 Merges: #73 as `d1eb096`, #74 as `d4c7ea4`, #75 as `8bb9606`, #76 as `6c7aa4a`; the
-Backend checks passed on every branch head. `bun run check` now runs 172 Bun tests and
-15 Vitest tests, and the Playwright suite runs 4 browser cases including an axe scan
-of `/sign-in`. The CI gate also runs the Vitest suites through
-`tests/web-suites.test.ts`, which executes the same `test:web` command; a dedicated
-workflow step still needs a credential with the `workflow` scope, and the bridge
-should be removed with it. Authenticated journeys remain unverified because they need
-a provider-reachable environment. See
+Backend checks passed on every branch head. `bun run check` now runs 196 Bun tests and
+81 Vitest tests, and the Playwright suite runs 4 browser cases including an axe scan
+of `/sign-in`. The CI gate runs one step per runner: `bun test` for the Bun suites and
+`bun run test:web` for the Vitest suites, so the bridge test that used to spawn the
+same command from inside the Bun gate is gone
+([doc20](delivery/doc20-ci-web-suites.md)). Authenticated journeys remain unverified
+because they need a provider-reachable environment. See
 [doc15](delivery/doc15-web-tooling-signin.md) and the
 [frontend tooling guide](guides/frontend-tooling.md).
 
 State: merged. On 2026-11-14 the configured build was also opened in a real browser
 against the development Clerk instance: `/sign-in` answered `200` with the Clerk email
 field and the Google connection rendered, no fallback and no console error; signing in
-was not attempted. The CI gate now runs the Vitest suites through
-`tests/web-suites.test.ts`, so only the dedicated workflow step is still missing. The
-older `feat/frontend-tooling` branch duplicates work already on `main` and can be
-dropped. Next action: run the authenticated journeys once a session environment
-exists, and replace the bridge with the workflow step when a credential with the
-`workflow` scope is available.
+was not attempted. The dedicated workflow step landed on 2026-11-16
+([doc20](delivery/doc20-ci-web-suites.md)); its first GitHub Actions run is still to be
+observed. The older `feat/frontend-tooling` branch duplicates work already on `main`
+and can be dropped. Next action: run the authenticated journeys once a session
+environment exists.
 ## Backend completion M8: account deletion and reconciliation (feat/account-deletion)
 
 The eighth milestone of the [completion plan](plans/backend-completion.md) was implemented

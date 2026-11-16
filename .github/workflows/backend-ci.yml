@@ -39,6 +39,8 @@ jobs:
         env:
           TMPDIR: ${{ runner.temp }}
         run: bun test
+      - name: Test web component suites
+        run: bun run test:web
       - name: Build web without provider credentials
         run: bun run build
       - name: Test legacy profile upgrade in disposable PostgreSQL

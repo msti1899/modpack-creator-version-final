@@ -67,6 +67,9 @@ deployment is recorded. The CI gate runs the Vitest suites through
 `tests/web-suites.test.ts`; a dedicated workflow step still needs the `workflow`
 credential scope, and the bridge should be removed with it.
 
+Correction, 2026-11-16: the dedicated `bun run test:web` workflow step landed and the
+bridge test was removed with it. See [doc20](doc20-ci-web-suites.md).
+
 ## Remaining work
 
 - Run the authenticated journeys with a real session, which needs a
