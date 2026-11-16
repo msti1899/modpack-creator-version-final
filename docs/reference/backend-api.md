@@ -361,6 +361,18 @@ field the upstream omits is `null`, or `[]` for `categories`; a field that is
 present but malformed fails the request. `clientSide` and `serverSide` are
 `required`, `optional` or `unsupported`.
 
+### GET /minecraft-versions
+
+Returns `{ versions: [{ version, releasedAt }] }`: the Minecraft versions a pack can
+target, newest release first. Only releases are listed; snapshots and pre-releases are
+absent, not filtered by the caller. The list is fetched from Modrinth's game-version tags
+and cached in the API process for one hour, so it can lag a brand-new release by up to an
+hour.
+
+An upstream failure serves the last successful list from the same process when one exists.
+With nothing cached the route returns 502 (or 504 on timeout) with the error envelope; it
+never answers an empty list to hide a failure. The response is capped at 200 entries.
+
 ### GET /mods/:idOrSlug
 
 Returns one `ModSummary` for a project ID or slug. The route accepts no query
