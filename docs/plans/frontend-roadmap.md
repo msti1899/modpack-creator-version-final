@@ -165,10 +165,10 @@ on 2026-11-16, so the dependency confirmation no longer blocks F4 or F5, and
 [ADR0006](../decisions/0006-selector-data-and-versions.md) decided the selector data and the
 exact-version picker the same day. F4 now includes a version list inside the detail surface
 and F5 reads its settings from the delivered list rather than from a hardcoded default. What
-still blocks that path is not a documentation gap: the detail surface has no design round,
-and only the loader-build slice ADR0006 names is unimplemented; the release list and the
-per-project version list are merged. F2 needs no open decision, and F3 is implementable
-whichever way D-F2 resolves.
+still blocks that path is not a documentation gap: the detail surface and the pack screen
+have no design round. All three read contracts ADR0006 names are merged, so the API no longer
+blocks F4, F5 or F6. F2 needs no open decision, and F3 is implementable whichever way D-F2
+resolves.
 
 ## Change log
 

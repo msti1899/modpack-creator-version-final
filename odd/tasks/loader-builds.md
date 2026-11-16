@@ -44,5 +44,5 @@ separately instead of changing the order.
 
 ## Log
 
-- 2026-11-16: Slice implemented against ADR0006 with the mapping above. Not merged at the
-  time of writing.
+- 2026-11-16: Slice implemented against ADR0006 with the mapping above. Merged to `main`
+  through PR #127 as `af7822b`.
