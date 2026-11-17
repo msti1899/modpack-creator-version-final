@@ -684,11 +684,12 @@ implementation.
 
 D-F2 was resolved on 2026-11-16 in favour of link-only group access: no directory and no
 search by name. A public group shares a join link; a private one keeps its invitation and
-approval. The summary read (#129) is implemented as `GET /groups/:groupId` on
-`feat/group-summary` (PR #134), with independent local privacy verification and a targeted
-route correction verified. Publication has started; merge is pending. The migration is
-applied locally only, not to the hosted project. See [doc26](delivery/doc26-group-summary.md).
-F3 still needs its design round; hosted application of the migration is separate work.
+approval. The summary read (#129) is delivered as `GET /groups/:groupId`, merged in
+[PR #134](https://github.com/msti1899/modpack-creator-version-final/pull/134) as `7d6c0f0`
+after independent privacy verification, a route correction and the consented review. The
+migration is applied locally only, not to the hosted project. See
+[doc26](delivery/doc26-group-summary.md). F3 still needs its design round; hosted application
+of the migration is separate work.
 
 Next decision for this plan: which screen milestone becomes the next design round.
 
