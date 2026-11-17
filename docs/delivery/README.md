@@ -37,6 +37,7 @@ For the latest state and next action, use the [current handoff](../handoff.md).
 | [doc23: Per-project versions for the mod picker](doc23-project-versions.md) | 2026-11-16 | Serve one mod's versions that support a chosen Minecraft version and loader, newest first and capped, pass the release type through so a caller can mark prereleases, and keep an unknown project a 404 rather than an empty list. |
 | [doc24: Loader builds for export and publication](doc24-loader-builds.md) | 2026-11-16 | Discover the loader build a pack must declare from each loader's own metadata, with a recorded per-loader mapping, a null recommendation when nothing is stable, one cached entry per pair and manual entry still valid. |
 | [doc25: Trustworthy database and integration CI](doc25-database-ci.md) | 2026-11-16 | Run the pgTAP, concurrency and PostgREST suites in CI against a disposable stack, fail a race that never overlapped, give every fixture a per-run token, fail on cleanup leftovers, and report one TAP result per check in the three suites that reported one per file. |
+| [doc26: Group summary for link-only discovery](doc26-group-summary.md) | 2026-11-16 | Add a public-safe group summary by identifier for the link-only join screen, keep private groups invisible to outsiders and never expose the member list. |
 
 ## Add the next record
 

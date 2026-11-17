@@ -119,6 +119,7 @@ never a submitted owner ID. See the [group guide](../guides/groups.md) for flows
 | --- | --- | --- |
 | POST `/groups` | `{ name, visibility }` | 201 `{ group }`; creator becomes owner/member |
 | GET `/groups/me` | None | 200 `{ group }`, or `{ group: null }`; embeds up to 50 members/requests and next cursors |
+| GET `/groups/:groupId` | None | 200 `{ group }` with the public-safe summary; 404 when the group is unknown or private to the caller |
 | GET `/groups/me/members` | Query: `limit` 1–100 (default 50), opaque `cursor` | 200 `{ members, nextCursor }`; caller's group only |
 | GET `/groups/me/requests` | Query: `limit` 1–100 (default 50), opaque `cursor` | 200 `{ requests, nextCursor }`; owner only |
 | POST `/groups/:groupId/join` | None or `{}` | 200 `{ group }`; public groups only |
@@ -140,6 +141,14 @@ cursor continues through the paged endpoints until it returns null. Roles are
 groups, the active invitation. Other callers receive null for both owner-only
 fields. Page responses contain only `members` or `requests` plus `nextCursor`,
 and reject unknown query parameters or malformed cursors.
+
+The summary read serves the link-only join screen decided in D-F2. Its `group` is
+`{ id, name, visibility, ownerUsername, memberCount, membership }`, where `membership` is
+`"member"`, `"requested"` or `null`. It never includes the member list, requests or
+invitation. A public group is readable by any signed-in caller; a private group is returned
+only to a member or someone with a pending request. Everyone else receives 404, the same as
+an unknown group, so the read cannot confirm that a private group exists. The underlying
+`group_summary(uuid)` RPC is granted to `authenticated` only.
 
 Bodies are capped at 1 KiB and reject unknown fields. Names retain Unicode/casing,
 trim surrounding Unicode spaces, contain 1–60 characters without controls or
