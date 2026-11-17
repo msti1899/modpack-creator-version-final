@@ -684,8 +684,11 @@ implementation.
 
 D-F2 was resolved on 2026-11-16 in favour of link-only group access: no directory and no
 search by name. A public group shares a join link; a private one keeps its invitation and
-approval. That needs one read queued as #129, a group's public-safe summary by identifier, and
-F3 otherwise waits only on its design round.
+approval. The summary read (#129) is implemented as `GET /groups/:groupId` on
+`feat/group-summary` (PR #134), with independent local privacy verification and a targeted
+route correction verified. Publication has started; merge is pending. The migration is
+applied locally only, not to the hosted project. See [doc26](delivery/doc26-group-summary.md).
+F3 still needs its design round; hosted application of the migration is separate work.
 
 Next decision for this plan: which screen milestone becomes the next design round.
 

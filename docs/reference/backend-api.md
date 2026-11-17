@@ -119,7 +119,7 @@ never a submitted owner ID. See the [group guide](../guides/groups.md) for flows
 | --- | --- | --- |
 | POST `/groups` | `{ name, visibility }` | 201 `{ group }`; creator becomes owner/member |
 | GET `/groups/me` | None | 200 `{ group }`, or `{ group: null }`; embeds up to 50 members/requests and next cursors |
-| GET `/groups/:groupId/summary` | None | 200 `{ group }` with the public-safe summary; 404 when the group is unknown or private to the caller |
+| GET `/groups/:groupId` | None | 200 `{ group }` with the public-safe summary; 404 when the group is unknown or private to the caller |
 | GET `/groups/me/members` | Query: `limit` 1–100 (default 50), opaque `cursor` | 200 `{ members, nextCursor }`; caller's group only |
 | GET `/groups/me/requests` | Query: `limit` 1–100 (default 50), opaque `cursor` | 200 `{ requests, nextCursor }`; owner only |
 | POST `/groups/:groupId/join` | None or `{}` | 200 `{ group }`; public groups only |

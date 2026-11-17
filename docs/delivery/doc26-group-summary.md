@@ -12,7 +12,7 @@
   returns `{ id, name, visibility, ownerUsername, memberCount, membership }` for one group.
   A public group is readable by any signed-in caller; a private one is returned only to a
   member or a pending requester. It is granted to `authenticated` and revoked from `anon`.
-- `apps/api/src/groups.ts` registers `GET /groups/:groupId/summary`, projects only the named
+- `apps/api/src/groups.ts` registers `GET /groups/:groupId`, projects only the named
   fields and maps a null RPC result to 404 with the same message as an unknown group.
 - [The API reference](../reference/backend-api.md) documents the route and the privacy rule.
 
@@ -28,6 +28,12 @@
 - The new migration was applied to the local disposable stack with `supabase db push` and the
   whole pgTAP suite rerun against it. `bun run typecheck`, `bun run lint` and the app tests are
   clean.
+- Independent verification confirmed the private owner, member and pending-requester paths,
+  rejection of outsiders, rejected requesters and former members, unchanged data hashes after
+  reads, restricted RPC grants, and unchanged existing group-route test results against the
+  baseline (17 tests, 337 assertions on both revisions). It found a route-path mismatch, which
+  was corrected to the specified `GET /groups/:groupId`; the corrected route tests failed
+  before the fix and passed afterwards. Hosted proof remains unavailable.
 
 ## Not proven
 

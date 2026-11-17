@@ -231,7 +231,7 @@ export function groupRoutes(options: IdentityOptions, fetcher: ProfileFetcher, d
     });
   }
   endpoint("GET", "/me", "my_group", "group");
-  endpoint("GET", "/:groupId/summary", "group_summary", "summary", "groupId");
+  endpoint("GET", "/:groupId", "group_summary", "summary", "groupId");
   endpoint("POST", "/:groupId/join", "join_public_group", "group", "groupId");
   endpoint("POST", "/me/invitation", "create_invitation", "invitation", undefined, 201);
   endpoint("DELETE", "/me/invitation", "revoke_invitation", "revoke");

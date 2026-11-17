@@ -24,7 +24,7 @@ function setup(value: unknown = summary) {
 }
 
 function request(app: ReturnType<typeof setup>["api"], bearer = token) {
-  return app.request(`/groups/${id}/summary`, { headers: { Authorization: `bearer ${bearer}` } });
+  return app.request(`/groups/${id}`, { headers: { Authorization: `bearer ${bearer}` } });
 }
 
 test("a public group is summarized without its member list", async () => {
@@ -54,7 +54,7 @@ test("member and requested statuses pass through", async () => {
 
 test("an invalid identifier and an unauthenticated call never reach the database", async () => {
   const { api, calls } = setup();
-  expect((await api.request("/groups/not-a-uuid/summary", { headers: { Authorization: `bearer ${token}` } })).status).toBe(400);
+  expect((await api.request("/groups/not-a-uuid", { headers: { Authorization: `bearer ${token}` } })).status).toBe(400);
   expect((await request(api, "not-a-token")).status).toBe(401);
   expect(calls).toHaveLength(0);
 });
