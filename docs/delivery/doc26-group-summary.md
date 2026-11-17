@@ -2,7 +2,9 @@
 
 - Date: 2026-11-16
 - Scope: board item #129, the one backend read that D-F2 required.
-- State: implemented on `feat/group-summary`; merge pending at the time of writing.
+- State: merged to `main` through
+  [PR #134](https://github.com/msti1899/modpack-creator-version-final/pull/134) as `7d6c0f0`,
+  after all four checks passed and the consented review acknowledged its approval.
 - Outcome: a public join link can name its group, its owner and its size before the person
   joins, without exposing members or confirming that a private group exists.
 
