@@ -304,6 +304,13 @@ test("the 390 frame keeps the approved strip, bar and selected-row measurements"
 
   expect(measured).toEqual({ bar: 56, chip: 36, theme: 32, strip: 40, group: 30, footer: 68, head: 36 });
 
+  // The artboard caps the phone sort control at 116px so it cannot crowd the
+  // result count beside it.
+  const sortWidth = await page
+    .locator('select[aria-label="Sort by"]')
+    .evaluate((element) => Math.round(element.getBoundingClientRect().width));
+  expect(sortWidth).toBe(116);
+
   const row = page.getByRole("list", { name: "Mod results" }).getByRole("button", { name: /Sodium/ });
   // The approved phone row carries the author and, once selected, the
   // `Selected` line; the artboard measures 76.5px for that state.
@@ -327,6 +334,34 @@ test("the filter sheet closes when the scrim is pressed and returns focus", asyn
   await page.mouse.click(10, 60);
   await expect(sheet).toBeHidden();
   await expect(trigger).toBeFocused();
+});
+
+test("the load-more block keeps the artboard's height and stays above the foot", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openBrowser(page);
+
+  // Ten rows is the artboard's own count; either way the block must measure the
+  // drawing's 91px and its button must never end under the fixed footer.
+  await page.locator("#mod-results").evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+
+  const geometry = await page.evaluate(() => {
+    const scroller = document.querySelector("#mod-results");
+    const foot = document.querySelector("footer");
+    if (scroller === null) return null;
+    const block = [...scroller.querySelectorAll("div")].find((element) => element.textContent?.includes("Showing"));
+    const button = [...scroller.querySelectorAll("button")].find((element) => element.textContent?.trim() === "Load more");
+    if (block === undefined || button === undefined || foot === null) return null;
+    const rect = (element: Element) => element.getBoundingClientRect();
+    return {
+      block: Math.round(rect(block).height),
+      buttonInsideScroller: rect(button).bottom <= Math.round(rect(scroller).bottom),
+      buttonAboveFoot: rect(button).bottom <= rect(foot).top,
+    };
+  });
+
+  expect(geometry).toEqual({ block: 91, buttonInsideScroller: true, buttonAboveFoot: true });
 });
 
 test("the theme toggle flips the whole view and records the choice the server reads", async ({ page }) => {

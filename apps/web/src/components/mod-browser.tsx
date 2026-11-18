@@ -790,7 +790,7 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
               </p>
               <div className="relative">
                 <ArrowUpDown
-                  className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-card-foreground"
+                  className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-card-foreground sm:left-[9px]"
                   aria-hidden="true"
                 />
                 <select
@@ -798,7 +798,7 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
                   value={sort}
                   onChange={(event) => setSort(event.target.value as ModSort)}
                   className={cn(
-                    "h-[34px] appearance-none rounded-lg border border-input bg-card pr-[30px] pl-[30px] text-[12.5px] text-card-foreground hover:bg-muted",
+                    "h-[34px] max-w-[116px] appearance-none rounded-lg border border-input bg-card pr-7 pl-7 text-[12px] font-semibold text-card-foreground hover:bg-muted sm:max-w-[158px] sm:pl-[30px] sm:text-[12.5px]",
                     focusRing,
                   )}
                 >
@@ -846,7 +846,7 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
                   ))}
                 </ul>
 
-                <div className="flex flex-col items-center gap-2.5 px-6 py-6 text-center">
+                <div className="flex flex-col items-center gap-2 px-3.5 pt-3.5 pb-4 text-center">
                   <p className="text-[12.5px] tabular-nums">
                     Showing <strong className="font-semibold">{formatTotal(mods.length)}</strong> of{" "}
                     <strong className="font-semibold">{formatTotal(total)}</strong>
@@ -862,7 +862,7 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
                       variant="secondary"
                       onClick={() => void loadMore()}
                       disabled={loadingMore}
-                      className={secondaryButton}
+                      className="h-[38px] gap-1.5 rounded-lg px-[14px] text-[12.5px] font-semibold sm:h-[34px] sm:px-3.5"
                     >
                       {loadingMore ? "Loading…" : "Load more"}
                     </Button>
