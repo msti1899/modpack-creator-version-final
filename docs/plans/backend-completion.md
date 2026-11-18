@@ -113,6 +113,17 @@ runner exists. Existing behavior sharing changed code must remain pinned.
 
 ### Dependency order
 
+Scope clarification, 2026-11-17: M7's delivered owner-created voting lifecycle
+remains as recorded. The approved extension in
+[D7](../decisions/0001-project-baseline.md#d7-voting) adds member proposals held
+pending owner approval, with that approval opening the vote and incorporation
+remaining separate after a successful result. Pending-proposal storage and owner
+approval are not implemented; their contract and checks require a separate slice.
+The frontend implications are recorded under
+[group-scoped navigation](frontend-roadmap.md#group-scoped-navigation-and-proposal-approval).
+This clarification does not authorize backend implementation or reopen historical
+acceptance evidence as if the extension had already shipped.
+
 1. Start with M1-M3: accounts/profile and mod discovery are the user-facing foundation.
 2. Reuse existing interfaces for M4-M7; close gaps rather than rewrite working routes.
 3. Decide M8 before implementing deletion. M9/M10 support each implemented slice.

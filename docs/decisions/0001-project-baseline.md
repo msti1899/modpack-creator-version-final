@@ -93,6 +93,11 @@ the original context. Unresolved items are listed separately.
 ### D7: Voting
 
 - Only the owner starts mod-addition votes and chooses each vote's duration.
+- Members may submit mod-addition proposals for owner approval (decided on
+  2026-11-17). A pending proposal is not an open vote and changes neither the
+  pack nor any ballot. The owner's approval opens the vote; the member cannot
+  start it independently. This is an approved product extension, not implemented
+  backend behavior.
 - Resolve the exact mod version and confirm its dependencies before opening a
   vote, so the group votes on a concrete addition.
 - Fix the electorate at vote creation, including the owner. Later joiners do
@@ -102,6 +107,9 @@ the original context. Unresolved items are listed separately.
   deadline.
 - An approved result is binding: the owner must incorporate the addition.
   Approval does not itself edit, publish, or activate a pack version.
+- Owner approval to open voting and majority approval of the result are separate
+  events. Incorporation after a successful vote remains a separate owner action
+  (confirmed on 2026-11-17).
 - A member may change their own ballot while the vote stays open, and only the
   latest ballot counts. Reaching the majority closes the vote immediately, and no
   ballot changes are accepted afterwards (decided on 2026-11-12).

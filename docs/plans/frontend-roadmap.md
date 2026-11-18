@@ -100,7 +100,7 @@ the component and journey tests that cover it, and its documentation together.
 
 | Milestone | Acceptance criteria | Implementation, verification and delivery |
 | --- | --- | --- |
-| F1. Application shell and session boundary | A signed-in person lands on a shell with navigation, identity display and sign-out; visiting a protected surface while signed out lands on sign-in and returns to the intended route afterward. Switching accounts never shows the previous person's data. | Partly delivered: design tokens, the shadcn/Radix base, the sign-in screen and the `/api/me` adapter exist. Missing: the shell, the protected-route boundary, a typed client for the authenticated API, and one error surface that renders the API error envelope as a sentence instead of a status code. Check the cached-data boundary between accounts explicitly, because server state is cached by the query client. |
+| F1. Application shell and session boundary | A signed-in person lands on a shell with navigation, identity display and sign-out. A signed-out person attempting a protected surface stays on the current page with a sign-in prompt; selecting it opens sign-in and returns to the intended route afterward. Private information stays hidden, and switching accounts never shows the previous person's data. | Partly delivered: design tokens, the shadcn/Radix base, the sign-in screen and the `/api/me` adapter exist. Missing: the shell, the protected-route boundary, a typed client for the authenticated API, and one error surface that renders the API error envelope as a sentence instead of a status code. Check the cached-data boundary between accounts explicitly, because server state is cached by the query client. |
 | F2. Profile completion and username | A new account is prompted to choose a username before any group action; a taken name is reported as a taken name; a first rename succeeds immediately and a later one inside 30 days explains the wait instead of failing generically. | No UI. The completion signal is already contracted: `GET /profile` returning `{"profile": null}`. Keep `/me` identity-only. Reuse the existing profile routes; do not add an endpoint. Verify casing display against the stored value and both collision messages. |
 | F3. Group lifecycle | An owner creates a group and sees members and join requests; an invitee opens a link, requests to join with a private group and is admitted after approval, or joins a public group directly; the owner revokes an invitation, transfers ownership and leaves with a confirmation that states what happens next; a member who left loses access on the next request. | No UI. Design round and ODD document not started. Reads are paginated: exercise a cursor past the first page, a revoked link and a non-owner attempt rather than only the happy path. Surface "you already have a group" as its own state, because one group per person is a rule, not a failure. |
 | F4. Mod browser | A person searches within the locked Minecraft version and loader, moves through result pages, sees empty and upstream-failure states that say which part failed, and opens one mod's detail surface with the versions that can be selected. | Search, paging, the empty and failure states and both themes are delivered ([#82](https://github.com/msti1899/modpack-creator-version-final/pull/82), [doc18](../delivery/doc18-mod-browser.md)) against the task record in [mod-browser](../../odd/tasks/mod-browser.md). Missing: the detail surface with selectable versions. The backend has served sort, category, environment and author since catalog discovery ([doc09](../delivery/doc09-catalog-discovery.md)), and the shipped screen uses them. |
@@ -108,6 +108,33 @@ the component and journey tests that cover it, and its documentation together.
 | F6. Publishing and sharing | An owner publishes an immutable version, sees earlier versions preserved, selects the active version as a separate action, and exports an archive; a previous member opening the same surface is told access ended rather than shown an empty page. | No UI. Depends on F5. Publishing must not appear to activate the version: the two actions stay visibly separate. Verify denial with a signed-out and a former-member request. |
 | F7. Voting | The owner opens a proposal with a chosen duration; the frozen electorate sees it, casts and changes a ballot until the majority, sees the early-approval result, and the owner cancels or incorporates; incorporation never silently edits, publishes or activates a version. | No UI. Depends on F5 and F3. Deadline rejection is derived on access, so the screen must not imply a scheduled job fired. |
 | F8. Account settings and exceptional states | A signed-in person reaches their account settings, sees which sign-in methods are attached, and any action the product has not decided appears as absent rather than as a disabled promise. | Depends on D-F3 and provider configuration. Only implement what the configured Clerk instance actually enforces; do not build an application-owned account-management surface to work around it. |
+
+### Group-scoped navigation and proposal approval
+
+Approved product clarification, 2026-11-17; these requirements refine F1, F3, F4,
+F5 and F7 above. They are not evidence of delivered behavior or authorization to
+implement backend changes.
+
+- F1/F3: navigation is group-scoped, with account controls kept separate. A person
+  without a group can create one or open a group link, but cannot browse mods.
+  The create action opens a separate group-creation page; the contextual prompt
+  does not contain the creation form. That page is not implemented yet.
+- F4: the mod browser is reached from the group's action to view mods, not from a
+  global catalog navigation entry. The existing public `/mods` screen does not yet
+  enforce this boundary; previously recorded delivery evidence remains historical.
+- F5: the group owner can add a mod directly. A member can only propose the
+  addition; submitting it leaves the stored pack unchanged and shows it as pending
+  owner approval, not as an open vote.
+- F7: the owner approves a pending proposal to open voting. After a successful
+  vote the owner separately incorporates the result, following
+  [D7](../decisions/0001-project-baseline.md#d7-voting). Neither proposal submission
+  nor approval to start voting inserts a mod into the pack.
+
+Member proposals and owner approval to open voting are not implemented. They add
+a backend dependency to the member journey in F5 and F7; the existing owner-only
+draft edit and vote-opening paths do not supply a pending-proposal workflow.
+The data contract and exceptional lifecycle cases still need a bounded
+implementation specification before that backend extension can start.
 
 Cross-cutting acceptance applies to every milestone rather than forming its own: the
 surface is keyboard reachable with visible focus and passes axe-core; each interactive
@@ -185,6 +212,15 @@ and on the group-summary read that D-F2 requires.
 
 ## Change log
 
+- 2026-11-17: Clarified the F1 signed-out journey: the current page remains visible
+  with a contextual prompt, and only the sign-in action opens the sign-in page.
+  Private data stays hidden and returning to the intended route remains required.
+  In F3, the no-group prompt opens a separate group-creation page rather than
+  embedding its form.
+- 2026-11-17: Approved group-scoped mod access and role-specific actions. Members
+  submit pending proposals; owner approval opens voting and incorporation after a
+  successful vote remains separate. Refined F1/F3/F4/F5/F7 and recorded the
+  unimplemented backend dependency without changing historical delivery claims.
 - 2026-11-14: Initial proposed plan. Records the backend readiness inventory, the
   delivered and in-progress surfaces, the design gate as a precondition, eight journey
   milestones and six open decisions.
