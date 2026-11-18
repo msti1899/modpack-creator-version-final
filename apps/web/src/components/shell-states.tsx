@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle, Lock, RefreshCw, Users } from "lucide-react";
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
@@ -64,9 +64,13 @@ export function SignedOutState({ signInHref }: { signInHref: string }) {
  *
  * Both destinations belong to F3, so this slice draws the actions and leaves
  * them inert (decision D3): they are announced as unavailable rather than
- * shipped as links to a route that does not exist yet.
+ * shipped as links to a route that does not exist yet. S7 and S14 require more
+ * than `aria-disabled`: each control points at a description naming what is
+ * missing, so the reason survives into assistive technology while the card
+ * stays as the artboard draws it.
  */
 export function NoGroupState() {
+  const noteId = useId();
   return (
     <Stage>
       <Panel>
@@ -80,11 +84,14 @@ export function NoGroupState() {
         <p className="mt-1.5 text-[13px] text-muted-foreground">
           A group owns the pack and its mods. Create one on its own page, or open a link you were given.
         </p>
+        <p className="sr-only" id={noteId}>
+          Creating a group and opening a link are not available yet because the group page is not built.
+        </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-          <button type="button" aria-disabled="true" className={primaryButton}>
+          <button type="button" aria-disabled="true" aria-describedby={noteId} className={primaryButton}>
             Create a group
           </button>
-          <button type="button" aria-disabled="true" className={outlineButton}>
+          <button type="button" aria-disabled="true" aria-describedby={noteId} className={outlineButton}>
             Open a link
           </button>
         </div>
