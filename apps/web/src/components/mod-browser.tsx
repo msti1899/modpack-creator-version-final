@@ -164,7 +164,7 @@ function Facets({
         </div>
       ) : null}
 
-      <div className={cn("flex flex-col gap-1.5 pb-4", inset)}>
+      <div className={cn("flex flex-col gap-1.5 pb-3", inset)}>
         <label htmlFor={`${idPrefix}-search`} className="text-[12px] font-semibold">
           Search
         </label>
@@ -192,7 +192,7 @@ function Facets({
         aria-labelledby={`${idPrefix}-category-title`}
         className={cn("border-t border-[color:var(--facet-divider)] pt-3.5", inset)}
       >
-        <h3 id={`${idPrefix}-category-title`} className="pb-2.5 text-[12px] font-semibold tracking-[-0.002em]">
+        <h3 id={`${idPrefix}-category-title`} className="pb-2 text-[12px] font-semibold tracking-[-0.002em]">
           Category
         </h3>
         <ul className="m-0 list-none p-0">
@@ -244,7 +244,7 @@ function Facets({
         aria-labelledby={`${idPrefix}-environment-title`}
         className={cn("mt-2.5 border-t border-[color:var(--facet-divider)] pt-3.5", inset)}
       >
-        <h3 id={`${idPrefix}-environment-title`} className="pb-2.5 text-[12px] font-semibold tracking-[-0.002em]">
+        <h3 id={`${idPrefix}-environment-title`} className="pb-2 text-[12px] font-semibold tracking-[-0.002em]">
           Environment
         </h3>
         <ul className="m-0 list-none p-0">
@@ -285,7 +285,7 @@ function Facets({
         aria-labelledby={`${idPrefix}-author-title`}
         className={cn("mt-2.5 border-t border-[color:var(--facet-divider)] pt-3.5", inset)}
       >
-        <h3 id={`${idPrefix}-author-title`} className="pb-2.5 text-[12px] font-semibold tracking-[-0.002em]">
+        <h3 id={`${idPrefix}-author-title`} className="pb-2 text-[12px] font-semibold tracking-[-0.002em]">
           Author
         </h3>
         <div className="relative">
@@ -967,9 +967,9 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
               type="button"
               aria-label="Close filters"
               onClick={() => setSheetOpen(false)}
-              className={cn("grid size-8 place-items-center rounded-md hover:bg-muted", focusRing)}
+              className={cn("grid size-7 place-items-center rounded-md hover:bg-muted", focusRing)}
             >
-              <X className="size-4" aria-hidden="true" />
+              <X className="size-3.5" aria-hidden="true" />
             </button>
           </div>
 

@@ -536,6 +536,19 @@ test("the facet sheet is reachable at 390x844 and leaves the top layer when the 
   });
   expect(aligned).toBe(true);
 
+  // With a filter on, the approved sheet still keeps the last environment
+  // option clear of the fixed foot; it must not be cut by the scroll edge.
+  const clearance = await page.evaluate(() => {
+    const dialog = document.querySelector("#filter-sheet");
+    if (dialog === null) return null;
+    const server = [...dialog.querySelectorAll("button")].find((button) => button.textContent?.trim() === "Server");
+    const foot = [...dialog.querySelectorAll("div")].filter((element) => element.className.includes("border-t")).at(-1);
+    return server === undefined || foot === undefined
+      ? null
+      : Math.round(server.getBoundingClientRect().bottom) <= Math.round(foot.getBoundingClientRect().top);
+  });
+  expect(clearance).toBe(true);
+
   // Widening past the rail breakpoint must not leave a modal in the top layer.
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.locator("dialog")).not.toHaveAttribute("open", "");
