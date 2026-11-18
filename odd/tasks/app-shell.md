@@ -24,43 +24,56 @@ promoted to a requirement.
 | [Frontend roadmap, F1](../../docs/plans/frontend-roadmap.md) | The acceptance criteria and the four named gaps |
 | [Frontend roadmap, group-scoped navigation](../../docs/plans/frontend-roadmap.md#group-scoped-navigation-and-proposal-approval) | Navigation is group-scoped, account controls separate, no global catalog |
 | [Handoff, current checkpoint](../../docs/handoff.md) | One next action: finish the F1 design review |
-| `design/app-shell/b-v2.html`, artboard `b` of `design/app-shell/design.json` | Composition, states, copy and responsive behaviour of the frame |
+| `design/b2-mods-integration/a.html`, artboard `a` of round `v3` (approval `A2`) | Composition, states, copy and responsive behaviour of the integrated frame |
 | [Web-to-API transport](../../docs/guides/web-api-transport.md) | The handler idiom every new surface follows |
 | [Backend API reference](../../docs/reference/backend-api.md) | `GET /me` and `GET /groups/me` shapes |
 | [DESIGN.md](../../apps/web/DESIGN.md), `apps/web/src/app/globals.css` | Colour, typography, radius and the dark theme values |
 | [Frontend tooling](../../docs/guides/frontend-tooling.md) | Check commands, viewports, the Playwright harness |
+| Design approval `A2` in the workflow's approval store | Which direction is approved for this slice, what was frozen and on what basis |
+| `design/b2-mods-integration/handoff-a.md` and `approval-note.md`, in the design worktree on 2026-11-18 | The integration rules the approval implies; policy, not a workflow gate receipt |
 
 Each spec is one `- **S<n> …**` entry because the design-gate parser counts spec bullets
 in this form, not headings.
 
 ## Specs
 
-- **S1 — Slice scope.** The frame, its states and the boundary, not the screens inside
-  them. In scope: the command bar (brand, group navigation, theme control, identity chip
-  with account menu), the content region and its context line, the signed-out, no-group,
-  unconfigured and error states, the typed client for the authenticated group read, and
-  the server-cache boundary between accounts.
+- **S1 — Slice scope.** The frame, its states and the boundary, plus the approved
+  integration of the existing catalog into that frame. In scope: the command bar (brand,
+  group navigation, theme control, identity chip with account menu), the content region
+  and its context line, the signed-out, no-group, unconfigured and error states, the
+  typed client for the authenticated group read, the server-cache boundary between
+  accounts, and the catalog's placement under one global bar as approval `A2` draws it —
+  filters in the left content column, results to its right, and the catalog's own brand,
+  theme control and header removed, with its title and locked context chips carried once
+  by the frame's context line (**S2**, **D1**).
   Out of scope, each owned by a later milestone: the group page and its lifecycle (F3),
-  the mod browser and its detail surface (F4), pack assembly (F5), publication (F6),
-  voting and pending proposals (F7), profile completion and username (F2), account
-  settings (F8). No `/g/...` route is created here.
-  The frame mounts on `/mods`, the one authenticated surface that already exists, whose
-  behaviour is unchanged by this slice (**D1**). The first group route and the shell's
-  landing target remain F3's.
+  the mod browser's detail surface and any change to its search, facets, sorts, paging,
+  selection or pack wiring (F4), pack assembly (F5), publication (F6), voting and pending
+  proposals (F7), profile completion and username (F2), account settings (F8). No
+  `/g/...` route is created here.
+  The frame mounts on `/mods`, the one authenticated surface that already exists
+  (**D1**). The integration changes that screen's composition, not its behaviour: the
+  same controls, data, states and Add to pack footer remain. The first group route and
+  the shell's landing target remain F3's.
 
-- **S2 — Approved design reference.** The approved direction is artboard `b`, file
-  `b-v2.html`, in the manifest at `design/app-shell/design.json` (title
-  `App shell · three directions`, group `app-shell`, width 1680). It is the corrected
-  command-bar direction approved on 2026-11-18, inside design round `v2`, whose three
-  variants are `a`, `b` and `c`.
+- **S2 — Approved design reference.** The approved direction is artboard `a`, file
+  `a.html`, title `A · Shared top bar and left filters`, in design round `v3` on canvas
+  `b2-mods-integration`. Approval `A2` was recorded on 2026-11-18 and froze four read-only
+  files (mode 0444 in a 0555 directory) whose sizes match the canvas: `a.html` 165037,
+  `b.html` 180713, `c.html` 237655 and `design.json` 635. The manifest is
+  `design/b2-mods-integration/design.json` and declares the same three variants.
+  Only `a.html` is the approved reference. Approval `A1` for round `v2`, direction `b`,
+  governs the previous frame and remains recorded as history; it does not govern this
+  slice (see **B1**).
   The artboards are local and git-ignored (`.git/info/exclude`), so they exist only in
-  the main checkout, not in any worktree. Implementation must read them at the absolute
-  path of the main checkout's `design/app-shell/b-v2.html` and compare against them at
-  the three viewports in S13.
-  The mockup shows a group screen inside the frame as context. That content is
-  illustrative: it is F4's screen and this slice does not build it. The mockup's own
-  annotation states the proposal route is intent, and its links carry
-  `data-destination="illustrative"`.
+  the main checkout, not in any worktree. Implementation must read the approved artboard
+  at the absolute path of the main checkout's `design/b2-mods-integration/a.html` and
+  compare against it at the three viewports in S13.
+  The artboard shows the existing catalog inside the frame, with sample rows, counts and
+  identities. Those samples are illustrative: the API does not supply facet counts and
+  nothing in this slice turns them into live data. The artboard's written tablet rule
+  also contains an error; **S13** records the verified behaviour and the frozen artboard
+  is not edited.
 
 - **S3 — Identity, role and the group read.** `GET /api/me` already returns the minimal
   identity `{ user: { id, email } }` and stays identity-only; no username is added to it
@@ -85,16 +98,20 @@ in this form, not headings.
   fall back to the first character of the email. F2 replaces this source when a username
   exists.
 
-- **S4 — Navigation.** Group-scoped, with one destination. The bar carries the brand, the
-  group's name as the group entry, the theme control and the identity chip. Account
-  controls live in the chip's menu, never beside the group navigation, and there is no
-  global catalog entry.
+- **S4 — Navigation.** Group-scoped, with one destination. One global top bar carries the
+  brand, the group's name as the group entry, the theme control and the identity chip.
+  Account controls live in the chip's menu, never beside the group navigation, and there
+  is no global catalog entry. The catalog keeps no second brand or theme control: its own
+  header is removed where the global bar already carries those controls.
+  The catalog's filter column is content, not global navigation. It holds catalog filters
+  and sorting only, and it must not become a navigation landmark or carry destinations.
   The approved artboard also shows a `Pending proposals` entry with a count. This slice
   does not render it: its page does not exist, its read does not exist, and member
   proposals are recorded as an unimplemented backend dependency in the roadmap.
   Rendering a link to a missing route, or a count with no data behind it, would be a
   promise the product cannot keep. The navigation is written as a container that accepts
-  entries so F7 adds that one without restructuring the bar. See **D2**.
+  entries so F7 adds that one without restructuring the bar. The phone strip in **S13**
+  likewise contains the group only. See **D2**.
 
 - **S5 — The signed-out boundary.** The boundary is application-level, not middleware.
   `apps/web/src/proxy.ts` runs `clerkMiddleware` without route protection and stays that
@@ -187,11 +204,28 @@ in this form, not headings.
   shell's own default is neutral and F4 passes its own wording rather than editing this
   component.
 
-- **S13 — Responsive.** Reviewed at 1440x900, 768x1024 and 390x844. Desktop and tablet
-  keep the group entry in the bar; at phone width the group destinations move into the
-  account menu's sheet as the artboard draws them, the chip keeps the identity, and the
-  content region is reached by vertical scroll only. No horizontal overflow, overlap or
-  clipping at any of the three widths, in either theme.
+- **S13 — Responsive.** Reviewed at 1440x900, 768x1024 and 390x844. Desktop keeps the
+  global bar and the left filter column beside the results; the catalog's own `Filters`
+  trigger disappears there because the column is always visible. From 768 to 1023 the
+  filters open as the approved sheet instead of the column. At phone width the same sheet
+  carries the filters, the group entry appears in a strip below the bar containing the
+  group only
+  and no pending proposals, and the account menu keeps the identity, `Sign out` and the
+  group entry, because the approved artboard draws both. Its own annotation records that
+  the strip and the menu entry were not reconciled and that the proposal does not choose
+  between them; the approval adds the strip to the existing frame and this spec does not
+  remove the menu entry the artboard also depicts. The sheet has an accessible name,
+  moves focus into it on open, closes on Escape or its close control, returns focus to
+  the trigger, and leaves the background unavailable while open; the skip link and
+  keyboard navigation are preserved.
+  Tablet columns follow the existing catalog, which was verified in code: at 1024–1279
+  the row keeps the version and hides category and author; category and author appear
+  from 1280. The frozen artboard's written rule says the version is hidden instead; that
+  sentence is wrong and is not edited, and this spec records the observed behaviour.
+  The artboard draws only 1440 and 390; the intermediate widths were not drawn or
+  visually verified and must be verified before delivery without inventing new design
+  decisions. No horizontal overflow, overlap or clipping at any of the three widths, in
+  either theme.
 
 - **S14 — Accessibility.** A skip link to the content region, a labelled group
   navigation landmark, a labelled account menu with `aria-expanded` and `aria-controls`
@@ -259,10 +293,18 @@ Observed, not assumed:
    status code on screen.
 7. Signed in without a group, the card renders as the artboard draws it, and neither
    action navigates, issues a request, changes state or reports success.
-8. The frame matches the frozen reference at 1440x900, 768x1024 and 390x844, in light
-   and dark.
+8. The frame matches the frozen `A2` reference at 1440x900, 768x1024 and 390x844, in
+   light and dark.
 9. axe reports no serious or critical violation, and `bun run check` and
    `bun run test:web` pass.
+10. The catalog renders inside one global bar: no second brand, theme control or header,
+    the title and locked context appear once in the frame's context line, filters in the
+    left column from 1024 and a sheet below it, and the existing search, the 12
+    categories, environment, author, clear and active filters, the five sorts, results,
+    selection, load more, the Add to pack footer and its not-connected message all still
+    behave as before.
+11. At 390 the group strip below the bar shows the group only, with no pending
+    proposals; at 1024–1279 the row keeps the version and hides category and author.
 
 Items 1, 3 and 5 need a configured test account; see **B4**.
 
@@ -278,38 +320,56 @@ a delegation the owner gave her; that delegation is reported to this session but
 recorded in this repository, so the attribution stops at Misato and is not extended to
 the owner.
 
-- **B1 — Design gate: closed on 2026-11-18.** Approval `A1` records round `v2`,
-  direction `b`, with a frozen read-only reference copy in the workflow's design store:
-  five files at mode 0444 inside a 0555 directory, sizes matching the canvas, and the
-  manifest declaring `b-v2.html` as the approved artboard. A gate check run from the
-  implementer's worktree reports `design_approved` with verdict `PASS` and the mockup
-  intact.
-  Two things this does not change. The frozen folder holds every artboard in
-  `design/app-shell`, including the superseded `b.html`; only `b-v2.html` is the approved
-  direction. And the approval closes the design gate, not the decision to implement:
-  nothing in S2-S17 becomes authorized by it.
+- **B1 — Design gate: closed on 2026-11-18 with approval `A2`.** `A2` records round `v3`
+  on canvas `b2-mods-integration`, direction `A · Shared top bar and left filters`, with
+  a frozen read-only reference copy in the workflow's design store: four files at mode
+  0444 inside a 0555 directory, sizes matching the canvas, and the manifest declaring
+  `a.html` as the approved artboard. A gate check run from the implementer's worktree at
+  head `b909903` reports `design_approved` with verdict `PASS` and the mockup intact.
+  The approval basis records that the owner gave it in conversation to Rei Ayanami,
+  relayed to Misato, with the F1 integration choice relayed in a card, and that the
+  owner's visual access to the artboards was not independently confirmed. That limit is
+  part of the record and does not widen what the approval authorizes.
+  History, kept because it explains the current state: approval `A1` recorded round `v2`,
+  direction `b`, earlier the same day, with five 0444 files in a 0555 directory. It
+  governed the previous frame and is superseded by `A2` here, not erased.
+  Two things this does not change. Each frozen folder holds every artboard of its round —
+  `v2` includes the superseded `b.html`; `v3` holds `a.html`, `b.html` and `c.html` — and
+  only the direction named by the approval is the reference. And the approval closes the
+  design gate; authorisation to implement this slice is the owner's separate 2026-11-18
+  decision recorded in L6, not the approval itself.
 - **B2 — Checkout base: resolved for the implementer on 2026-11-18.** The
-  implementer's worktree now sits at `99ee7aa`, the same commit as `main`, so it carries
-  `f5aca61` — the 2026-11-17 group-scoped scope and the F1 signed-out clarification —
-  and the gate check reports that head. The other worktrees still sit at `98b1d6d`;
-  that matters only if another task is picked up from one of them, which must then be
-  synced first. The uncommitted `apps/web/package.json` and `bun.lock` remain local to
-  the main checkout and unrelated to this slice.
+  implementer's branch was cut from `99ee7aa`, the same commit as `main` then, so it
+  carries `f5aca61` — the 2026-11-17 group-scoped scope and the F1 signed-out
+  clarification — and the gate check reports head `b909903`, the app-shell implementation
+  commit. The other worktrees still sit at `98b1d6d`; that matters only if another task
+  is picked up from one of them, which must then be synced first. The uncommitted
+  `apps/web/package.json` and `bun.lock` remain local to the main checkout and unrelated
+  to this slice.
+  The spec revision this entry describes is mirrored into that worktree as an untracked
+  file, because the design-gate parser reads `odd/tasks/app-shell.md` from the checkout it
+  runs in.
 - **B3 — The design reference is absent from worktrees.** `design/` is ignored through
   `.git/info/exclude` and exists only in the main checkout. Follow the precedent the mod
   browser recorded: keep the artboards in the main checkout and give the branch worktree
-  a symlink `design/app-shell` to the main checkout's folder, then run the design tooling
-  from the worktree.
+  a symlink `design/b2-mods-integration` to the main checkout's folder, then run the
+  design tooling from the worktree. The implementer's worktree already carries that
+  symlink, next to the earlier `design/app-shell` one.
   One exception, verified in the workflow code: the approval step refuses to freeze a
   source directory that is a symlink. Approving therefore runs from the main checkout,
-  where `design/app-shell` is a real directory; the symlink is only for the branch
-  worktree the implementer works in.
+  where `design/b2-mods-integration` is a real directory; the symlink is only for the
+  branch worktree the implementer works in.
+  The frozen copy lives in the workflow's own design store, not in `design/`, so
+  comparison uses the store path for the approved bytes and the main checkout for the
+  manifest and the other variants.
 - **B4 — No authenticated proof.** D-F5 is open; no test account exists, and the
   Playwright harness runs with provider credentials cleared. Acceptance items 1, 3 and 5
   cannot be observed until that changes.
 - **D1 — Which route hosts the frame: decided 2026-11-18.** The frame mounts on `/mods`,
-  leaving that screen's behaviour unchanged. F3 owns the first group route and F1's
-  landing target, so no `/g/...` route is created here.
+  leaving that screen's behaviour unchanged. The screen's composition is the integration
+  approved later the same day (**S1**, **S2**); the route and the behaviour are D1's part.
+  F3 owns the first group route and F1's landing target, so no `/g/...` route is created
+  here.
   The alternative is recorded as not chosen: a dedicated `/app` landing with no product
   content, which would add a route and an empty screen.
 - **D2 — The `Pending proposals` entry: decided 2026-11-18.** It is not rendered, exactly
@@ -377,3 +437,26 @@ the owner.
   server-read cookie as the storage, S4 already matched D2 and is unchanged, and S3
   already derived the initials from the email so D5 confirms it. The rejected
   alternatives stay recorded for each. B3 and B4 remain open.
+- L9 (2026-11-18): the owner approved direction A of the B2 and mods integration and chose
+  F1 as the slice that registers and implements it now. Approval `A2` was verified in the
+  workflow's approval store rather than taken on report: task `app-shell`, round `v3`,
+  canvas `b2-mods-integration`, direction `A · Shared top bar and left filters`, frozen
+  four 0444 files in a 0555 directory with sizes equal to the canvas, and a gate check run
+  from the implementer's worktree reports `design_approved` `PASS` at `b909903` with the
+  mockup intact. Effects: S1 adds the approved integration of the existing catalog to the
+  scope without adding catalog behaviour; S2 names `a.html` of `v3` as the reference and
+  keeps `A1`/`v2` as history; S4 states one global bar, that the filter column is content
+  and not navigation, and that the phone strip holds the group only; S13 records the phone
+  strip, the 768–1023 filter sheet and the verified 1024–1279 columns; acceptance items 8,
+  10 and 11 make the integration observable; B1, B2 and B3 were updated to the current
+  evidence. The frozen artboard draws both the phone strip and a group entry in the account
+  menu, and its annotation says the two were not reconciled; the spec records both rather
+  than choosing, so no navigation is removed without a new decision. Two limits recorded
+  rather than glossed: the approval basis says the owner's
+  visual access was not independently confirmed, and the frozen artboard's written tablet
+  rule wrongly hides the version — the verified catalog keeps the version and hides
+  category and author below 1280, so S13 records that and the frozen artboard was not
+  edited. Tablet and intermediate widths were not drawn or visually verified. This change
+  touches documentation only: no code, test, design file, gate, commit, push, merge,
+  publication or deployment. The revision is mirrored uncommitted into the implementer's
+  worktree because the gate reads the task document from the checkout it runs in.
