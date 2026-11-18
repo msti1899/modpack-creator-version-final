@@ -1,10 +1,18 @@
 import { SsoCallback } from "../../components/sso-callback";
 import { hasClerkConfiguration } from "../../lib/auth-config";
+import { safeRedirectPath } from "../../lib/groups";
 
 // The callback runs inside ClerkProvider only; prerendering it would need the provider at build time.
 export const dynamic = "force-dynamic";
 
-export default function SsoCallbackPage() {
+export default async function SsoCallbackPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const { redirect_url } = await searchParams;
+  const redirectTo = safeRedirectPath(Array.isArray(redirect_url) ? redirect_url[0] : redirect_url);
+
   if (!hasClerkConfiguration()) {
     return (
       <main className="grid min-h-dvh place-items-center bg-sidebar px-6">
@@ -20,7 +28,7 @@ export default function SsoCallbackPage() {
       <p className="text-sm text-muted-foreground" role="status">
         Finishing sign-in…
       </p>
-      <SsoCallback />
+      <SsoCallback redirectTo={redirectTo} />
     </main>
   );
 }

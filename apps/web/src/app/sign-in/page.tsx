@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { SignInCard } from "../../components/sign-in-card";
 import { BrandMark } from "../../components/brand-mark";
 import { hasClerkConfiguration } from "../../lib/auth-config";
+import { safeRedirectPath } from "../../lib/groups";
 
 export const metadata: Metadata = {
   title: "Sign in · Modpack Creator",
@@ -16,7 +17,16 @@ const cardShell =
 
 const gridLine = "color-mix(in oklab, var(--foreground) 5%, transparent) 1px";
 
-export default function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  // The destination is validated before it is used: only a same-origin path is
+  // accepted, so a crafted `redirect_url` cannot send the person elsewhere.
+  const { redirect_url } = await searchParams;
+  const redirectTo = safeRedirectPath(Array.isArray(redirect_url) ? redirect_url[0] : redirect_url);
+
   return (
     <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-sidebar px-4 py-6 sm:px-6 sm:py-14">
       <div
@@ -38,7 +48,7 @@ export default function SignInPage() {
       />
 
       {hasClerkConfiguration() ? (
-        <SignInCard cardClassName={cardShell} />
+        <SignInCard cardClassName={cardShell} redirectTo={redirectTo} />
       ) : (
         <section className={cardShell} aria-labelledby="sign-in-unavailable">
           <div className="flex items-center gap-[10px] px-[30px] pt-[26px]">

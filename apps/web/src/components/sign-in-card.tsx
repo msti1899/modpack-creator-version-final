@@ -65,7 +65,7 @@ const quietLink =
 const textField =
   "h-11 w-full rounded-md border border-border bg-card pr-10 pl-3 text-[14.5px] text-foreground outline-none placeholder:text-[#A79D92] hover:border-[#D3C7B8] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/15";
 
-export function SignInCard({ cardClassName }: { cardClassName: string }) {
+export function SignInCard({ cardClassName, redirectTo = "/" }: { cardClassName: string; redirectTo?: string }) {
   const { signIn } = useSignIn();
   const router = useRouter();
 
@@ -107,7 +107,7 @@ export function SignInCard({ cardClassName }: { cardClassName: string }) {
           setError(clerkMessage(finalizeError));
           return;
         }
-        router.push("/");
+        router.push(redirectTo);
         return;
       }
       setError(
@@ -127,7 +127,7 @@ export function SignInCard({ cardClassName }: { cardClassName: string }) {
     try {
       const { error: ssoError } = await signIn.sso({
         strategy,
-        redirectUrl: "/",
+        redirectUrl: new URL(redirectTo, window.location.origin).href,
         redirectCallbackUrl: "/sso-callback",
       });
       if (ssoError) {

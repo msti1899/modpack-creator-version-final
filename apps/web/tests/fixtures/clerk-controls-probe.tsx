@@ -5,6 +5,11 @@ import { strict as assert } from "node:assert";
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 let signedIn = false;
+mock.module("next/headers", () => ({
+  // Outside a request there is no cookie store; the layout must still compose.
+  cookies: async () => ({ get: () => undefined }),
+  headers: async () => new Headers(),
+}));
 mock.module("@clerk/nextjs", () => ({
   Show: ({ when, children }: { when: string; children: ReactNode }) =>
     (when === "signed-in") === signedIn ? children : null,
@@ -25,7 +30,7 @@ const { default: Layout } = await import("../../src/app/layout");
 process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_fixture";
 process.env.CLERK_SECRET_KEY = "server-secret-sentinel";
 for (signedIn of [false, true]) {
-  const html = renderToStaticMarkup(<Layout><Home /></Layout>);
+  const html = renderToStaticMarkup(await Layout({ children: <Home /> }));
   assert.ok(html.includes('data-testid="provider"'));
   assert.equal(html.includes('href="/sign-in"'), !signedIn);
   assert.equal(html.includes(">Sign in</a>"), !signedIn);
@@ -36,7 +41,7 @@ for (signedIn of [false, true]) {
 }
 for (const key of ["CLERK_SECRET_KEY", "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"]) {
   const value = process.env[key]; delete process.env[key];
-  const html = renderToStaticMarkup(<Layout><Home /></Layout>);
+  const html = renderToStaticMarkup(await Layout({ children: <Home /> }));
   assert.ok(!html.includes('data-testid="provider"'));
   assert.ok(html.includes("Configure Clerk to enable sign-in."));
   process.env[key] = value;
