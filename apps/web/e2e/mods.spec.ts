@@ -518,12 +518,18 @@ test("the facet sheet is reachable at 390x844 and leaves the top layer when the 
   await expect(sheet.getByRole("button", { name: /Optimization/ })).toBeVisible();
   await expect(sheet.getByRole("button", { name: /^Show 1,284 mods$/ })).toBeVisible();
 
+  // The approved sheet shows the active filters above the facets, not only the
+  // locked scope chips.
+  await sheet.getByRole("button", { name: /Optimization/ }).first().click();
+  await expect(sheet.getByRole("group", { name: "Active filters" }).getByText("Optimization")).toBeVisible();
+
   // Widening past the rail breakpoint must not leave a modal in the top layer.
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.locator("dialog")).not.toHaveAttribute("open", "");
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole("button", { name: "Filters", exact: true }).click();
+  // The trigger's accessible name carries the active count once a filter is on.
+  await page.getByRole("button", { name: /^Filters/ }).click();
   await expect(sheet).toBeVisible();
   await sheet.getByRole("button", { name: "Close filters" }).click();
   await expect(sheet).toBeHidden();

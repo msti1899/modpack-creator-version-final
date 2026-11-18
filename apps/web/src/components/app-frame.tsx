@@ -130,7 +130,7 @@ export function AppFrame({ children, clerkEnabled, initialDark, skipLink }: AppF
         <Link
           href="/"
           aria-label="Modpack Creator"
-          className="inline-flex items-center gap-[9px] rounded-md text-foreground hover:[&_.wordmark]:underline hover:[&_.wordmark]:underline-offset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="-ml-[6px] inline-flex h-9 items-center gap-[9px] rounded-[8px] px-[6px] text-foreground hover:[&_.wordmark]:underline hover:[&_.wordmark]:underline-offset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <BrandMark className="size-[22px] shrink-0 text-foreground" />
           <span className="wordmark text-[12.5px] font-semibold tracking-[-0.006em] sm:text-[13px]">Modpack Creator</span>

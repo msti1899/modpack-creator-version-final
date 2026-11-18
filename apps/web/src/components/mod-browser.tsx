@@ -93,8 +93,6 @@ type FacetProps = {
   onAuthorCommit: () => void;
   showAll: boolean;
   onShowAll: () => void;
-  onClear: () => void;
-  withHead?: boolean;
   surface?: FacetSurface;
 };
 
@@ -111,8 +109,6 @@ function Facets({
   onAuthorCommit,
   showAll,
   onShowAll,
-  onClear,
-  withHead = true,
   surface = "rail",
 }: FacetProps) {
   const visible = showAll ? CATEGORIES : CATEGORIES.slice(0, VISIBLE_CATEGORIES);
@@ -155,28 +151,11 @@ function Facets({
 
   return (
     <>
-      {withHead ? (
-        <div className="flex items-center justify-between px-1 pb-2">
-          <h2 id="filters-title" className="text-[14px] font-semibold tracking-[-0.008em]">
-            Filters
-          </h2>
-          <button
-            type="button"
-            onClick={onClear}
-            className={cn("rounded-sm px-0.5 py-0.5 text-[12px] hover:underline hover:underline-offset-3", focusRing)}
-          >
-            Clear all
-          </button>
+      {chips.length > 0 ? (
+        // biome-ignore lint/a11y/useSemanticElements: a fieldset would add its own border and min-width to the approved filter bar; role=group keeps the grouping the layout already renders.
+        <div role="group" aria-label="Active filters" className="flex flex-wrap gap-1.5 px-1 pb-2.5">
+          {chips}
         </div>
-      ) : null}
-
-      {withHead ? (
-        chips.length > 0 ? (
-          // biome-ignore lint/a11y/useSemanticElements: a fieldset would add its own border and min-width to the approved filter bar; role=group keeps the grouping the layout already renders.
-          <div role="group" aria-label="Active filters" className="flex flex-wrap gap-1.5 px-1 pb-2.5">
-            {chips}
-          </div>
-        ) : null
       ) : null}
 
       <div className="flex flex-col gap-1.5 px-1 pb-4">
@@ -393,7 +372,7 @@ function ModRow({
         "lg:h-14 lg:grid-cols-[32px_minmax(132px,168px)_minmax(0,1fr)_76px_48px_62px_78px]",
         "xl:grid-cols-[32px_minmax(150px,190px)_minmax(0,1fr)_116px_84px_52px_62px_88px]",
         selected
-          ? "my-1 rounded-lg border border-border bg-card text-card-foreground shadow-[0_1px_2px_color-mix(in_oklab,var(--foreground)_5%,transparent)]"
+          ? "my-[3px] rounded-lg border border-border bg-card text-card-foreground shadow-[0_1px_2px_color-mix(in_oklab,var(--foreground)_5%,transparent)] sm:my-1"
           : "border-b border-border hover:bg-secondary",
         focusRing,
       )}
@@ -701,7 +680,19 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
         aria-labelledby="filters-title"
         className="hidden min-h-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex [--facet-active:var(--sidebar-accent)] [--facet-divider:var(--border)] [--facet-hover:color-mix(in_oklab,var(--sidebar-accent)_55%,transparent)]"
       >
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pt-3.5 pb-6 [scrollbar-width:thin]">
+        <div className="flex flex-none items-center justify-between gap-2.5 px-3 pt-3.5 pb-1.5">
+          <h2 id="filters-title" className="text-[14px] font-semibold tracking-[-0.008em]">
+            Filters
+          </h2>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className={cn("rounded-sm px-0.5 py-0.5 text-[12px] hover:underline hover:underline-offset-3", focusRing)}
+          >
+            Clear all
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-5 [scrollbar-width:thin]">
           <Facets idPrefix="rail" {...facade} />
         </div>
       </aside>
@@ -725,6 +716,7 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
               type="button"
               onClick={() => setSheetOpen(true)}
               aria-haspopup="dialog"
+              aria-controls="filter-sheet"
               aria-expanded={sheetOpen}
               className={cn(
                 "inline-flex h-[34px] shrink-0 items-center gap-1.5 rounded-lg border border-input bg-card px-2.5 text-[12.5px] font-semibold text-card-foreground hover:bg-muted lg:hidden",
@@ -928,7 +920,7 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
             type="button"
             disabled={selected === null}
             onClick={() => setFooterStatus("Pack editing is not connected yet.")}
-            className="ml-auto h-10 shrink-0 gap-[7px] rounded-lg px-[17px] text-[13.5px] font-semibold disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 sm:ml-0"
+            className="ml-auto h-[38px] shrink-0 gap-[7px] rounded-lg px-[14px] text-[13.5px] font-semibold disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 sm:ml-0 sm:h-10 sm:px-[17px]"
           >
             <Plus className="size-[15px]" aria-hidden="true" />
             Add to pack
@@ -938,6 +930,7 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
 
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: a dialog is not an interactive control; Escape already reaches it through the cancel event, and this handler only treats a press on the backdrop as a dismissal, so no keyboard path is replaced. */}
       <dialog
+        id="filter-sheet"
         ref={sheetRef}
         aria-labelledby="filter-sheet-title"
         onClose={() => setSheetOpen(false)}
@@ -957,7 +950,10 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
         )}
       >
         <div className="flex max-h-[82dvh] flex-col">
-          <div className="flex flex-none items-center justify-between gap-2.5 px-[18px] pt-3 pb-3.5">
+          <div className="grid flex-none place-items-center pt-[9px] pb-[3px]" aria-hidden="true">
+            <span className="h-1 w-9 rounded-sm bg-border" />
+          </div>
+          <div className="flex flex-none items-center justify-between gap-2.5 px-[18px] pt-1 pb-2.5">
             <h2 id="filter-sheet-title" className="text-[20px] leading-tight font-semibold tracking-[-0.018em]">
               Filters
             </h2>
@@ -983,10 +979,10 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
                 {loaderLabel}
               </span>
             </div>
-            <Facets idPrefix="sheet" withHead={false} surface="sheet" {...facade} />
+            <Facets idPrefix="sheet" surface="sheet" {...facade} />
           </div>
 
-          <div className="flex flex-none items-center gap-2.5 border-t border-border px-[18px] pt-2.5 pb-6">
+          <div className="flex flex-none items-center gap-2.5 border-t border-border px-[18px] pt-2.5 pb-5">
             <Button type="button" variant="ghost" onClick={clearFilters} className={secondaryButton}>
               Clear all
             </Button>

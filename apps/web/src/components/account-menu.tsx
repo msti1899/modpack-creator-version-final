@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
 const menuItemClass = cn(
-  "flex w-full items-center justify-between gap-3 rounded-md px-2.5 py-2 text-left text-[13px] font-medium hover:bg-muted",
+  "flex h-[34px] w-full items-center justify-between gap-2 rounded-[8px] px-2 py-0 text-left text-[12.5px] font-normal hover:bg-muted aria-[current=page]:font-semibold",
   focusRing,
 );
 
@@ -82,18 +82,20 @@ export function AccountMenu({ identity, group, clerkEnabled }: AccountMenuProps)
         role="group"
         aria-label="Account"
         hidden={!open}
-        className="absolute right-0 z-40 mt-2 w-[264px] rounded-xl border border-border bg-popover p-2 text-popover-foreground shadow-[0_1px_2px_rgba(28,25,23,0.05),0_18px_36px_-18px_rgba(28,25,23,0.28)]"
+        className="absolute right-0 z-40 mt-2 w-[264px] rounded-[10px] border border-border bg-popover p-1.5 text-popover-foreground shadow-[0_1px_2px_rgba(28,25,23,0.05),0_18px_36px_-18px_rgba(28,25,23,0.28)]"
       >
-        <div className="flex items-center gap-2.5 px-1.5 py-2">
+        <div className="flex items-center gap-[9px] px-2 pt-2 pb-2.5">
           <span
             aria-hidden="true"
-            className="grid size-[30px] flex-none place-items-center rounded-full bg-secondary text-[11.5px] font-semibold text-secondary-foreground"
+            className="grid size-[30px] flex-none place-items-center rounded-full bg-foreground text-[11.5px] font-semibold text-background"
           >
             {initials}
           </span>
           <span className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate text-[12.5px] font-medium">{identity.email ?? "Signed in"}</span>
-            <span className="text-[10.5px] text-muted-foreground">{label}</span>
+            <span className="max-w-[190px] truncate text-[12.5px] font-semibold tracking-[-0.004em]">
+              {identity.email ?? "Signed in"}
+            </span>
+            <span className="text-[11px] text-muted-foreground">{label}</span>
           </span>
         </div>
 
@@ -102,7 +104,7 @@ export function AccountMenu({ identity, group, clerkEnabled }: AccountMenuProps)
         {group ? (
           <div aria-current="page" className={menuItemClass}>
             <span className="truncate">{group.name}</span>
-            <Check className="size-3.5 flex-none text-primary" aria-hidden="true" />
+            <Check className="size-3.5 flex-none text-foreground" aria-hidden="true" />
           </div>
         ) : null}
 
