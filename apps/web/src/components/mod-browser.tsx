@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   ArrowUpDown,
   Check,
@@ -539,6 +539,7 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const sheetRef = useRef<HTMLDialogElement>(null);
+  const applyNoteId = useId();
 
   const activeCount =
     categories.length + (environment === null ? 0 : 1) + (author === null ? 0 : 1) + (query.trim() === "" ? 0 : 1);
@@ -996,10 +997,19 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
               type="button"
               variant="secondary"
               onClick={() => setSheetOpen(false)}
+              aria-describedby={state === "ready" ? applyNoteId : undefined}
               className="h-[38px] flex-1 gap-1.5 rounded-lg px-3.5 text-[12.5px] font-semibold"
             >
-              {state === "ready" ? `Show ${formatTotal(total)} mods` : "Show results"}
+              Show results
             </Button>
+            {state === "ready" ? (
+              // The approved label carries no figure; the live total stays with
+              // assistive technology as the button's description instead of a
+              // second visible element the artboard does not draw.
+              <span className="sr-only" id={applyNoteId}>
+                {formatTotal(total)} mods match these filters.
+              </span>
+            ) : null}
           </div>
         </div>
       </dialog>

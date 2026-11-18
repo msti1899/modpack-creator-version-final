@@ -516,7 +516,11 @@ test("the facet sheet is reachable at 390x844 and leaves the top layer when the 
   await expect(sheet).toBeVisible();
   await expect(sheet.getByRole("searchbox", { name: "Search", exact: true })).toBeVisible();
   await expect(sheet.getByRole("button", { name: /Optimization/ })).toBeVisible();
-  await expect(sheet.getByRole("button", { name: /^Show 1,284 mods$/ })).toBeVisible();
+  // The approved label is exactly "Show results"; the live total is kept as the
+  // button's accessible description rather than a visible figure.
+  const apply = sheet.getByRole("button", { name: "Show results" });
+  await expect(apply).toBeVisible();
+  await expect(apply).toHaveAccessibleDescription("1,284 mods match these filters.");
 
   // The approved sheet shows the active filters above the facets, not only the
   // locked scope chips.
