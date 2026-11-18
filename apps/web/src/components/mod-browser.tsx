@@ -71,8 +71,10 @@ const fieldBaseClass = cn(
 /** The approved artboard fills the field with the card surface in the column and the muted one in the sheet. */
 const fieldSurfaceClass = { rail: "bg-card", sheet: "bg-muted" } as const;
 type FacetSurface = keyof typeof fieldSurfaceClass;
-const chipClass =
-  "inline-flex h-6 items-center gap-1 rounded-sm bg-secondary px-2 text-[11.5px] whitespace-nowrap text-muted-foreground";
+const scopeChipClass =
+  "inline-flex h-6 items-center gap-[5px] rounded-sm bg-secondary px-2 text-[11px] whitespace-nowrap text-muted-foreground";
+const filterChipClass =
+  "inline-flex h-6 items-center gap-[5px] rounded-sm bg-sidebar-accent pr-[3px] pl-2 text-[12px] whitespace-nowrap text-muted-foreground";
 const badgeClass =
   "inline-flex h-5 items-center rounded-sm bg-secondary px-1.5 text-[11px] whitespace-nowrap text-muted-foreground";
 const secondaryButton =
@@ -112,26 +114,30 @@ function Facets({
   surface = "rail",
 }: FacetProps) {
   const visible = showAll ? CATEGORIES : CATEGORIES.slice(0, VISIBLE_CATEGORIES);
+  // The rail body insets by 8px and the sheet by its 18px gutter, so the facets
+  // add the artboard's 4px on the rail and nothing inside the sheet: the chips,
+  // the search and every section align with the surface they sit on.
+  const inset = surface === "rail" ? "px-1" : "px-0";
   const chips = [
     ...categories.map((id) => (
-      <span key={`category-${id}`} className={chipClass}>
+      <span key={`category-${id}`} className={filterChipClass}>
         {CATEGORY_LABELS.get(id) ?? id}
         <button
           type="button"
           aria-label={`Remove ${CATEGORY_LABELS.get(id) ?? id} category filter`}
           onClick={() => onCategory(id)}
           className={cn(
-            "grid size-[18px] place-items-center rounded-sm hover:bg-sidebar-accent hover:text-foreground",
+            "grid size-[18px] place-items-center rounded-sm text-muted-foreground hover:bg-border hover:text-foreground",
             focusRing,
           )}
         >
-          <X className="size-[11px]" aria-hidden="true" />
+          <X className="size-[10px]" aria-hidden="true" />
         </button>
       </span>
     )),
     ...(environment
       ? [
-          <span key="environment" className={chipClass}>
+          <span key="environment" className={filterChipClass}>
             {environment === "client" ? "Client" : "Server"}
             <button
               type="button"
@@ -142,7 +148,7 @@ function Facets({
                 focusRing,
               )}
             >
-              <X className="size-[11px]" aria-hidden="true" />
+              <X className="size-[10px]" aria-hidden="true" />
             </button>
           </span>,
         ]
@@ -153,12 +159,12 @@ function Facets({
     <>
       {chips.length > 0 ? (
         // biome-ignore lint/a11y/useSemanticElements: a fieldset would add its own border and min-width to the approved filter bar; role=group keeps the grouping the layout already renders.
-        <div role="group" aria-label="Active filters" className="flex flex-wrap gap-1.5 px-1 pb-2.5">
+        <div role="group" aria-label="Active filters" className={cn("flex flex-wrap gap-1.5 pt-1 pb-3", inset)}>
           {chips}
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-1.5 px-1 pb-4">
+      <div className={cn("flex flex-col gap-1.5 pb-4", inset)}>
         <label htmlFor={`${idPrefix}-search`} className="text-[12px] font-semibold">
           Search
         </label>
@@ -184,7 +190,7 @@ function Facets({
 
       <section
         aria-labelledby={`${idPrefix}-category-title`}
-        className="border-t border-[color:var(--facet-divider)] px-1 pt-3.5"
+        className={cn("border-t border-[color:var(--facet-divider)] pt-3.5", inset)}
       >
         <h3 id={`${idPrefix}-category-title`} className="pb-2.5 text-[12px] font-semibold tracking-[-0.002em]">
           Category
@@ -236,7 +242,7 @@ function Facets({
 
       <section
         aria-labelledby={`${idPrefix}-environment-title`}
-        className="mt-2.5 border-t border-[color:var(--facet-divider)] px-1 pt-3.5"
+        className={cn("mt-2.5 border-t border-[color:var(--facet-divider)] pt-3.5", inset)}
       >
         <h3 id={`${idPrefix}-environment-title`} className="pb-2.5 text-[12px] font-semibold tracking-[-0.002em]">
           Environment
@@ -277,7 +283,7 @@ function Facets({
 
       <section
         aria-labelledby={`${idPrefix}-author-title`}
-        className="mt-2.5 border-t border-[color:var(--facet-divider)] px-1 pt-3.5"
+        className={cn("mt-2.5 border-t border-[color:var(--facet-divider)] pt-3.5", inset)}
       >
         <h3 id={`${idPrefix}-author-title`} className="pb-2.5 text-[12px] font-semibold tracking-[-0.002em]">
           Author
@@ -968,13 +974,13 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-[18px] [--facet-active:var(--secondary)] [--facet-divider:var(--border)] [--facet-hover:var(--secondary)]">
-            <div className="flex flex-wrap items-center gap-1.5 pb-3.5">
-              <p className="mr-1 text-[11px] font-semibold">Locked to</p>
-              <span className={chipClass}>
+            <div className="flex flex-wrap items-center gap-1.5 pb-3">
+              <p className="mr-0.5 text-[11px] font-semibold">Locked to</p>
+              <span className={scopeChipClass}>
                 <Lock className="size-[11px] shrink-0" aria-hidden="true" />
                 Minecraft {gameVersion}
               </span>
-              <span className={chipClass}>
+              <span className={scopeChipClass}>
                 <Lock className="size-[11px] shrink-0" aria-hidden="true" />
                 {loaderLabel}
               </span>

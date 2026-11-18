@@ -67,7 +67,7 @@ export function AccountMenu({ identity, group, clerkEnabled }: AccountMenuProps)
           {initials}
         </span>
         <span className="hidden min-w-0 flex-col leading-[1.15] sm:flex">
-          <span className="max-w-[190px] truncate text-[12.5px] leading-[1.2] font-normal text-foreground">
+          <span className="max-w-[220px] truncate text-[12.5px] leading-[1.2] font-normal text-foreground">
             {identity.email ?? "Signed in"}
           </span>
           <span className="text-[10.5px] leading-[1.2] font-semibold tracking-[.012em] text-muted-foreground">{label}</span>

@@ -523,6 +523,19 @@ test("the facet sheet is reachable at 390x844 and leaves the top layer when the 
   await sheet.getByRole("button", { name: /Optimization/ }).first().click();
   await expect(sheet.getByRole("group", { name: "Active filters" }).getByText("Optimization")).toBeVisible();
 
+  // The artboard aligns the chips with the field and the sections it sits
+  // between; the sheet body's gutter is the only inset.
+  const aligned = await page.evaluate(() => {
+    const dialog = document.querySelector("#filter-sheet");
+    if (dialog === null) return null;
+    const chip = dialog.querySelector('[role="group"][aria-label="Active filters"] span');
+    const field = dialog.querySelector('input[type="search"]');
+    return chip === null || field === null
+      ? null
+      : Math.round(chip.getBoundingClientRect().x) === Math.round(field.getBoundingClientRect().x);
+  });
+  expect(aligned).toBe(true);
+
   // Widening past the rail breakpoint must not leave a modal in the top layer.
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.locator("dialog")).not.toHaveAttribute("open", "");
