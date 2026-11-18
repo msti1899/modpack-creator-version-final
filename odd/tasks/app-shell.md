@@ -392,6 +392,27 @@ the owner.
 - **D5 — Initials source: decided 2026-11-18.** Derived from the email local part as S3
   describes, replaced by the username when F2 delivers it. An email-derived monogram is
   accepted for the interval.
+- **D6 — The phone Load more vertical offset: accepted 2026-11-18.** At 390 px wide the
+  Load more control and its caption sit lower than in the `A2` reference. The QA
+  revalidation of `114a404` reported this as the only visual discrepancy left, and the
+  owner accepted it through a card in Rei Ayanami's conversation, relayed to this
+  document the same day.
+  Measurement taken from the QA screenshots retained in the QA worktree under
+  `qa-evidence/` (implementation 390x844, reference 390x845, both captured from the top
+  of the page): the caption's text occupies rows 671-683 against 670-682, and the button
+  box starts at `y` 695 against 693, with its painted background beginning at row 696
+  against 694. Both painted backgrounds end at row 731, so the control is the same 38 px
+  high and the same 96 px wide: the reference paints its background under a 1 px
+  transparent border and the implementation clips it to the padding box, which accounts
+  for the two-row difference in the painted background. The discrepancy is therefore
+  vertical placement, not control size. The search field's top edge measures `y` 170
+  against 171, so the displacement accumulates down the page rather than being a constant
+  shift.
+  The acceptance covers that vertical offset at this viewport and nothing else. It does
+  not cover acceptance items 1, 3 and 5, which stay unobserved while **B4** is open, and
+  it authorizes no merge, push, release, deployment or task closure.
+  The alternative is recorded as not chosen: re-space the block to the pixel, which would
+  change a measured, working component for a difference the owner accepted.
 
 ## Log
 
@@ -460,3 +481,16 @@ the owner.
   touches documentation only: no code, test, design file, gate, commit, push, merge,
   publication or deployment. The revision is mirrored uncommitted into the implementer's
   worktree because the gate reads the task document from the checkout it runs in.
+- L10 (2026-11-18): the QA revalidation of `114a404` was reported by Asuka and relayed
+  by Rei, not run by the document's author. What the report states: the load-more control
+  is visible and works on desktop, the phone sort control measures the 116 px the
+  reference draws, and 36 browser checks pass. The only visual discrepancy reported is
+  the phone vertical offset, which the owner accepted; D6 records it. The measurement
+  taken from the QA screenshots in the `asuka-114a404` worktree confirms a 1 px caption
+  offset and a 2 px offset at the button's top edge, with no difference in the control's
+  size. Not observed and not claimed: the authenticated flows behind acceptance items 1,
+  3 and 5, because **B4** is still open, and the real backend, because the browser checks
+  ran against mocked data. No merge, push, release, deployment or task closure was
+  requested or performed, and the board item stays in `Backlog`. This revision is
+  mirrored uncommitted into the implementer's worktree because the gate reads the task
+  document from the checkout it runs in.
