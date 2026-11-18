@@ -56,23 +56,23 @@ export function AccountMenu({ identity, group, clerkEnabled }: AccountMenuProps)
         aria-controls={menuId}
         onClick={() => setOpen((current) => !current)}
         className={cn(
-          "inline-flex h-[38px] items-center gap-2 rounded-full border border-border bg-card py-1 pr-2 pl-1 text-left hover:bg-muted",
+          "inline-flex h-9 w-9 items-center justify-center gap-[9px] rounded-[10px] border border-input bg-card p-0 text-left hover:bg-muted sm:w-auto sm:justify-start sm:py-0 sm:pr-[9px] sm:pl-[3px]",
           focusRing,
         )}
       >
         <span
           aria-hidden="true"
-          className="grid size-[30px] flex-none place-items-center rounded-full bg-secondary text-[11.5px] font-semibold text-secondary-foreground"
+          className="grid size-[30px] flex-none place-items-center rounded-full bg-foreground text-[11.5px] font-semibold tracking-[.012em] text-background"
         >
           {initials}
         </span>
-        <span className="hidden min-w-0 flex-col leading-tight sm:flex">
-          <span className="max-w-[168px] truncate text-[12.5px] font-medium text-foreground">
+        <span className="hidden min-w-0 flex-col leading-[1.15] sm:flex">
+          <span className="max-w-[190px] truncate text-[12.5px] leading-[1.2] font-normal text-foreground">
             {identity.email ?? "Signed in"}
           </span>
-          <span className="text-[10.5px] text-muted-foreground">{label}</span>
+          <span className="text-[10.5px] leading-[1.2] font-semibold tracking-[.012em] text-muted-foreground">{label}</span>
         </span>
-        <ChevronDown className="size-3.5 flex-none text-muted-foreground" aria-hidden="true" />
+        <ChevronDown className="hidden size-[13px] flex-none text-muted-foreground sm:block" aria-hidden="true" />
         <span className="sr-only">{`Account menu — ${identity.email ?? "signed in"}`}</span>
       </button>
 

@@ -126,18 +126,18 @@ export function AppFrame({ children, clerkEnabled, initialDark, skipLink }: AppF
         {skip.label}
       </a>
 
-      <header className="relative z-40 flex h-14 flex-none items-center gap-3 border-b border-border bg-background px-[18px] sm:h-[60px] sm:px-5 lg:px-6">
+      <header className="relative z-40 flex h-14 flex-none items-center gap-[10px] border-b border-border bg-background px-[18px] sm:h-[60px] sm:px-5 lg:px-6">
         <Link
           href="/"
           aria-label="Modpack Creator"
-          className="inline-flex items-center gap-2.5 rounded-md text-foreground hover:[&_.wordmark]:underline hover:[&_.wordmark]:underline-offset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="inline-flex items-center gap-[9px] rounded-md text-foreground hover:[&_.wordmark]:underline hover:[&_.wordmark]:underline-offset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
-          <BrandMark className="size-[22px] shrink-0 text-primary" />
-          <span className="wordmark text-[13px] font-semibold tracking-[-0.006em]">Modpack Creator</span>
+          <BrandMark className="size-[22px] shrink-0 text-foreground" />
+          <span className="wordmark text-[12.5px] font-semibold tracking-[-0.006em] sm:text-[13px]">Modpack Creator</span>
         </Link>
 
         {group ? (
-          <nav aria-label="Group" className="ml-2 hidden min-w-0 items-center gap-1 md:flex">
+          <nav aria-label="Group" className="ml-3.5 hidden min-w-0 items-center gap-1 md:flex">
             <GroupEntry group={group} />
           </nav>
         ) : null}
@@ -157,7 +157,7 @@ export function AppFrame({ children, clerkEnabled, initialDark, skipLink }: AppF
           aria-label="Group"
           className="flex h-10 flex-none items-center border-b border-border bg-background px-[18px] sm:px-5 md:hidden"
         >
-          <GroupEntry group={group} />
+          <GroupEntry group={group} variant="strip" />
         </nav>
       ) : null}
 
@@ -224,18 +224,26 @@ function statusOf(error: unknown): number | null {
  * and its read belong to F7, and a link to a missing route — or a count with no
  * data behind it — would be a promise the product cannot keep. The navigation is
  * a container so F7 adds that entry without restructuring the bar.
+ *
+ * The bar entry and the phone strip entry are the artboard's two sizes: 32px
+ * and 13px beside the brand, 30px and 12px inside the strip.
  */
-function GroupEntry({ group }: { group: ShellGroup }) {
+function GroupEntry({ group, variant = "bar" }: { group: ShellGroup; variant?: "bar" | "strip" }) {
+  const bar = variant === "bar";
   return (
     <a
       href="#current-group"
       aria-current="page"
       className={cn(
-        "inline-flex h-[30px] min-w-0 items-center gap-1.5 rounded-md bg-secondary px-2.5 text-[12.5px] font-semibold text-secondary-foreground",
-        "hover:bg-[color-mix(in_oklab,var(--secondary),var(--foreground)_5%)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        "inline-flex min-w-0 items-center gap-1.5 self-center rounded-[10px] font-semibold transition-colors motion-reduce:transition-none",
+        bar
+          ? "h-8 px-3 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
+          : "h-[30px] px-2.5 text-[12px] text-muted-foreground hover:bg-muted hover:text-foreground",
+        "aria-[current=page]:bg-secondary aria-[current=page]:text-foreground",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
       )}
     >
-      <Users className="size-3.5 flex-none" aria-hidden="true" />
+      <Users className={cn("flex-none", bar ? "size-3.5" : "size-[13px]")} aria-hidden="true" />
       <span className="truncate">{group.name}</span>
     </a>
   );

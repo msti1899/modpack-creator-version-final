@@ -33,7 +33,7 @@ export function ThemeToggle({ initialDark }: { initialDark: boolean }) {
       aria-label="Dark theme"
       onClick={toggle}
       className={cn(
-        "inline-flex h-[30px] shrink-0 items-center gap-1.5 rounded-md bg-secondary px-2.5 text-[12px] font-semibold text-secondary-foreground transition-colors hover:bg-[color-mix(in_oklab,var(--secondary),var(--foreground)_5%)] motion-reduce:transition-none",
+        "inline-flex h-8 w-8 shrink-0 items-center justify-center gap-1.5 rounded-md bg-secondary px-0 text-[12px] font-semibold text-secondary-foreground transition-colors hover:bg-[color-mix(in_oklab,var(--secondary),var(--foreground)_5%)] motion-reduce:transition-none sm:w-auto sm:px-2.5",
         focusRing,
       )}
     >

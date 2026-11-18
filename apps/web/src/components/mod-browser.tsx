@@ -157,7 +157,7 @@ function Facets({
     <>
       {withHead ? (
         <div className="flex items-center justify-between px-1 pb-2">
-          <h2 id="filters-title" className="text-[13px] font-semibold tracking-[-0.004em]">
+          <h2 id="filters-title" className="text-[14px] font-semibold tracking-[-0.008em]">
             Filters
           </h2>
           <button
@@ -220,7 +220,7 @@ function Facets({
                   aria-pressed={pressed}
                   onClick={() => onCategory(category.id)}
                   className={cn(
-                    "grid h-[30px] w-full grid-cols-[16px_minmax(0,1fr)] items-center gap-[9px] rounded-md border border-transparent px-1.5 text-left text-[13px] text-inherit",
+                    "grid h-8 w-full grid-cols-[16px_minmax(0,1fr)] items-center gap-[9px] rounded-md border border-transparent px-1.5 text-left text-[13px] text-inherit",
                     "hover:bg-[color:var(--facet-hover)] aria-pressed:bg-[color:var(--facet-active)] aria-pressed:font-semibold",
                     focusRing,
                   )}
@@ -272,7 +272,7 @@ function Facets({
                   aria-pressed={pressed}
                   onClick={() => onEnvironment(side)}
                   className={cn(
-                    "grid h-[30px] w-full grid-cols-[16px_minmax(0,1fr)] items-center gap-[9px] rounded-md border border-transparent px-1.5 text-left text-[13px] text-inherit",
+                    "grid h-8 w-full grid-cols-[16px_minmax(0,1fr)] items-center gap-[9px] rounded-md border border-transparent px-1.5 text-left text-[13px] text-inherit",
                     "hover:bg-[color:var(--facet-hover)] aria-pressed:bg-[color:var(--facet-active)] aria-pressed:font-semibold",
                     focusRing,
                   )}
@@ -388,10 +388,10 @@ function ModRow({
       aria-pressed={selected}
       onClick={onSelect}
       className={cn(
-        "relative grid w-full grid-cols-[30px_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-0.5 py-2.5 pr-2.5 text-left transition-colors motion-reduce:transition-none",
-        "min-h-16 sm:h-[52px] sm:min-h-0 sm:grid-cols-[30px_minmax(120px,180px)_minmax(0,1fr)_76px_58px_78px] sm:gap-x-3 sm:py-0",
+        "relative grid w-full grid-cols-[30px_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-0.5 pr-0 pt-[9px] pb-1.5 text-left transition-colors motion-reduce:transition-none",
+        "min-h-16 sm:h-[52px] sm:min-h-0 sm:grid-cols-[30px_minmax(120px,180px)_minmax(0,1fr)_76px_58px_78px] sm:gap-x-3 sm:py-0 sm:pr-2.5",
         "lg:h-14 lg:grid-cols-[32px_minmax(132px,168px)_minmax(0,1fr)_76px_48px_62px_78px]",
-        "xl:grid-cols-[32px_minmax(190px,212px)_minmax(0,1fr)_140px_76px_50px_66px_74px]",
+        "xl:grid-cols-[32px_minmax(150px,190px)_minmax(0,1fr)_116px_84px_52px_62px_88px]",
         selected
           ? "my-1 rounded-lg border border-border bg-card text-card-foreground shadow-[0_1px_2px_color-mix(in_oklab,var(--foreground)_5%,transparent)]"
           : "border-b border-border hover:bg-secondary",
@@ -411,8 +411,8 @@ function ModRow({
       </span>
 
       <span className="col-start-2 row-start-1 flex min-w-0 items-baseline gap-1.5 sm:col-auto sm:row-start-auto">
-        <span className="truncate text-[13px] font-semibold tracking-[-0.006em]">{mod.title}</span>
-        <span className="hidden shrink-0 text-[11px] whitespace-nowrap xl:inline">
+        <span className="truncate text-[13.5px] font-semibold tracking-[-0.006em]">{mod.title}</span>
+        <span className="shrink-0 text-[11px] whitespace-nowrap lg:hidden xl:inline">
           · {mod.author ?? "Unknown author"}
         </span>
       </span>
@@ -457,7 +457,7 @@ function ModRow({
         </span>
       </span>
 
-      <span className="hidden items-center justify-end gap-[5px] text-[11.5px] font-semibold whitespace-nowrap sm:flex">
+      <span className="col-start-2 col-end-4 row-start-3 flex items-center justify-start gap-[5px] text-[12px] font-semibold whitespace-nowrap [&:empty]:hidden sm:col-auto sm:row-auto sm:justify-end sm:text-[11.5px]">
         {selected ? (
           <>
             <Check className="size-3.5 shrink-0" aria-hidden="true" />
@@ -771,57 +771,58 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[18px] bg-gradient-to-b from-transparent to-background"
           />
+          <div className="mt-2 flex h-9 flex-none items-center justify-between gap-4 border-b border-border sm:mt-3 sm:h-[46px] lg:mt-2.5 lg:h-10">
+            <h2 className="sr-only">Results</h2>
+            <p aria-live="polite" className="text-[13.5px] tracking-[-0.004em]">
+              {state === "ready" ? (
+                <>
+                  <strong className="font-semibold tabular-nums">{formatTotal(total)}</strong> results
+                  <span className="hidden text-[11.5px] sm:inline"> · {MOD_PAGE_SIZE} per page</span>
+                </>
+              ) : state === "error" ? (
+                "Results unavailable"
+              ) : (
+                "Searching mods…"
+              )}
+            </p>
+            <div className="flex items-center gap-2.5">
+              <p className="hidden text-[11.5px] text-muted-foreground sm:block">
+                Sorted by {MOD_SORT_LABELS[sort].toLowerCase()}
+              </p>
+              <div className="relative">
+                <ArrowUpDown
+                  className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-card-foreground"
+                  aria-hidden="true"
+                />
+                <select
+                  aria-label="Sort by"
+                  value={sort}
+                  onChange={(event) => setSort(event.target.value as ModSort)}
+                  className={cn(
+                    "h-[34px] appearance-none rounded-lg border border-input bg-card pr-[30px] pl-[30px] text-[12.5px] text-card-foreground hover:bg-muted",
+                    focusRing,
+                  )}
+                >
+                  {MOD_SORTS.map((value) => (
+                    <option key={value} value={value}>
+                      {MOD_SORT_LABELS[value]}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  className="pointer-events-none absolute top-1/2 right-2 size-[13px] -translate-y-1/2 text-card-foreground"
+                  aria-hidden="true"
+                />
+              </div>
+            </div>
+          </div>
+
           <div
             id="mod-results"
             tabIndex={-1}
             aria-busy={state === "loading"}
             className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:thin] focus-visible:outline-none"
           >
-            <div className="sticky top-0 z-20 flex h-11 items-center justify-between gap-4 border-b border-border bg-background sm:h-[46px]">
-              <h2 className="sr-only">Results</h2>
-              <p aria-live="polite" className="text-[13.5px] tracking-[-0.004em]">
-                {state === "ready" ? (
-                  <>
-                    <strong className="font-semibold tabular-nums">{formatTotal(total)}</strong> results
-                    <span className="hidden text-[11.5px] sm:inline"> · {MOD_PAGE_SIZE} per page</span>
-                  </>
-                ) : state === "error" ? (
-                  "Results unavailable"
-                ) : (
-                  "Searching mods…"
-                )}
-              </p>
-              <div className="flex items-center gap-3">
-                <span aria-hidden="true" className="hidden text-[11.5px] sm:inline">
-                  Sort
-                </span>
-                <div className="relative">
-                  <ArrowUpDown
-                    className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-card-foreground"
-                    aria-hidden="true"
-                  />
-                  <select
-                    aria-label="Sort by"
-                    value={sort}
-                    onChange={(event) => setSort(event.target.value as ModSort)}
-                    className={cn(
-                      "h-[34px] appearance-none rounded-lg border border-input bg-card pr-[30px] pl-[30px] text-[12.5px] text-card-foreground hover:bg-muted",
-                      focusRing,
-                    )}
-                  >
-                    {MOD_SORTS.map((value) => (
-                      <option key={value} value={value}>
-                        {MOD_SORT_LABELS[value]}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    className="pointer-events-none absolute top-1/2 right-2 size-[13px] -translate-y-1/2 text-card-foreground"
-                    aria-hidden="true"
-                  />
-                </div>
-              </div>
-            </div>
 
             {state === "loading" && mods.length === 0 ? <Skeleton /> : null}
             {state === "error" ? <ErrorState onRetry={() => setRetryToken((value) => value + 1)} /> : null}
@@ -873,7 +874,7 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
           </div>
         </div>
 
-        <footer className="relative z-20 flex h-[72px] flex-none items-center gap-2.5 border-t border-border bg-card px-[18px] text-card-foreground shadow-[0_-18px_40px_-34px_color-mix(in_oklab,var(--foreground)_55%,transparent)] sm:h-[76px] sm:gap-3 sm:px-5 lg:px-6">
+        <footer className="relative z-20 flex h-[68px] flex-none items-center gap-2.5 border-t border-border bg-card px-[18px] text-card-foreground shadow-[0_-18px_40px_-34px_color-mix(in_oklab,var(--foreground)_55%,transparent)] sm:h-[76px] sm:gap-3 sm:px-5 lg:px-6">
           <div className="flex min-w-0 items-center gap-2.5">
             {selected ? (
               <span className="hidden size-8 shrink-0 place-items-center rounded-md bg-secondary text-secondary-foreground sm:grid">
@@ -935,11 +936,20 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
         </footer>
       </main>
 
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: a dialog is not an interactive control; Escape already reaches it through the cancel event, and this handler only treats a press on the backdrop as a dismissal, so no keyboard path is replaced. */}
       <dialog
         ref={sheetRef}
         aria-labelledby="filter-sheet-title"
         onClose={() => setSheetOpen(false)}
         onCancel={() => setSheetOpen(false)}
+        onClick={(event) => {
+          // The approved artboard closes the sheet on its scrim. In a native
+          // modal dialog the scrim is the dialog itself, so a click whose target
+          // is the dialog (never its content) means the background was pressed.
+          // Escape and the close control keep working, and the browser restores
+          // focus to the trigger on close.
+          if (event.target === event.currentTarget) setSheetOpen(false);
+        }}
         className={cn(
           "fixed inset-x-0 bottom-0 top-auto m-0 max-h-[82dvh] w-full max-w-none overflow-hidden rounded-t-[14px] border border-b-0 border-border bg-card p-0 text-card-foreground shadow-[0_-30px_60px_-30px_color-mix(in_oklab,var(--foreground)_45%,transparent)]",
           "[&::backdrop]:bg-[color-mix(in_oklab,var(--foreground)_34%,transparent)] dark:[&::backdrop]:bg-[color-mix(in_oklab,var(--background)_78%,transparent)]",

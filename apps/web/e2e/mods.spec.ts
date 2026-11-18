@@ -242,6 +242,93 @@ test("the frame names the missing account provider instead of the catalog", asyn
   await expect(page.getByRole("button", { name: "Dark theme" })).toHaveCount(1);
 });
 
+// Acceptance 8: the drawn views are measured against the approved artboard,
+// not eyeballed. These are the values the comparison recorded; a change here
+// means the screen moved away from the frozen reference.
+test("the 1440 frame keeps the approved bar and results-head measurements", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openBrowser(page);
+
+  const measured = await page.evaluate(() => {
+    const height = (element: Element | null) =>
+      element === null ? null : Math.round(element.getBoundingClientRect().height * 10) / 10;
+    const head = document.querySelector("#mod-results")?.previousElementSibling ?? null;
+    const mark = document.querySelector('header a[aria-label="Modpack Creator"] svg');
+    const rail = document.querySelector("aside");
+    return {
+      bar: height(document.querySelector("header")),
+      theme: height(document.querySelector('header button[aria-label="Dark theme"]')),
+      chip: height(document.querySelector("header button[aria-expanded]")),
+      group: height(document.querySelector('nav[aria-label="Group"] a')),
+      head: height(head),
+      headMargin: head === null ? null : getComputedStyle(head).marginTop,
+      rail: rail === null ? null : Math.round(rail.getBoundingClientRect().width),
+      footer: height(document.querySelector("footer")),
+      markColour: mark === null ? null : getComputedStyle(mark).color,
+      note: head?.textContent?.includes("Sorted by relevance") ?? false,
+    };
+  });
+
+  expect(measured).toEqual({
+    bar: 60,
+    theme: 32,
+    chip: 36,
+    group: 32,
+    head: 40,
+    headMargin: "10px",
+    rail: 288,
+    footer: 76,
+    markColour: "rgb(28, 25, 23)",
+    note: true,
+  });
+});
+
+test("the 390 frame keeps the approved strip, bar and selected-row measurements", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openBrowser(page);
+
+  const measured = await page.evaluate(() => {
+    const height = (element: Element | null) =>
+      element === null ? null : Math.round(element.getBoundingClientRect().height * 10) / 10;
+    const strip = document.querySelector("header + nav");
+    return {
+      bar: height(document.querySelector("header")),
+      chip: height(document.querySelector("header button[aria-expanded]")),
+      theme: height(document.querySelector('header button[aria-label="Dark theme"]')),
+      strip: height(strip),
+      group: height(strip?.querySelector("a") ?? null),
+      footer: height(document.querySelector("footer")),
+      head: height(document.querySelector("#mod-results")?.previousElementSibling ?? null),
+    };
+  });
+
+  expect(measured).toEqual({ bar: 56, chip: 36, theme: 32, strip: 40, group: 30, footer: 68, head: 36 });
+
+  const row = page.getByRole("list", { name: "Mod results" }).getByRole("button", { name: /Sodium/ });
+  // The approved phone row carries the author and, once selected, the
+  // `Selected` line; the artboard measures 76.5px for that state.
+  await expect(row.getByText("jellysquid3")).toBeVisible();
+  await row.click();
+  await expect(row.getByText("Selected")).toBeVisible();
+  const selectedHeight = await row.evaluate((element) => element.getBoundingClientRect().height);
+  expect(selectedHeight).toBeCloseTo(76.5, 1);
+});
+
+test("the filter sheet closes when the scrim is pressed and returns focus", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openBrowser(page);
+
+  const trigger = page.getByRole("button", { name: "Filters", exact: true });
+  await trigger.click();
+  const sheet = page.getByRole("dialog", { name: "Filters" });
+  await expect(sheet).toBeVisible();
+
+  // The sheet stops at 82% of the viewport, so a point near the top is scrim.
+  await page.mouse.click(10, 60);
+  await expect(sheet).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
 test("the theme toggle flips the whole view and records the choice the server reads", async ({ page }) => {
   await openBrowser(page);
   const toggle = page.getByRole("button", { name: "Dark theme" });
