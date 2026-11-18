@@ -18,7 +18,7 @@ with the reference copy frozen read-only before any application code was written
 screen follows the Copper Workshop design system: one copper action per view, stone
 only for status, paired surface/foreground text, hairline borders, one type family.
 
-## What was built
+## What changed
 
 - `apps/web/src/lib/mods.ts` — the `ModSummary` contract with the API's exact field
   names and nullability, a validated builder for the eight accepted query parameters,
@@ -33,7 +33,7 @@ only for status, paired surface/foreground text, hairline borders, one type fami
 - `apps/web/src/components/mod-browser.tsx` — the client screen: facet rail, ledger,
   selection, sticky footer and the theme toggle.
 
-## What was verified
+## What was checked
 
 - `bun run check`: both typechecks, 173 Bun tests and 81 Vitest tests, observed twice —
   once by the implementer and once by the orchestrator.
@@ -52,7 +52,7 @@ only for status, paired surface/foreground text, hairline borders, one type fami
   colour transition and could fail intermittently. Both were fixed at `192f36b`, and the
   mods spec was run three times in a row with its axe cases green each time.
 
-## Accepted differences from the approved reference
+## Accepted differences
 
 Recorded by the implementer and accepted by independent verification:
 
@@ -67,7 +67,7 @@ Recorded by the implementer and accepted by independent verification:
 - Error and empty copy differ where the web can fail by timeout or transport rather than
   by an upstream payload.
 
-## Remaining, unproven or out of scope
+## Remaining work
 
 - The branch is committed but not pushed, and no pull request exists. Publication is an
   owner decision.

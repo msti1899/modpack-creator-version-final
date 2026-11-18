@@ -72,15 +72,21 @@ step instead of hiding inside the Bun gate.
 
 ## CI workflows
 
-Two workflows split the gate by the app each one owns. Neither repeats the other's
+Three workflows split the gate by the surface each one owns. None repeats another's
 commands, so a pull request pays for every check once.
 
 | Workflow | Job | Commands | Trigger |
 | --- | --- | --- | --- |
 | `Frontend CI` | Web checks | `bun run lint`, the web typecheck, `bun run test:web`, `build:public` | every pull request and push to `main` |
-| `Frontend CI` | Browser journeys | `bunx playwright install --with-deps chromium`, `bun run test:e2e` | every pull request and push to `main` |
+| `Frontend CI` | Browser journeys | `playwright install --with-deps chromium`, `bun run test:e2e` | every pull request and push to `main` |
 | `Frontend CI` | Lighthouse | `bun run --filter @modpack/web audit` | push to `main` and manual dispatch |
 | `Backend CI` | Backend checks | API typecheck, `bun test`, `db:test:upgrade` | every pull request and push to `main` |
+| `Database CI` | Database checks | `db:start`, `db:test`, `db:test:concurrency`, `db:test:postgrest`, `db:stop` | every pull request and push to `main` |
+
+The browser install runs from the workspace binary
+(`./node_modules/.bin/playwright install --with-deps chromium`) rather than through
+`bunx`, so the browser version matches the pinned Playwright dependency. Local
+`bunx playwright install chromium` remains enough for a one-off setup.
 
 `bun test` stays in `Backend CI` because Bun is one runner across the repository: it
 also executes the `apps/web/tests/*.test.ts(x)` cases that need Bun-native globals.

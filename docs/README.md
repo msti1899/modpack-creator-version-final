@@ -12,11 +12,11 @@ delivery changed, use the [numbered delivery records](delivery/README.md).
 
 | Type | Purpose | Current documents |
 | --- | --- | --- |
-| Guides | Complete a task step by step | [Create and download a modpack](guides/create-modpack.md); [Local database](guides/local-database.md); [Local identity](guides/local-identity.md); [Local account access](guides/local-account-access.md); [Account profiles](guides/account-profiles.md); [Groups and permissions](guides/groups.md); [Persisted pack drafts](guides/pack-drafts.md); [Published versions and sharing](guides/pack-publications.md); [Voting on a mod addition](guides/voting.md); [How the web app reaches the API](guides/web-api-transport.md); [GitHub contribution workflow](guides/github-workflow.md) |
+| Guides | Complete a task step by step | [Create and download a modpack](guides/create-modpack.md); [Local database](guides/local-database.md); [Local identity](guides/local-identity.md); [Local account access](guides/local-account-access.md); [Account profiles](guides/account-profiles.md); [Groups and permissions](guides/groups.md); [Persisted pack drafts](guides/pack-drafts.md); [Published versions and sharing](guides/pack-publications.md); [Voting on a mod addition](guides/voting.md); [How the web app reaches the API](guides/web-api-transport.md); [Frontend tooling and tests](guides/frontend-tooling.md); [GitHub contribution workflow](guides/github-workflow.md) |
 | Reference | Look up contracts, parameters, errors, and limits | [Backend API](reference/backend-api.md) |
 | Architecture | Understand components, boundaries, and data flow | [Stateless Modrinth backend](architecture/modrinth-backend.md) |
-| Decisions | Understand accepted choices and their trade-offs | [Initial scope and stack](decisions/0001-project-baseline.md); [Clerk identity](decisions/0002-clerk-identity.md); [Clerk profile ownership](decisions/0003-clerk-profile-ownership.md) |
-| Plans | Follow approved outcomes, sequence, acceptance criteria, and pending decisions | [Backend roadmap](plans/backend-roadmap.md); [Backend completion](plans/backend-completion.md); [Frontend roadmap](plans/frontend-roadmap.md) |
+| Decisions | Understand accepted choices and their trade-offs | [Initial scope and stack](decisions/0001-project-baseline.md); [Clerk identity](decisions/0002-clerk-identity.md); [Clerk profile ownership](decisions/0003-clerk-profile-ownership.md); [Account deletion](decisions/0004-account-deletion.md); [Provider-side reconciliation](decisions/0005-provider-account-reconciliation.md); [Selector data and exact versions](decisions/0006-selector-data-and-versions.md) |
+| Plans | Follow approved outcomes, sequence, acceptance criteria, and pending decisions | [Backend roadmap](plans/backend-roadmap.md); [Backend completion](plans/backend-completion.md); [Frontend roadmap](plans/frontend-roadmap.md); [Account profiles delivery, complete](plans/account-profiles-delivery.md) |
 | Handoff | Resume from the latest verified state and next action | [Current checkpoint](handoff.md) |
 | Delivery records | Read what changed, why, what was checked, and what remained at that time | [Numbered deliveries](delivery/README.md) |
 | Templates | Use a consistent structure for recurring records | [Decision template](templates/decision.md); [Plan template](templates/plan.md); [Delivery template](templates/delivery.md) |
@@ -59,8 +59,10 @@ links those instructions rather than duplicating them. An interrupted session
 updates the handoff, not a new delivery number.
 
 The [handoff history through 2026-11-12](handoff-history-2026-11-12.md) preserves
-the earlier checkpoint and workstation reports. It is historical evidence, not
-the startup or resume instructions for the current session. Earlier work is not
+the earlier checkpoint and workstation reports, and the
+[history through 2026-11-17](handoff-history-2026-11-17.md) keeps the per-delivery
+narratives that used to sit in the handoff. Both are historical evidence, not the
+startup or resume instructions for the current session. Earlier work is not
 being retroactively converted into numbered deliveries.
 
 ## Record a decision
@@ -86,6 +88,9 @@ without confirmation. Never store credentials or private invitation links here.
 | [0001: Initial scope and stack](decisions/0001-project-baseline.md) | Accepted | Product, architecture, budget, and initial delivery |
 | [0002: Clerk identity](decisions/0002-clerk-identity.md) | Accepted; verified locally | Clerk-only application authentication |
 | [0003: Clerk profile ownership](decisions/0003-clerk-profile-ownership.md) | Accepted; verified locally | Direct Clerk subjects and retained legacy profile rows |
+| [0004: Account deletion and retention](decisions/0004-account-deletion.md) | Accepted for the application-owned surface; provider side in 0005 | Deleting the caller's own account and what survives |
+| [0005: Provider-side account deletion reconciliation](decisions/0005-provider-account-reconciliation.md) | Accepted; verified locally | Clerk deletion as authoritative, owner succession |
+| [0006: Selector data, exact mod versions and loader builds](decisions/0006-selector-data-and-versions.md) | Accepted for three read contracts | Minecraft versions, per-project versions, loader builds |
 
 ## Implementation evidence
 
