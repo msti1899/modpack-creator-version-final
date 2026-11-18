@@ -8,17 +8,15 @@ import {
   Download,
   Filter,
   Lock,
-  Moon,
   Plus,
   RefreshCw,
   Search,
   SearchX,
-  Sun,
   TriangleAlert,
   User,
   X,
 } from "lucide-react";
-import { BrandMark } from "./brand-mark";
+import { ShellContext } from "./app-frame";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -66,10 +64,13 @@ const CATEGORY_LABELS: Map<string, string> = new Map(
 const VISIBLE_CATEGORIES = 7;
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
-const fieldClass = cn(
-  "h-9 w-full rounded-lg border border-input bg-muted px-2.5 text-[13px] text-foreground placeholder:text-muted-foreground",
+const fieldBaseClass = cn(
+  "h-9 w-full rounded-lg border border-input px-2.5 text-[13px] text-foreground placeholder:text-muted-foreground",
   focusRing,
 );
+/** The approved artboard fills the field with the card surface in the column and the muted one in the sheet. */
+const fieldSurfaceClass = { rail: "bg-card", sheet: "bg-muted" } as const;
+type FacetSurface = keyof typeof fieldSurfaceClass;
 const chipClass =
   "inline-flex h-6 items-center gap-1 rounded-sm bg-secondary px-2 text-[11.5px] whitespace-nowrap text-muted-foreground";
 const badgeClass =
@@ -94,6 +95,7 @@ type FacetProps = {
   onShowAll: () => void;
   onClear: () => void;
   withHead?: boolean;
+  surface?: FacetSurface;
 };
 
 function Facets({
@@ -111,6 +113,7 @@ function Facets({
   onShowAll,
   onClear,
   withHead = true,
+  surface = "rail",
 }: FacetProps) {
   const visible = showAll ? CATEGORIES : CATEGORIES.slice(0, VISIBLE_CATEGORIES);
   const chips = [
@@ -195,7 +198,7 @@ function Facets({
             autoComplete="off"
             spellCheck={false}
             maxLength={MOD_QUERY_LIMIT}
-            className={cn(fieldClass, "pl-8")}
+            className={cn(fieldBaseClass, fieldSurfaceClass[surface], "pl-8")}
           />
         </div>
       </div>
@@ -323,7 +326,7 @@ function Facets({
             spellCheck={false}
             maxLength={64}
             aria-label="Author"
-            className={cn(fieldClass, "pl-8")}
+            className={cn(fieldBaseClass, fieldSurfaceClass[surface], "pl-8")}
           />
         </div>
       </section>
@@ -549,7 +552,6 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
   const [selected, setSelected] = useState<ModSummary | null>(null);
   const [footerStatus, setFooterStatus] = useState<string | null>(null);
 
-  const [dark, setDark] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const sheetRef = useRef<HTMLDialogElement>(null);
 
@@ -674,12 +676,6 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
     }
   }, [offset, search, loadingMore]);
 
-  const toggleTheme = () => {
-    const next = !dark;
-    setDark(next);
-    document.documentElement.classList.toggle("dark", next);
-  };
-
   const countLabel = `${selected === null ? 0 : 1} ${selected === null ? "mods" : "mod"} selected`;
   const canLoadMore = state === "ready" && hasMore(offset, mods.length, total);
   const loaderLabel = MOD_LOADER_LABELS[loader];
@@ -700,112 +696,77 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
   };
 
   return (
-    <div className="grid h-dvh min-h-[560px] grid-cols-1 overflow-hidden bg-background text-foreground dark:[color-scheme:dark] lg:grid-cols-[264px_minmax(0,1fr)]">
-      <a
-        href="#mod-results"
-        className="fixed top-3 left-3 z-50 -translate-y-[160%] rounded-lg border border-border bg-card px-3 py-2 text-[12.5px] font-semibold text-card-foreground focus-visible:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-      >
-        Skip to results
-      </a>
-
+    <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden bg-background text-foreground lg:grid-cols-[264px_minmax(0,1fr)] xl:grid-cols-[288px_minmax(0,1fr)]">
       <aside
         aria-labelledby="filters-title"
-        className="hidden min-h-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex"
+        className="hidden min-h-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex [--facet-active:var(--sidebar-accent)] [--facet-divider:var(--border)] [--facet-hover:color-mix(in_oklab,var(--sidebar-accent)_55%,transparent)]"
       >
-        <div className="flex h-[60px] flex-none items-center gap-2.5 border-b border-sidebar-border px-5">
-          <BrandMark className="size-[22px] shrink-0 text-sidebar-foreground" />
-          <span className="text-[13px] font-semibold tracking-[-0.006em]">Modpack Creator</span>
-        </div>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-1 pt-3.5 pb-6 [scrollbar-width:thin]">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pt-3.5 pb-6 [scrollbar-width:thin]">
           <Facets idPrefix="rail" {...facade} />
         </div>
       </aside>
 
       <main className="flex min-h-0 min-w-0 flex-col bg-background">
-        <header className="flex h-16 flex-none items-center gap-2 border-b border-border px-4 sm:px-5 lg:h-[60px] lg:px-7">
-          <div className="flex min-w-0 flex-1 flex-col">
-            <h1 className="truncate text-[19px] leading-tight font-semibold tracking-[-0.02em] lg:text-[20px]">
+        <div className="flex-none px-[18px] pt-3 sm:px-5 lg:px-6 lg:pt-3.5">
+          <ShellContext>
+            <span className="font-semibold text-foreground">Pack</span>
+            <span aria-hidden="true">{" · "}</span>
+            Minecraft {gameVersion}
+            <span aria-hidden="true">{" · "}</span>
+            {loaderLabel}
+          </ShellContext>
+
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="truncate text-[20px] leading-tight font-semibold tracking-[-0.018em] lg:text-[24px] lg:tracking-[-0.022em]">
               Add mods
             </h1>
-            <p className="flex items-center gap-1.5 text-[10.5px] leading-tight lg:hidden">
-              <Lock className="size-[11px] shrink-0" aria-hidden="true" />
-              <span className="truncate">
-                Minecraft {gameVersion} · {loaderLabel}
+
+            <button
+              type="button"
+              onClick={() => setSheetOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={sheetOpen}
+              className={cn(
+                "inline-flex h-[34px] shrink-0 items-center gap-1.5 rounded-lg border border-input bg-card px-2.5 text-[12.5px] font-semibold text-card-foreground hover:bg-muted lg:hidden",
+                focusRing,
+              )}
+            >
+              <Filter className="size-[15px]" aria-hidden="true" />
+              Filters
+              {activeCount > 0 ? (
+                <span className="inline-grid h-[17px] min-w-[17px] place-items-center rounded-sm bg-secondary px-1 text-[10.5px] font-semibold tabular-nums text-secondary-foreground">
+                  {activeCount}
+                </span>
+              ) : null}
+              <span className="sr-only">
+                {activeCount > 0 ? `${activeCount} active ${activeCount === 1 ? "filter" : "filters"}` : ""}
               </span>
-            </p>
+            </button>
           </div>
 
-          {/* biome-ignore lint/a11y/useSemanticElements: a fieldset would add its own border and min-width inside the approved header row; role=group keeps the grouping the layout already renders. */}
-          <div role="group" aria-label="Locked search context" className="hidden items-center gap-1.5 lg:flex">
-            <span className={chipClass}>
-              <Lock className="size-[11px] shrink-0" aria-hidden="true" />
-              Minecraft {gameVersion}
-            </span>
-            <span className={chipClass}>
-              <Lock className="size-[11px] shrink-0" aria-hidden="true" />
-              {loaderLabel}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setSheetOpen(true)}
-            aria-haspopup="dialog"
-            aria-expanded={sheetOpen}
-            className={cn(
-              "inline-flex h-[34px] shrink-0 items-center gap-1.5 rounded-lg border border-input bg-card px-2.5 text-[12.5px] font-semibold text-card-foreground hover:bg-muted lg:hidden",
-              focusRing,
-            )}
-          >
-            <Filter className="size-[15px]" aria-hidden="true" />
-            Filters
-            {activeCount > 0 ? (
-              <span className="inline-grid h-[17px] min-w-[17px] place-items-center rounded-sm bg-secondary px-1 text-[10.5px] font-semibold tabular-nums text-secondary-foreground">
-                {activeCount}
-              </span>
-            ) : null}
-            <span className="sr-only">
-              {activeCount > 0 ? `${activeCount} active ${activeCount === 1 ? "filter" : "filters"}` : ""}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            aria-pressed={dark}
-            aria-label="Dark theme"
-            onClick={toggleTheme}
-            className={cn(
-              "inline-flex h-[30px] shrink-0 items-center gap-1.5 rounded-md bg-secondary px-2.5 text-[12px] font-semibold text-secondary-foreground transition-colors hover:bg-[color-mix(in_oklab,var(--secondary),var(--foreground)_5%)] motion-reduce:transition-none",
-              focusRing,
-            )}
-          >
-            {dark ? <Moon className="size-3.5" aria-hidden="true" /> : <Sun className="size-3.5" aria-hidden="true" />}
-            <span className="hidden sm:inline">Theme</span>
-          </button>
-        </header>
-
-        <div className="flex-none border-b border-border px-4 py-2.5 sm:px-5 lg:hidden">
-          <div className="relative">
-            <Search
-              className="pointer-events-none absolute top-1/2 left-2.5 size-[15px] -translate-y-1/2 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <input
-              name="query"
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search mods…"
-              autoComplete="off"
-              spellCheck={false}
-              maxLength={MOD_QUERY_LIMIT}
-              aria-label="Search mods"
-              className={cn(fieldClass, "h-[38px] pl-8")}
-            />
+          <div className="pt-2.5 lg:hidden">
+            <div className="relative">
+              <Search
+                className="pointer-events-none absolute top-1/2 left-2.5 size-[15px] -translate-y-1/2 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <input
+                name="query"
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search mods…"
+                autoComplete="off"
+                spellCheck={false}
+                maxLength={MOD_QUERY_LIMIT}
+                aria-label="Search mods"
+                className={cn(fieldBaseClass, "h-[38px] bg-card pl-8")}
+              />
+            </div>
           </div>
         </div>
 
-        <div className="relative flex min-h-0 flex-1 flex-col px-4 sm:px-5 lg:px-7">
+        <div className="relative flex min-h-0 flex-1 flex-col px-[18px] sm:px-5 lg:px-6">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[18px] bg-gradient-to-b from-transparent to-background"
@@ -912,7 +873,7 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
           </div>
         </div>
 
-        <footer className="relative z-20 flex h-[72px] flex-none items-center gap-2.5 border-t border-border bg-card px-4 text-card-foreground shadow-[0_-18px_40px_-34px_color-mix(in_oklab,var(--foreground)_55%,transparent)] sm:h-[76px] sm:gap-3 sm:px-5 lg:px-7">
+        <footer className="relative z-20 flex h-[72px] flex-none items-center gap-2.5 border-t border-border bg-card px-[18px] text-card-foreground shadow-[0_-18px_40px_-34px_color-mix(in_oklab,var(--foreground)_55%,transparent)] sm:h-[76px] sm:gap-3 sm:px-5 lg:px-6">
           <div className="flex min-w-0 items-center gap-2.5">
             {selected ? (
               <span className="hidden size-8 shrink-0 place-items-center rounded-md bg-secondary text-secondary-foreground sm:grid">
@@ -986,7 +947,7 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
         )}
       >
         <div className="flex max-h-[82dvh] flex-col">
-          <div className="flex flex-none items-center justify-between gap-2.5 px-4 pt-3 pb-3.5">
+          <div className="flex flex-none items-center justify-between gap-2.5 px-[18px] pt-3 pb-3.5">
             <h2 id="filter-sheet-title" className="text-[20px] leading-tight font-semibold tracking-[-0.018em]">
               Filters
             </h2>
@@ -1000,7 +961,7 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
             </button>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 [--facet-active:var(--secondary)] [--facet-divider:var(--border)] [--facet-hover:var(--secondary)]">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-[18px] [--facet-active:var(--secondary)] [--facet-divider:var(--border)] [--facet-hover:var(--secondary)]">
             <div className="flex flex-wrap items-center gap-1.5 pb-3.5">
               <p className="mr-1 text-[11px] font-semibold">Locked to</p>
               <span className={chipClass}>
@@ -1012,10 +973,10 @@ export function ModBrowser({ gameVersion, loader }: { gameVersion: string; loade
                 {loaderLabel}
               </span>
             </div>
-            <Facets idPrefix="sheet" withHead={false} {...facade} />
+            <Facets idPrefix="sheet" withHead={false} surface="sheet" {...facade} />
           </div>
 
-          <div className="flex flex-none items-center gap-2.5 border-t border-border px-4 pt-2.5 pb-6">
+          <div className="flex flex-none items-center gap-2.5 border-t border-border px-[18px] pt-2.5 pb-6">
             <Button type="button" variant="ghost" onClick={clearFilters} className={secondaryButton}>
               Clear all
             </Button>

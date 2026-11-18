@@ -68,6 +68,36 @@ async function stubCatalog(page: Page) {
   });
 }
 
+/**
+ * A request double for layout evidence — not authenticated proof.
+ *
+ * The harness builds and serves with the provider credentials cleared (spec
+ * S15), so the real `/api/me` answers `503` and the frame would replace the
+ * catalog with its unconfigured state. These two responses only let the
+ * signed-in frame compose so its layout can be measured; they prove nothing
+ * about sign-in. Acceptance items 1, 3 and 5 stay unobservable without a test
+ * account (B4).
+ *
+ * Shapes are the parsers' own: the identity subject matches
+ * `/^user_[A-Za-z0-9]+$/` and the group is a lowercase v4 uuid.
+ */
+const HARNESS_IDENTITY = { user: { id: "user_harness", email: "mara.reid@proton.me" } } as const;
+const HARNESS_GROUP = {
+  group: { id: "3f0c1a9e-7d2b-4c58-9a61-0d4e2b7c8f13", name: "Copper Hollow", role: "owner" },
+} as const;
+
+async function stubHarnessSession(page: Page) {
+  await page.route("**/api/me", (route) => route.fulfill({ json: HARNESS_IDENTITY }));
+  await page.route("**/api/groups/me", (route) => route.fulfill({ json: HARNESS_GROUP }));
+}
+
+// Every journey here opens `/mods`, which now lives inside the app frame, and
+// the frame owns the catalog's presence. Installing the double once keeps each
+// journey focused on what it asserts.
+test.beforeEach(async ({ page }) => {
+  await stubHarnessSession(page);
+});
+
 async function openBrowser(page: Page) {
   await stubCatalog(page);
   await page.goto("/mods?gameVersion=1.21.1&loader=fabric");
@@ -100,6 +130,13 @@ for (const viewport of viewports) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await openBrowser(page);
 
+      // The frame owns the one skip link and puts it first in the document, so
+      // the first Tab reaches it rather than walking the bar (spec S14).
+      await page.keyboard.press("Tab");
+      await expect(page.getByRole("link", { name: "Skip to results" })).toBeFocused();
+      await page.keyboard.press("Enter");
+      await expect(page.locator("#mod-results")).toBeFocused();
+
       await expect(page.getByRole("heading", { level: 1, name: "Add mods" })).toBeVisible();
       await expect(page.getByRole("list", { name: "Mod results" }).getByRole("button")).toHaveCount(20);
       await expect(page.getByText("1,284 results")).toBeVisible();
@@ -110,12 +147,102 @@ for (const viewport of viewports) {
       const background = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
       expect(background).toBe(theme === "dark" ? "rgb(22, 18, 14)" : "rgb(251, 248, 244)");
 
+      // Acceptance 10: one global bar carries one brand, one theme control and
+      // the catalog's header is gone. The catalog used to draw all three again.
+      await expect(page.getByRole("button", { name: "Dark theme" })).toHaveCount(1);
+      await expect(page.getByRole("link", { name: "Modpack Creator" })).toHaveCount(1);
+      await expect(page.getByText("Modpack Creator", { exact: true })).toHaveCount(1);
+      await expect(page.locator("header")).toHaveCount(1);
+
+      // Acceptance 10: the title and the locked context appear once, in the
+      // frame's context line. The filter sheet repeats the version and loader in
+      // hidden markup, so the assertion is the exact line, not the bare strings.
+      const contextLine = page.getByText(/^Pack · Minecraft 1\.21\.1 · Fabric$/);
+      await expect(contextLine).toHaveCount(1);
+      await expect(contextLine).toBeVisible();
+
+      if (viewport.width === 1440) {
+        await expect(page.locator("aside")).toBeVisible();
+        await expect(page.getByRole("button", { name: "Filters", exact: true })).toBeHidden();
+        // Category and author appear from 1280 (spec S13).
+        const sodium = page.getByRole("list", { name: "Mod results" }).getByRole("button", { name: /Sodium/ });
+        await expect(sodium.getByText("Optimization")).toBeVisible();
+        await expect(sodium.getByText("jellysquid3")).toBeVisible();
+      }
+
+      if (viewport.width === 768) {
+        await expect(page.locator("aside")).toBeHidden();
+        await expect(page.getByRole("button", { name: "Filters", exact: true })).toBeVisible();
+      }
+
+      if (viewport.width === 390) {
+        // Acceptance 11: the strip under the bar holds the group only, and no
+        // `Pending proposals` text exists anywhere (decision D2), while the
+        // account menu keeps its own group entry (spec S13 keeps both).
+        const strip = page.getByRole("navigation", { name: "Group" });
+        await expect(strip).toBeVisible();
+        await expect(strip.getByRole("link")).toHaveCount(1);
+        await expect(strip.getByRole("link")).toHaveAccessibleName("Copper Hollow");
+        await expect(strip.getByText("Pending proposals")).toHaveCount(0);
+        await expect(page.getByText("Pending proposals")).toHaveCount(0);
+
+        const chip = page.getByRole("button", { name: /Account menu/ });
+        await chip.click();
+        const menu = page.getByRole("group", { name: "Account" });
+        await expect(menu).toBeVisible();
+        await expect(menu.getByText("Copper Hollow")).toBeVisible();
+        await page.keyboard.press("Escape");
+        await expect(menu).toBeHidden();
+        await expect(chip).toBeFocused();
+      }
+
       expect(await oversized(page)).toEqual([]);
     });
   }
 }
 
-test("the theme toggle flips the whole view and back without persisting a choice", async ({ page }) => {
+// Acceptance 11: the tablet widths keep the version and hide category and
+// author. The frozen artboard's written rule says the opposite; spec S13 records
+// the verified catalog behaviour, so this pins what the code does from 1024 to
+// just below the 1280 breakpoint.
+for (const width of [1024, 1279]) {
+  test(`the row keeps the version and hides category and author at ${width}x900`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await openBrowser(page);
+
+    const row = page.getByRole("list", { name: "Mod results" }).getByRole("button", { name: /Sodium/ });
+    await expect(row).toBeVisible();
+
+    // The version column renders; category and author stay in the markup but are
+    // not rendered (count first, so "hidden" cannot pass by absence).
+    await expect(row.getByText("v0.6.1")).toBeVisible();
+    await expect(row.getByText("Optimization")).toHaveCount(1);
+    await expect(row.getByText("Optimization")).toBeHidden();
+    await expect(row.getByText("jellysquid3")).toHaveCount(1);
+    await expect(row.getByText("jellysquid3")).toBeHidden();
+
+    await expect(page.locator("aside")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Filters", exact: true })).toBeHidden();
+
+    expect(await oversized(page)).toEqual([]);
+  });
+}
+
+// Spec S15: with the provider credentials cleared, the harness proves the
+// unconfigured state. This journey replaces the session double with the 503 the
+// build really answers, so that state stays observable next to the catalog ones.
+test("the frame names the missing account provider instead of the catalog", async ({ page }) => {
+  await page.route("**/api/me", (route) =>
+    route.fulfill({ status: 503, json: { error: "Accounts are not configured." } }),
+  );
+  await page.goto("/mods");
+
+  await expect(page.getByText("Accounts are not available here")).toBeVisible();
+  await expect(page.getByRole("list", { name: "Mod results" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Dark theme" })).toHaveCount(1);
+});
+
+test("the theme toggle flips the whole view and records the choice the server reads", async ({ page }) => {
   await openBrowser(page);
   const toggle = page.getByRole("button", { name: "Dark theme" });
 
@@ -129,12 +256,17 @@ test("the theme toggle flips the whole view and back without persisting a choice
     "rgb(22, 18, 14)",
   );
 
+  // Decision D4: one control, and the choice lives in the cookie the server
+  // reads on the next visit, so the first paint is already the chosen theme.
+  expect(await page.evaluate(() => document.cookie)).toContain("theme=dark");
+
   await toggle.click();
   await expect(toggle).toHaveAttribute("aria-pressed", "false");
   await expect(page.locator("html")).not.toHaveClass(/\bdark\b/);
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(
     "rgb(251, 248, 244)",
   );
+  expect(await page.evaluate(() => document.cookie)).toContain("theme=light");
 });
 
 test("the initial load shows the skeleton until results arrive", async ({ page }) => {

@@ -55,4 +55,21 @@ describe("the account boundary", () => {
     rerender({ id: "user_two" });
     expect(query.getQueryData(["group", "user_one"])).toBeUndefined();
   });
+
+  test("the first identity after mounting is a baseline, not an account switch", () => {
+    const query = client();
+    const { rerender } = renderHook(({ id }: { id: string | null }) => useAccountCache(query, id), {
+      initialProps: { id: null as string | null },
+    });
+
+    // The frame mounts while the identity read is still in flight; the first
+    // identity it observes belongs to this mount and must keep its own read.
+    query.setQueryData(identityQueryKey(), { id: "user_one", email: "mara@proton.me" });
+    rerender({ id: "user_one" });
+    expect(query.getQueryData(identityQueryKey())).toEqual({ id: "user_one", email: "mara@proton.me" });
+
+    // Signing out still drops everything the baseline account read.
+    rerender({ id: null });
+    expect(query.getQueryData(identityQueryKey())).toBeUndefined();
+  });
 });

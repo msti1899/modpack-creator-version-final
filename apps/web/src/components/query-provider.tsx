@@ -34,12 +34,19 @@ export function QueryProvider({ children }: { children: ReactNode }) {
 /**
  * Clear the cache whenever the caller changes, including on sign-out.
  *
- * `previous` starts as the first identity, so mounting never clears anything the
- * current render is about to read.
+ * The frame mounts before the identity read settles, so the first identity it
+ * observes belongs to this mount rather than to a switch: it becomes the
+ * baseline and is kept, because clearing on it would drop the very read that
+ * produced it and leave the frame pending forever. Every later transition,
+ * including sign-out, clears.
  */
 export function useAccountCache(client: QueryClient, identityId: string | null) {
   const previous = useRef(identityId);
   useEffect(() => {
+    if (previous.current === null && identityId !== null) {
+      previous.current = identityId;
+      return;
+    }
     syncAccountCache(client, identityId, previous.current);
     previous.current = identityId;
   }, [client, identityId]);
