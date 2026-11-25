@@ -61,11 +61,11 @@ migration is applied locally only.
 - Hosted: the migrations recorded through the account-deletion slices ([doc16](delivery/doc16-account-deletion.md),
   [doc17](delivery/doc17-account-reconciliation.md)) are applied to the selected test
   project. No deployment is recorded and service liveness is not verified here.
-- Uncommitted on branch `short-chicken`: [doc27](delivery/doc27-authenticated-e2e.md) and
-  its [ADR0007](decisions/0007-authenticated-e2e-account.md) give the browser suite a real
+- Committed on branch `short-chicken` as `6e728a5`: [doc27](delivery/doc27-authenticated-e2e.md)
+  and its [ADR0007](decisions/0007-authenticated-e2e-account.md) give the browser suite a real
   signed-in session through one throwaway account per run, created and deleted locally. The
   public suite passes 29 tests and the authenticated mode passes 2 in the worktree; the
-  change is not committed, reviewed, published or merged.
+  change is not reviewed, pushed or merged.
 
 ## Missing proof
 

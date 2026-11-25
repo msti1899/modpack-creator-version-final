@@ -4,9 +4,9 @@
 - Scope: Give the browser suite a real signed-in session, on demand and locally, with one
   account created and deleted per run. No deployment, no CI secret, no product screen, no
   API behavior and no database change.
-- State: Implemented and checked locally; not committed, not published and not merged when
-  this record was written. No hosted change was made beyond creating and deleting the test
-  accounts of the runs described below.
+- State: Implemented and checked locally in `6e728a5`. Not reviewed, not pushed, not merged
+  when this record was written. No hosted change was made beyond creating and deleting the
+  test accounts of the runs described below.
 - Outcome: An authenticated journey can be verified against a real Clerk session instead of
   only reviewed, without storing any test credential anywhere.
 
