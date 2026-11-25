@@ -106,6 +106,18 @@ duration of the run, the configured Clerk development instance, a local API on
   deployed API and a decision about provider state in CI.
 - The current handoff is the place to resume from: [handoff](../handoff.md).
 
+## Correction, 2026-11-25
+
+After this record was written, commit `73ad33f` named `6e728a5` here and in the handoff.
+The native candidate review of the two commits then ran and was approved: three lenses
+(risk, resilience, reliability) over 19 files and 851 lines, with twelve findings, all
+advisory and non-blocking, and the authority burned on the approved receipt. The findings
+are test-harness hardening, not product behavior: they name test isolation in the shared
+`.auth` directory, a recorded deletion that does not re-check the test-owned marker, a
+partial-credential teardown path, the sweep's page cap, and the local env loader's parity
+with Next. They are follow-up work and do not change this record's outcome. The change is
+still not pushed or merged.
+
 ## References
 
 - [ADR0007: authenticated Playwright account](../decisions/0007-authenticated-e2e-account.md)

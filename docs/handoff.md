@@ -64,8 +64,10 @@ migration is applied locally only.
 - Committed on branch `short-chicken` as `6e728a5`: [doc27](delivery/doc27-authenticated-e2e.md)
   and its [ADR0007](decisions/0007-authenticated-e2e-account.md) give the browser suite a real
   signed-in session through one throwaway account per run, created and deleted locally. The
-  public suite passes 29 tests and the authenticated mode passes 2 in the worktree; the
-  change is not reviewed, pushed or merged.
+  public suite passes 29 tests and the authenticated mode passes 2 in the worktree. The
+  native candidate review approved the slice with twelve advisory findings
+  (`review-e67aacdc103e273d`); the advisories are follow-up work. The change is not pushed or
+  merged.
 
 ## Missing proof
 
