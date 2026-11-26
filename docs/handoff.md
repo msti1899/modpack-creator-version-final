@@ -94,6 +94,20 @@ Still unproven after the local database work:
   by unit tests with the provider mocked rather than by a killed authenticated run. The
   review advisories that harden it are #141.
 
+## Active backend hardening
+
+Issue #108 has a local, uncommitted correction on `shy-walrus`: `GET /mods` accepts
+at most 20 distinct categories and omits only malformed upstream hits, while exact
+lookup remains fail-closed. The API reference and [doc09](delivery/doc09-catalog-discovery.md)
+record the behavior and proof. Focused verification passed 23 tests and 295 assertions;
+`bun run check` passed both typechecks, lint, 229 API tests with 3403 assertions and
+81 web tests. Native assessment was medium and under budget. No hosted or real-upstream
+check ran. The Workboard notes contain the evidence, but its stage remains in progress
+because three stage-update attempts were rejected with a workspace-label refresh error.
+
+Next action for this task: with explicit owner authorization, commit this slice and
+open its pull request; merge and final board closure remain separate delivery steps.
+
 ## Next action
 
 Finish the F1 design review with the confirmed group and role rules; specify the

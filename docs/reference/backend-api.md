@@ -350,7 +350,8 @@ Query parameters:
   relevance ordering.
 - `category`: optional and repeatable, or comma-separated. Each value is a category
   slug of lowercase letters, digits or hyphens. Multiple values are a union, ANDed
-  with the loader and Minecraft version filters.
+  with the loader and Minecraft version filters. At most 20 distinct values are
+  accepted; duplicates do not count toward that limit.
 - `environment`: optional, `client` or `server`. It matches mods that declare that
   side as `required` or `optional`, so a mod that merely works on that side is
   included; it does not mean "exclusive to that side". Precise per-side support is
@@ -366,9 +367,10 @@ upstream request. `author` is 1–64 characters from letters, digits, `_` and `-
 Returns `{ hits: [ModSummary], total, offset }` with at most 20 results per page.
 `ModSummary` is `{ projectId, slug, title, description, iconUrl, downloads,
 follows, author, categories, clientSide, serverSide, latestVersion }`. An enriched
-field the upstream omits is `null`, or `[]` for `categories`; a field that is
-present but malformed fails the request. `clientSide` and `serverSide` are
-`required`, `optional` or `unsupported`.
+field the upstream omits is `null`, or `[]` for `categories`. A hit with a malformed
+required or enriched field is omitted without failing the other hits; `total` still
+reports the upstream result count. `clientSide` and `serverSide` are `required`,
+`optional` or `unsupported`.
 
 ### GET /minecraft-versions
 
@@ -427,8 +429,9 @@ Returns one `ModSummary` for a project ID or slug. The route accepts no query
 parameters; any parameter returns 400 `Invalid query parameter.` An unknown
 project, or one that is not a mod, returns 404 `Mod not found.`; upstream failure
 returns 502 and a timeout returns 504, so a failed lookup is never reported as
-not-found. `author` is only populated by search, and `latestVersion` only by
-search and list responses.
+not-found. A malformed project also returns 502; the per-hit omission described
+above applies only to search. `author` is only populated by search, and
+`latestVersion` only by search and list responses.
 
 ### POST /packs/resolve
 

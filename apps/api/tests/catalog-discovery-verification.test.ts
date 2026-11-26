@@ -20,7 +20,7 @@ function app(responder: (url: URL) => Response | Promise<Response>) {
   return { api: createApp(fetcher, {}), calls };
 }
 
-test("lookup and search share one summary and reject malformed enriched fields", async () => {
+test("lookup and search share one summary and lookup rejects malformed enriched fields", async () => {
   const detail = app(() => Response.json(project));
   const search = app(() => page([hit]));
   const detailResponse = await detail.api.request("/mods/sodium");
@@ -59,23 +59,26 @@ test("each active filter is its own ANDed facet group", async () => {
   ]);
 });
 
-test("search falls back to followers and enforces enriched field bounds", async () => {
+test("search falls back to followers and degrades out-of-bounds enriched fields per hit", async () => {
   const fallback = app(() => page([{ project_id: "main", slug: "main", title: "Main", description: "D", project_type: "mod", followers: 9 }]));
   const body = (await (await fallback.api.request("/mods?gameVersion=1.21.1&loader=fabric")).json()) as { hits: { follows: number }[] };
   expect(body.hits[0]!.follows).toBe(9);
   const base = "https://cdn.modrinth.com/";
-  for (const [extra, status] of [
-    [{ categories: Array.from({ length: 50 }, (_, i) => `c${i}`) }, 200],
-    [{ categories: Array.from({ length: 51 }, (_, i) => `c${i}`) }, 502],
-    [{ author: "a".repeat(64) }, 200],
-    [{ author: "a".repeat(65) }, 502],
-    [{ latest_version: "v".repeat(64) }, 200],
-    [{ latest_version: "v".repeat(65) }, 502],
-    [{ icon_url: base + "i".repeat(475) }, 200],
-    [{ icon_url: base + "i".repeat(476) }, 502],
+  for (const [extra, kept] of [
+    [{ categories: Array.from({ length: 50 }, (_, i) => `c${i}`) }, true],
+    [{ categories: Array.from({ length: 51 }, (_, i) => `c${i}`) }, false],
+    [{ author: "a".repeat(64) }, true],
+    [{ author: "a".repeat(65) }, false],
+    [{ latest_version: "v".repeat(64) }, true],
+    [{ latest_version: "v".repeat(65) }, false],
+    [{ icon_url: base + "i".repeat(475) }, true],
+    [{ icon_url: base + "i".repeat(476) }, false],
   ] as const) {
     const probe = app(() => page([{ project_id: "main", slug: "main", title: "Main", description: "D", project_type: "mod", ...(extra as object) }]));
-    expect([JSON.stringify(extra).slice(0, 40), (await probe.api.request("/mods?gameVersion=1.21.1&loader=fabric")).status]).toEqual([JSON.stringify(extra).slice(0, 40), status]);
+    const response = await probe.api.request("/mods?gameVersion=1.21.1&loader=fabric");
+    expect([JSON.stringify(extra).slice(0, 40), response.status]).toEqual([JSON.stringify(extra).slice(0, 40), 200]);
+    const result = await response.json() as { hits: unknown[] };
+    expect([JSON.stringify(extra).slice(0, 40), result.hits.length]).toEqual([JSON.stringify(extra).slice(0, 40), kept ? 1 : 0]);
   }
 });
 

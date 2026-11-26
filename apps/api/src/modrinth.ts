@@ -158,6 +158,7 @@ export async function search(fetcher: Fetcher, input: URLSearchParams) {
   const sort = input.get("sort") ?? "relevance";
   if (!["relevance", "downloads", "follows", "newest", "updated"].includes(sort)) throw new PackError("Invalid search sort.", 400);
   const categories = [...new Set(input.getAll("category").flatMap((value) => value.split(",")))];
+  if (categories.length > 20) throw new PackError("Invalid search category.", 400);
   for (const category of categories) if (!/^[a-z0-9-]{1,64}$/.test(category)) throw new PackError("Invalid search category.", 400);
   const environment = input.get("environment");
   if (environment !== null && !["client", "server"].includes(environment)) throw new PackError("Invalid search environment.", 400);
@@ -171,7 +172,15 @@ export async function search(fetcher: Fetcher, input: URLSearchParams) {
   const params = new URLSearchParams({ query, offset: String(offset), limit: "20", index: sort, facets: JSON.stringify(facets) });
   const result = await new Catalog(fetcher).get(`/search?${params}`, false);
   if (!object(result) || !Array.isArray(result.hits) || !Number.isSafeInteger(result.total_hits) || Number(result.total_hits) < 0) throw new PackError("Modrinth returned invalid search results.", 502);
-  const hits = result.hits.map((item) => modSummary(item, object(item) ? item.project_id : undefined));
+  const hits: ModSummary[] = [];
+  for (const item of result.hits) {
+    try {
+      hits.push(modSummary(item, object(item) ? item.project_id : undefined));
+    } catch (error) {
+      // A malformed upstream hit must not take down the other valid search results.
+      if (!(error instanceof PackError) || error.status !== 502) throw error;
+    }
+  }
   return { hits, total: result.total_hits, offset };
 }
 type ModSummary = {

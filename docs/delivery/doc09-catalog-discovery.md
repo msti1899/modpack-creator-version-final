@@ -120,6 +120,20 @@ re-run review on this candidate.
 - The branch needs independent verification and a candidate review decision before it
   can be considered for merge. See [the current handoff](../handoff.md).
 
+## Hardening correction, 2026-11-26
+
+The first two review advisories above are addressed for `GET /mods`. Search accepts
+at most 20 distinct category values after duplicates are removed and rejects a
+larger request with 400 before any upstream call. A malformed upstream hit is
+omitted without discarding the other valid hits or changing the upstream `total`.
+The exact lookup route remains fail-closed for its single malformed project.
+
+Verification: RED was observed for the category cap and per-hit degradation before
+implementation. The focused catalog suites then passed 23 tests and 295 assertions.
+`bun run check` passes both application typechecks, lint, 229 API tests with 3403
+assertions, and 81 web tests. No hosted or real-upstream check ran. This correction
+is local and uncommitted; it is not published or merged.
+
 ## References
 
 - [Completion plan, M3](../plans/backend-completion.md)
