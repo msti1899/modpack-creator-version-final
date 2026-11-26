@@ -143,6 +143,15 @@ Playwright browser cache. No system Chrome is installed. In CI the browser job i
 it on every run with `bunx playwright install --with-deps chromium`, so the journeys and
 their axe scans execute on each pull request.
 
+No screenshot baseline is tracked. Playwright captures a screenshot only on failure, and
+the comparison against an approved mockup stays local evidence, as
+[D-F6](../plans/frontend-roadmap.md#dependencies-and-open-decisions) resolves. A committed
+baseline would compare an implementation against an earlier implementation rather than
+against the approved design, and it is only evidence for the rendering environment that
+produced it: this machine and the CI image are not the same distribution, while the type
+stack resolves to the system font. A tracked check, when one is built, generates its
+baselines inside the pinned Playwright container.
+
 ## Lighthouse CI
 
 `apps/web/lighthouserc.cjs` audits the public page at desktop preset and asserts
