@@ -122,6 +122,20 @@ test("category unions within its own facet group and rejects invalid slugs", asy
   }
 });
 
+test("search accepts at most 20 distinct categories before calling upstream", async () => {
+  const categories = Array.from({ length: 20 }, (_, index) => `category-${index}`);
+  const query = categories.map((category) => `category=${category}`).join("&");
+  const { api, calls } = app(searchPage([], 0));
+  const accepted = await api.request(`/mods?gameVersion=1.21.1&loader=fabric&${query}&category=${categories[0]},${categories[1]}`);
+  expect(accepted.status).toBe(200);
+  expect(JSON.parse(calls.at(-1)!.searchParams.get("facets")!)[3]).toHaveLength(20);
+
+  const rejected = await api.request(`/mods?gameVersion=1.21.1&loader=fabric&${query}&category=category-20`);
+  expect(rejected.status).toBe(400);
+  expect(await rejected.json()).toEqual({ error: "Invalid search category." });
+  expect(calls).toHaveLength(1);
+});
+
 test("environment matches mods that run on the selected side", async () => {
   const { api, calls } = app(searchPage([hit("main")], 1));
   const base = "/mods?gameVersion=1.21.1&loader=fabric";
@@ -199,14 +213,18 @@ test("hits carry the enriched summary and normalize absent fields", async () => 
   });
 });
 
-test("malformed summary fields are rejected instead of forwarded", async () => {
+test("search omits only hits with malformed summary fields", async () => {
   for (const extra of [
     { downloads: -1 }, { downloads: 1.5 }, { follows: "many" }, { author: 5 }, { author: "a".repeat(65) },
     { icon_url: "http://example.test/icon.png" }, { icon_url: 5 }, { categories: ["ok", 5] },
     { categories: Array(51).fill("ok") }, { client_side: "sometimes" }, { latest_version: "x".repeat(65) },
   ]) {
-    const { api } = app(searchPage([hit("main", extra)], 1));
-    expect([JSON.stringify(extra), (await api.request("/mods?gameVersion=1.21.1&loader=fabric")).status]).toEqual([JSON.stringify(extra), 502]);
+    const { api } = app(searchPage([hit("first"), hit("broken", extra), hit("last")], 3));
+    const response = await api.request("/mods?gameVersion=1.21.1&loader=fabric");
+    expect([JSON.stringify(extra), response.status]).toEqual([JSON.stringify(extra), 200]);
+    const body = await response.json() as { hits: { projectId: string }[]; total: number; offset: number };
+    expect(body.hits.map((item) => item.projectId)).toEqual(["first", "last"]);
+    expect(body).toMatchObject({ total: 3, offset: 0 });
   }
 });
 
@@ -250,14 +268,18 @@ test("the exact lookup route accepts no query parameters", async () => {
   expect(calls).toHaveLength(0);
 });
 
-test("malformed hits are rejected instead of being forwarded", async () => {
+test("search omits malformed hits instead of failing the whole page", async () => {
   for (const malformed of [
-    hit("main", { project_type: "resourcepack" }),
-    hit("main", { slug: undefined }),
-    hit("main", { title: 1 }),
-    { project_id: "main", title: "Main", description: "No slug", project_type: "mod" },
+    hit("broken", { project_type: "resourcepack" }),
+    hit("broken", { slug: undefined }),
+    hit("broken", { title: 1 }),
+    { project_id: "broken", title: "Broken", description: "No slug", project_type: "mod" },
   ]) {
-    const { api } = app(searchPage([malformed], 1));
-    expect((await api.request("/mods?gameVersion=1.21.1&loader=fabric")).status).toBe(502);
+    const { api } = app(searchPage([hit("first"), malformed, hit("last")], 3));
+    const response = await api.request("/mods?gameVersion=1.21.1&loader=fabric");
+    expect(response.status).toBe(200);
+    const body = await response.json() as { hits: { projectId: string }[]; total: number; offset: number };
+    expect(body.hits.map((item) => item.projectId)).toEqual(["first", "last"]);
+    expect(body).toMatchObject({ total: 3, offset: 0 });
   }
 });

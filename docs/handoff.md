@@ -94,6 +94,17 @@ Still unproven after the local database work:
   by unit tests with the provider mocked rather than by a killed authenticated run. The
   review advisories that harden it are #141.
 
+## Catalog search hardening
+
+Issue #108 is delivered through [PR #145](https://github.com/msti1899/modpack-creator-version-final/pull/145):
+`GET /mods` accepts at most 20 distinct categories and omits only malformed upstream
+hits, while exact lookup remains fail-closed. The API reference and
+[doc09](delivery/doc09-catalog-discovery.md) record the behavior and proof. Focused
+verification passed 23 tests and 295 assertions; `bun run check` passed both
+typechecks, lint, 229 API tests with 3403 assertions and 92 web tests. Native
+assessment was medium and under budget. No hosted or real-upstream check ran. The
+required checks and the merge commit are recorded in the issue #108 closure comment.
+
 ## Next action
 
 Finish the F1 design review with the confirmed group and role rules; specify the
