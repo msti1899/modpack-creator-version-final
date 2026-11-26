@@ -1,9 +1,9 @@
 # Current handoff
 
-Checkpoint: 2026-11-26. `main` at `e979318` (merge of #140). The merged milestones and
-backend completion slices are recorded in [the delivery index](delivery/README.md); each
-record owns its own proof and gaps. Verify the branch and HEAD against this snapshot
-before resuming. This is a resume point, not a session history: per-delivery
+Checkpoint: 2026-11-26. `main` at `e979318` (merge of #140), plus the documentation commit
+that contains this file. The merged milestones and backend completion slices are recorded in
+[the delivery index](delivery/README.md); each record owns its own proof and gaps. Verify the
+branch and HEAD against this snapshot before resuming. This is a resume point, not a session history: per-delivery
 narratives from milestone 6 to the 2026-11-17 product-scope clarification are in
 [the handoff history](handoff-history-2026-11-17.md), and earlier sessions are in
 [the history through 2026-11-12](handoff-history-2026-11-12.md).
