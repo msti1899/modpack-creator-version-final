@@ -1,7 +1,7 @@
 # Current handoff
 
-Checkpoint: 2026-11-18. `main` at `f5aca61`, plus the documentation commit that
-contains this file. The merged milestones and backend
+Checkpoint: 2026-11-25. `main` at `691d84d`, plus the uncommitted work described under
+Delivery state on branch `short-chicken`. The merged milestones and backend
 completion slices are recorded in [the delivery index](delivery/README.md); each
 record owns its own proof and gaps. Verify the branch and HEAD against this snapshot
 before resuming. This is a resume point, not a session history: per-delivery
@@ -61,6 +61,13 @@ migration is applied locally only.
 - Hosted: the migrations recorded through the account-deletion slices ([doc16](delivery/doc16-account-deletion.md),
   [doc17](delivery/doc17-account-reconciliation.md)) are applied to the selected test
   project. No deployment is recorded and service liveness is not verified here.
+- Committed on branch `short-chicken` as `6e728a5`: [doc27](delivery/doc27-authenticated-e2e.md)
+  and its [ADR0007](decisions/0007-authenticated-e2e-account.md) give the browser suite a real
+  signed-in session through one throwaway account per run, created and deleted locally. The
+  public suite passes 29 tests and the authenticated mode passes 2 in the worktree. The
+  native candidate review approved the slice with twelve advisory findings
+  (`review-e67aacdc103e273d`); the advisories are follow-up work. The change is not pushed or
+  merged.
 
 ## Missing proof
 
@@ -83,11 +90,16 @@ Still unproven after the local database work:
   stopped after three of four lenses with no receipt.
 - Full Google/Discord OAuth completion and real email delivery, which need provider
   accounts rather than code.
+- The authenticated browser suite ([doc27](delivery/doc27-authenticated-e2e.md)) runs
+  locally and on demand only. It is not a CI gate, no writing journey yet proves its own
+  database cleanup, and the recovery paths after a failed or interrupted deletion are pinned
+  by unit tests with the provider mocked rather than by a killed authenticated run.
 
 ## Next action
 
-Finish the F1 design review with the confirmed group and role rules; specify the
-pending-proposal backend extension separately before implementation.
+Review and merge the doc27 slice, then finish the F1 design review with the confirmed group
+and role rules; specify the pending-proposal backend extension separately before
+implementation.
 
 ## Resume
 
@@ -102,6 +114,9 @@ pending-proposal backend extension separately before implementation.
    runs pgTAP, `bun run db:test:upgrade` runs the disposable upgrade regression, and
    `bun run db:test:concurrency` plus `bun run db:test:postgrest` need the `docker` group,
    so run them through a shell that carries it. `bun run check` still needs no Docker.
+   `bun run test:e2e:auth` runs the authenticated browser journeys: it needs both `.env`
+   files, port 3000 free, and the test instance, and it creates and deletes one account per
+   run ([doc27](delivery/doc27-authenticated-e2e.md)).
 4. A browser check of the web app must use `http://localhost:3000`. Next 16 blocks its
    development resources for `127.0.0.1`, which leaves the page unhydrated with inert
    controls and a Clerk instance that never loads. That artifact produced and later

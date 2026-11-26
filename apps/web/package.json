@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:auth": "PLAYWRIGHT_AUTH=1 playwright test",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
@@ -31,6 +32,8 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
+    "@clerk/backend": "3.26.6",
+    "@clerk/testing": "2.3.8",
     "@lhci/cli": "0.16.1",
     "@playwright/test": "1.65.0",
     "@tailwindcss/postcss": "4.3.4",

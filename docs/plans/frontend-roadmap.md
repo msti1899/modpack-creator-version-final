@@ -139,8 +139,10 @@ implementation specification before that backend extension can start.
 Cross-cutting acceptance applies to every milestone rather than forming its own: the
 surface is keyboard reachable with visible focus and passes axe-core; each interactive
 journey has a Playwright test, and component logic has a Vitest test; authenticated
-journeys need a test account, which this environment does not have yet; and the
-implemented screen is compared against the approved mockup at desktop and narrow widths.
+journeys reuse the throwaway account the suite creates per run
+([ADR0007](../decisions/0007-authenticated-e2e-account.md)), which runs locally and is not
+a CI gate; and the implemented screen is compared against the approved mockup at desktop
+and narrow widths.
 
 ## Dependencies and open decisions
 
@@ -190,10 +192,24 @@ Resolve a choice before implementing behavior that depends on it.
     the dialog approved.
   - The dialog is keyboard reachable, keeps focus inside while open, closes on Escape
     without adding, and passes axe-core like every other surface.
-- **D-F5. Authenticated test account.** Playwright runs with provider credentials cleared
-  because no test account exists, so no authenticated journey is covered today. A
-  configured test instance and a dedicated account are prerequisites for F2 onward being
-  verified rather than only reviewed.
+- **D-F5. Authenticated test account.** Resolved on 2026-11-25 in
+  [ADR0007](../decisions/0007-authenticated-e2e-account.md). Playwright ran with provider
+  credentials cleared because no test account existed, so no authenticated journey was
+  covered.
+  - Each authenticated run creates one throwaway `+clerk_test` account through the Clerk
+    Backend API, signs in through the provider's testing helper, and deletes the account at
+    the end of the run. No credential is stored, shared or committed, and no account is
+    created by hand.
+  - The suite runs locally and on demand against a Clerk development instance, a locally
+    running API and the selected test database. It refuses production keys and never runs
+    against production.
+  - It is not a CI gate. The public suite keeps running in CI with the provider credentials
+    cleared; authenticated coverage in CI needs a deployed API and a separate decision.
+  - A journey that writes to the database must delete what it wrote, because provider-side
+    deletion does not reconcile application rows without a public webhook endpoint.
+  - Evidence: [doc27](../delivery/doc27-authenticated-e2e.md). Every journey from F1 onward
+    can now be verified with a real session; the design round each screen still needs is
+    unchanged.
 - **D-F6. Visual regression baseline.** The design workflow compares implementation
   against the approved mockup manually. Decide whether those comparisons stay local
   evidence or become a tracked check, before announcing a screen as visually verified.
@@ -212,6 +228,10 @@ and on the group-summary read that D-F2 requires.
 
 ## Change log
 
+- 2026-11-25: Resolved D-F5. The browser suite gets a real session through one throwaway
+  account created and deleted per run, on demand and locally, and never through a stored
+  credential or a CI secret. Authenticated journeys can now be verified; CI coverage of them
+  waits on a deployed API.
 - 2026-11-17: Clarified the F1 signed-out journey: the current page remains visible
   with a contextual prompt, and only the sign-in action opens the sign-in page.
   Private data stays hidden and returning to the intended route remains required.

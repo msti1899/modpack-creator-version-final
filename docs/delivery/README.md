@@ -38,6 +38,7 @@ For the latest state and next action, use the [current handoff](../handoff.md).
 | [doc24: Loader builds for export and publication](doc24-loader-builds.md) | 2026-11-16 | Discover the loader build a pack must declare from each loader's own metadata, with a recorded per-loader mapping, a null recommendation when nothing is stable, one cached entry per pair and manual entry still valid. |
 | [doc25: Trustworthy database and integration CI](doc25-database-ci.md) | 2026-11-16 | Run the pgTAP, concurrency and PostgREST suites in CI against a disposable stack, fail a race that never overlapped, give every fixture a per-run token, fail on cleanup leftovers, and report one TAP result per check in the three suites that reported one per file. |
 | [doc26: Group summary for link-only discovery](doc26-group-summary.md) | 2026-11-16 | Add a public-safe group summary by identifier for the link-only join screen, keep private groups invisible to outsiders and never expose the member list. |
+| [doc27: Authenticated Playwright suite](doc27-authenticated-e2e.md) | 2026-11-25 | Give the browser suite a real signed-in session on demand and locally, with one throwaway Clerk account created and deleted per run and no stored test credential; keeps CI on the public journeys. |
 
 ## Add the next record
 

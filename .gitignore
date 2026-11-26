@@ -11,5 +11,7 @@ coverage/
 .lighthouseci/
 playwright-report/
 test-results/
+# Signed-in state and the throwaway account record of an authenticated Playwright run
+apps/web/e2e/.auth/
 # Local AI runtime state
 .atl/

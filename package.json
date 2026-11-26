@@ -28,7 +28,8 @@
     "db:test:concurrency": "bun scripts/test-concurrency.ts",
     "db:test:postgrest": "bun scripts/test-postgrest.ts",
     "test:web": "bun run --filter @modpack/web test",
-    "test:e2e": "bun run --filter @modpack/web test:e2e"
+    "test:e2e": "bun run --filter @modpack/web test:e2e",
+    "test:e2e:auth": "bun run --filter @modpack/web test:e2e:auth"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.8",

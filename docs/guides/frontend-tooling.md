@@ -54,6 +54,7 @@ Two runners are intentional and the boundary is enforced by configuration:
 | `apps/api`, root `tests/`, `scripts/tests/`, `apps/web/tests/*.test.ts(x)` | `bun test` | `bun run test` |
 | `apps/web` component and hook tests (`tests/ui`, `tests/lib`) | Vitest + React Testing Library | `bun run test:web` |
 | `apps/web` browser tests (`e2e`) | Playwright | `bun run test:e2e` |
+| `apps/web` authenticated browser journeys (`e2e/authenticated`) | Playwright with `@clerk/testing` | `bun run test:e2e:auth` |
 
 `apps/web/tests/*.test.ts(x)` stay on `bun:test`. Their assertions depend on
 Bun-native globals: one test spawns a fixture with `Bun.spawnSync`, and another
@@ -126,8 +127,16 @@ the same configuration the Backend CI build gate uses. The original reason was a
 defect: with a configured Clerk instance every routed request re-entered the proxy
 until the 30 second proxy timeout and answered `500`. That loop is fixed in
 [doc14](../delivery/doc14-clerk-proxy-loop.md); the credentials stay cleared because
-no test account or session is available to this environment. Authenticated journeys
-still need a Clerk test instance and are not covered by e2e yet.
+the public journeys need no account, and clearing them keeps CI free of provider
+secrets even when a developer has an `apps/web/.env`.
+
+`bun run test:e2e:auth` is the second mode. It creates one throwaway `+clerk_test`
+account in a Clerk development instance, signs in through `@clerk/testing`, runs the
+journeys under `apps/web/e2e/authenticated`, and deletes the account afterwards. It
+also starts the API, because those journeys reach it. It is owner-run and local: it is
+not a CI gate and it is not part of `bun run test:e2e`. Decision and guards in
+[ADR0007](../decisions/0007-authenticated-e2e-account.md), evidence in
+[doc27](../delivery/doc27-authenticated-e2e.md).
 
 Chromium was installed once with `bunx playwright install chromium` into the
 Playwright browser cache. No system Chrome is installed. In CI the browser job installs
@@ -157,7 +166,8 @@ accessibility 100, best practices 96, SEO 100.
 | `bun run lint:fix` | Biome with the automatic fixes applied, local use only |
 | `bun run test` | Bun suites only |
 | `bun run test:web` | Vitest suites only |
-| `bun run test:e2e` | Playwright plus axe-core, from `apps/web` |
+| `bun run test:e2e` | Playwright plus axe-core, from `apps/web`, provider credentials cleared |
+| `bun run test:e2e:auth` | The authenticated journeys: creates and deletes one throwaway account, local and on demand |
 | `bun run --filter @modpack/web audit` | Keyless build, then Lighthouse CI |
 | `bun run --filter @modpack/web build:public` | Build without provider credentials |
 
