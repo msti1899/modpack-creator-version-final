@@ -1,8 +1,7 @@
 # Current handoff
 
-Checkpoint: 2026-11-25. `main` at `691d84d`, plus the uncommitted work described under
-Delivery state on branch `short-chicken`. The merged milestones and backend
-completion slices are recorded in [the delivery index](delivery/README.md); each
+Checkpoint: 2026-11-26. `main` at `e979318` (merge of #140). The merged milestones and
+backend completion slices are recorded in [the delivery index](delivery/README.md); each
 record owns its own proof and gaps. Verify the branch and HEAD against this snapshot
 before resuming. This is a resume point, not a session history: per-delivery
 narratives from milestone 6 to the 2026-11-17 product-scope clarification are in
@@ -61,13 +60,12 @@ migration is applied locally only.
 - Hosted: the migrations recorded through the account-deletion slices ([doc16](delivery/doc16-account-deletion.md),
   [doc17](delivery/doc17-account-reconciliation.md)) are applied to the selected test
   project. No deployment is recorded and service liveness is not verified here.
-- Committed on branch `short-chicken` as `6e728a5`: [doc27](delivery/doc27-authenticated-e2e.md)
-  and its [ADR0007](decisions/0007-authenticated-e2e-account.md) give the browser suite a real
+- Merged as `e979318` (#140): [doc27](delivery/doc27-authenticated-e2e.md) and its
+  [ADR0007](decisions/0007-authenticated-e2e-account.md) give the browser suite a real
   signed-in session through one throwaway account per run, created and deleted locally. The
-  public suite passes 29 tests and the authenticated mode passes 2 in the worktree. The
-  native candidate review approved the slice with twelve advisory findings
-  (`review-e67aacdc103e273d`); the advisories are follow-up work. The change is not pushed or
-  merged.
+  public suite passes 29 tests and the authenticated mode passes 2. The native candidate
+  review approved the slice with twelve advisory findings (`review-e67aacdc103e273d`),
+  tracked as #141.
 
 ## Missing proof
 
@@ -93,13 +91,13 @@ Still unproven after the local database work:
 - The authenticated browser suite ([doc27](delivery/doc27-authenticated-e2e.md)) runs
   locally and on demand only. It is not a CI gate, no writing journey yet proves its own
   database cleanup, and the recovery paths after a failed or interrupted deletion are pinned
-  by unit tests with the provider mocked rather than by a killed authenticated run.
+  by unit tests with the provider mocked rather than by a killed authenticated run. The
+  review advisories that harden it are #141.
 
 ## Next action
 
-Review and merge the doc27 slice, then finish the F1 design review with the confirmed group
-and role rules; specify the pending-proposal backend extension separately before
-implementation.
+Finish the F1 design review with the confirmed group and role rules; specify the
+pending-proposal backend extension separately before implementation.
 
 ## Resume
 

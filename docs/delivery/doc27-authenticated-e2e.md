@@ -4,8 +4,8 @@
 - Scope: Give the browser suite a real signed-in session, on demand and locally, with one
   account created and deleted per run. No deployment, no CI secret, no product screen, no
   API behavior and no database change.
-- State: Implemented and checked locally in `6e728a5`. Not reviewed, not pushed, not merged
-  when this record was written. No hosted change was made beyond creating and deleting the
+- State: Implemented in `6e728a5`, reviewed and approved, and merged in #140 as `e979318`.
+  No hosted change was made beyond creating and deleting the
   test accounts of the runs described below.
 - Outcome: An authenticated journey can be verified against a real Clerk session instead of
   only reviewed, without storing any test credential anywhere.
@@ -98,12 +98,11 @@ duration of the run, the configured Clerk development instance, a local API on
 
 ## Remaining work
 
-- Move the board item to its accepted state and record the closing commit once the change is
-  reviewed and merged.
 - The first writing journey (profile completion, F2) must bring its own database cleanup and
   prove it.
 - CI coverage of authenticated journeys stays with the Operations milestone: it needs a
   deployed API and a decision about provider state in CI.
+- The review advisories are #141.
 - The current handoff is the place to resume from: [handoff](../handoff.md).
 
 ## Correction, 2026-11-25
@@ -115,8 +114,11 @@ advisory and non-blocking, and the authority burned on the approved receipt. The
 are test-harness hardening, not product behavior: they name test isolation in the shared
 `.auth` directory, a recorded deletion that does not re-check the test-owned marker, a
 partial-credential teardown path, the sweep's page cap, and the local env loader's parity
-with Next. They are follow-up work and do not change this record's outcome. The change is
-still not pushed or merged.
+with Next. They are follow-up work and do not change this record's outcome.
+
+The slice was published as #140 and merged as `e979318` on 2026-11-26, after Database,
+Backend, Browser journeys and Web checks passed. The advisories are tracked in #141; they
+are not acceptance criteria for this record.
 
 ## References
 
