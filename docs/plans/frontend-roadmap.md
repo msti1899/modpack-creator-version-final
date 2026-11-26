@@ -142,7 +142,8 @@ journey has a Playwright test, and component logic has a Vitest test; authentica
 journeys reuse the throwaway account the suite creates per run
 ([ADR0007](../decisions/0007-authenticated-e2e-account.md)), which runs locally and is not
 a CI gate; and the implemented screen is compared against the approved mockup at desktop
-and narrow widths.
+and narrow widths, with that comparison recorded as
+[D-F6](#dependencies-and-open-decisions) requires.
 
 ## Dependencies and open decisions
 
@@ -210,9 +211,25 @@ Resolve a choice before implementing behavior that depends on it.
   - Evidence: [doc27](../delivery/doc27-authenticated-e2e.md). Every journey from F1 onward
     can now be verified with a real session; the design round each screen still needs is
     unchanged.
-- **D-F6. Visual regression baseline.** The design workflow compares implementation
-  against the approved mockup manually. Decide whether those comparisons stay local
-  evidence or become a tracked check, before announcing a screen as visually verified.
+- **D-F6. Visual regression baseline.** Resolved on 2026-11-26: the comparison against the
+  approved mockup stays local evidence and no screenshot baseline is committed. The mockup
+  lives outside the repository, so a committed baseline could only compare an implementation
+  against an earlier implementation. That detects drift; it cannot assert parity with the
+  approved design, and the design gate already refuses a visual change that has no new
+  round. A tracked check would therefore guard a failure the gate exists to prevent, at the
+  cost of one baseline per viewport and theme, regenerated for every approved round.
+  - A screen is announced as visually verified only when its delivery record names the
+    approved round, every viewport compared, the themes compared, the date of the comparison
+    and each accepted difference with its reason. [doc18](../delivery/doc18-mod-browser.md)
+    is the reference form.
+  - Mockups, approvals and screenshots stay local and never enter a commit, following the
+    rule the [mod browser task](../../odd/tasks/mod-browser.md) already set.
+  - A tracked check is built when one of two conditions appears, not before: a shipped screen
+    changes visually without a new round and only a screenshot would have shown it, or a
+    second surface reuses the shell's layout so one change can drift several screens at once.
+    Both require baselines generated inside the pinned Playwright container, because the type
+    stack resolves to the system font and the local machine is not the CI image; the
+    regeneration ceremony is approved together with the check.
 
 ## Next action
 
@@ -224,10 +241,17 @@ and F5 reads its settings from the delivered list rather than from a hardcoded d
 still blocks that path is not a documentation gap: the detail surface and the pack screen
 have no design round. All three read contracts ADR0006 names are merged, so the API no longer
 blocks F4, F5 or F6. F2 needs no open decision, and F3 now waits only on its design round
-and on the group-summary read that D-F2 requires.
+and on the group-summary read that D-F2 requires. D-F6 was resolved on 2026-11-26, so the
+visual-verification claim now carries a recorded evidence requirement instead of an open
+question; it adds no work to the current path.
 
 ## Change log
 
+- 2026-11-26: Resolved D-F6 in favour of local evidence. The comparison against the
+  approved mockup is recorded per screen with its round, viewports, themes, date and
+  accepted differences, and no screenshot baseline enters the repository. The two
+  conditions that reopen the decision are named with the container-generated baselines
+  they would require.
 - 2026-11-25: Resolved D-F5. The browser suite gets a real session through one throwaway
   account created and deleted per run, on demand and locally, and never through a stored
   credential or a CI secret. Authenticated journeys can now be verified; CI coverage of them
