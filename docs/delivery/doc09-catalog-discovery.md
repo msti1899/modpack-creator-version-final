@@ -131,8 +131,11 @@ The exact lookup route remains fail-closed for its single malformed project.
 Verification: RED was observed for the category cap and per-hit degradation before
 implementation. The focused catalog suites then passed 23 tests and 295 assertions.
 `bun run check` passes both application typechecks, lint, 229 API tests with 3403
-assertions, and 81 web tests. No hosted or real-upstream check ran. This correction
-is local and uncommitted; it is not published or merged.
+assertions, and 92 web tests. No hosted or real-upstream check ran.
+
+Delivery: [PR #145](https://github.com/msti1899/modpack-creator-version-final/pull/145).
+The required checks and the merge commit are recorded in the issue #108 closure
+comment.
 
 ## References
 
